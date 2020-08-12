@@ -17,7 +17,7 @@ router.get('/list', function(req, res, next) {
     GroupMember.find({},(err,resu)=>{
      if(resu){console.log(resu)}
      res.send(resu);
-   });
+   })
  
    }); 
  });
