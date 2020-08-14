@@ -5,6 +5,7 @@ var logger = require('morgan');
 const bodyParser = require("body-parser");
 var mongoose = require("mongoose");
 var cors = require('cors');
+_ = require("lodash");
 var app = express(),
 PORT = 4000;
 
@@ -47,11 +48,11 @@ UserSchema = mongoose.Schema({
     password:String,
     status:Boolean
   });
-GroupSchema = mongoose.Schema({
+IPLGroupSchema = mongoose.Schema({
     gid:Number,
-    name:String,
-    owner:String,
-    maxBidAmount:String
+    nameName:String,
+    owner:Number,
+    maxBidAmount:Number
 });
 PlayerSchema = mongoose.Schema({
     pid:Number,
@@ -107,7 +108,7 @@ PlayerStatSchema = mongoose.Schema({
 User = mongoose.model("users", UserSchema);
 Player = mongoose.model("iplplayers", PlayerSchema);
 Auction = mongoose.model("iplauction", AuctionSchema);
-Group = mongoose.model("iplgroup", GroupSchema);
+IPLGroup = mongoose.model("iplgroups", IPLGroupSchema); //mongoose.model("junk", GroupSchema);
 GroupMember = mongoose.model("groupmembers", GroupMemberSchema);
 Team = mongoose.model("iplteams", TeamSchema);
 Match = mongoose.model("iplmatches", MatchSchema);
