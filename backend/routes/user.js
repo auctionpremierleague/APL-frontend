@@ -1,212 +1,331 @@
-var express = require('express');
-var router = express.Router();
-var mongoose = require("mongoose");
-//const { enabled } = require('debug');
-//var maxOptions = { "sort": [['uid',-1]] };
+const { route } = require(".");
+router = express.Router();
+
 const allUSER = 99999999;
+const is_Captain = true;
+const is_ViceCaptain = false;
+let CricRes;
 
 /* GET all users listing. */
-router.use('/', function(req, res, next) {
-res.header("Access-Control-Allow-Origin", "*");
+router.get('/', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  if (req.url == '/') req.url = '/group/0';
-  //console.log(req.url);
-  next('route');
-});
+  CricRes = res;
+  if (!db_connection) { senderr(ERR_NODB); return; }
+
+  if (req.url == "/")
+    publish_users({});
+  else
+    next('route');
+
+
+  });
+
 
 // get all user of group
-router.get('/group', function(req, res, next) {
-  req.url = '/group/1';
-  next('route');
+router.get('/group', async function(req, res, next) {
+  CricRes = res;
+  showGroupMembers(1);
 });
 
 // get users belonging to group "mygroup"
-router.get('/group/:mygroup', function(req, res, next) {
-  var {mygroup}=req.params;
-  var igroup = parseInt(mygroup);
-  if (isNaN(igroup)) { res.status(400).send("Invalid group number"); return; }
-  console.log(mygroup);
-  
-  if (igroup == 0) { publish_users(res, {}); return; }
-  else {
-    // publish users which beling to group "igroup"
-    mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {    
-      GroupMember.find({gid:igroup}, (err, gmlist) => {
-        //console.log(gmlist.length);
-        var myuid = [];
-        gmlist.forEach(gm_element => { 
-          //console.log(gm_element);
-          myuid.push(gm_element.uid) 
-        });
-        //console.log(myuid);
-        let filter = { uid: { $in: myuid } };
-        publish_users(res, filter);
-      });
-    });
-  }
+router.get('/group/:mygroup', async function(req, res, next) {
+  CricRes = res;
+  var {mygroup} = req.params;
+
+  // currently only Group 1 supported.
+  if (mygroup != "1") {senderr("Invalid group number"); return;}
+  showGroupMembers(1);
+
 });
 
-/// for signup, login and reset
-router.get('/:userAction/:userName/:password', function(req, res, next) {
-  // Confirm if user if valid user
-  // And also password is correct
-  console.log("User Action " + userAction);
-  var {userAction,userName,password}=req.params;
+//=============== SIGNUP
+router.get('/signup/:userName/:userParam', function(req, res, next) {
+  req.url = "/internal" + req.url;
+  next('route');
+});
+
+//=============== RESET
+router.get('/reset/:userName/:userParam', function(req, res, next) {
+  req.url = "/internal" + req.url;
+  next('route');
+});
+
+//=============== LOGIN
+router.get('/login/:userName/:userParam', function(req, res, next) {
+  req.url = "/internal" + req.url;
+  next('route');
+});
+
+
+//==================== internally called for signup, login and reset
+router.get('/internal/:userAction/:userName/:userParam', function(req, res, next) {
+  CricRes = res;
+  var {userAction,userName,userParam}=req.params;
   userAction = userAction.toLowerCase();
   userName = userName.toLowerCase().replace(/\s/g, "");
+  //if (!db_connection) return;
 
-  
-  mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {
-      //console.log("MongoDB database connection established successfully");
-    let User;
-
-    // compile schema to model
-    try{ User = mongoose.model("users", UserSchema);}
-    catch(err){
-      User=mongoose.model("users")
-    }
-
-    User.findOne({userName},(err,resu)=>{
-      switch(userAction)
-      {
+  User.findOne({userName}, function(err, urec) {
+    if (err)
+      senderr(err);
+    else {
+      switch (userAction) {
         case "login":
-          if ((resu != null) && (resu.password == password))
-            sendok(res, "login success");
+          if ((urec) && (urec.password == userParam))
+            sendok("Successful login by user " + userName + " in CricDream");
           else
-            senderr(res, "Incorrect User Name or Password");
+            senderr("Invalid User name or password");
+          break;
+        case "reset":
+          if (urec) {
+            urec.password = userParam;
+            urec.save(function(err) {
+              //console.log(err);
+              if (err)  senderr("Could not reset password");
+              else      sendok("Password updated for user " + userName);
+            });
+          } else
+            senderr("Invalid User name or password");
+          break;
+        case "setdisplay":
+          if (urec) {
+            console.log(urec);
+            urec.displayName = userParam;
+            urec.save(function(err) {
+              //console.log(err);
+              if (err)  senderr("Could not update display name");
+              else      sendok("Display Name updated for user " + userName);
+            });
+          } else
+            senderr("Invalid User name or password");
           break;
         case "signup":
-          if(resu)
-            senderr(res, "User " + userName + " already exists");
-          else {
-            var uid=0;
-            var query = User.find();
-            query.limit(1);
-            query.sort({"uid":-1})
-            query.limit(1).sort({"uid":-1}).exec(function (err, doc) {
+          if (!urec)
+          {
+            User.find().limit(1).sort({"uid":-1}).exec(function (err, doc) {
               if (err) senderr(res, err);
               else
               {
-                uid = doc[0].uid + 1;
                 var user1 = new User({ 
-                uid: uid,
+                uid: doc[0].uid + 1,
                 userName: userName,
-                password: password,
+                displayName: userName,
+                password: userParam,
                 status: true });
-                console.log(user1);
-                //User.insertMany(user1);
                 user1.save(function(err) {
-                  if (err) senderr(res, "Could add new record");
-                  else sendok(res, "Added new user " + user1.userName);
+                  if (err)
+                    senderr("Unable to add new User record");
+                  else 
+                    sendok("Welcome to CricDream " + user1.userName);
                 });
-              };
+              }
             });
-          }
+          } else
+            senderr("User already configured in CricDream");
           break;
-        case "reset":
-          if(resu){
-            resu.password = password;
-            resu.save(function(err) {
-              console.log(err);
-              if (err) senderr(res, "Could not reset password");
-              else sendok(res,"Password updated for user " + userName);
-            });
-          }
-          else 
-            senderr(res, "Invalid user");
-          break;
-        default:
-          senderr(res, "Invalid User Option");
-          break;
-      }
-    });
+      } // end of switch
+    }
   });
 });
 
+// select caption for the user (currently only group 1 supported by default)
+router.get('/captain/:myuser/:myplayer', function(req,  res, next) {
+  CricRes = res;
+  if (ipl_started())
+  {
+    senderr("IPL has started!!!! Cannot set Captain");
+    return;
+  }
+  var {myuser, myplayer} = req.params;
+  var iuser = parseInt(myuser);
+  var iplayer = parseInt(myplayer);
+  var igroup = 1;
+
+  if (isNaN(iuser)) { senderr("Invalid user"); return; }
+  if (isNaN(iplayer)) { senderr("Invalid player"); return; }
+
+  Auction.find({gid: igroup, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
+    if (err)
+      senderr(err);
+    else if (count == 0)
+      senderr("Player " + iplayer + " not purchased by user " + iuser);
+    else {
+      updateCaptainOrVicecaptain(iuser, iplayer, is_Captain);
+    }
+  });
+});
+
+// select vice caption for the user (currently only group 1 supported by default)
+router.get('/vicecaptain/:myuser/:myplayer', function(req,  res, next) {
+  CricRes = res;
+  if (ipl_started())
+  {
+    senderr("IPL has started!!!! Cannot set Vice Captain");
+    return;
+  }
+  var {myuser, myplayer} = req.params;
+  var iuser = parseInt(myuser);
+  var iplayer = parseInt(myplayer);
+
+  if (isNaN(iuser)) { senderr("Invalid user"); return; }
+  if (isNaN(iplayer)) { senderr("Invalid player"); return; }
+  var igroup = 1;
+  Auction.find({gid: igroup, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
+    if (err)
+      senderr(err);
+    else if (count == 0)
+      senderr("Player " + iplayer + " not purchased by user " + iuser);
+    else {
+      // user has purchased this player. User is eligible to set this player as vice captain
+      updateCaptainOrVicecaptain(iuser, iplayer, is_ViceCaptain);
+    }
+  });
+});
 
 // get users balance
 // only group 1 supported which is default group
 router.get('/balance/:myuser', function(req, res, next) {
+  CricRes = res;
   var {myuser} = req.params;
   var iuser = parseInt(myuser);
   var igroup = 1;
-  if (isNaN(iuser)) { res.status(400).send("Invalid user " + myuser); return; }
+  if (isNaN(iuser)) { senderr("Invalid user " + myuser); return; }
 
-  mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {    
-    GroupMember.find({gid: igroup, uid: iuser}).countDocuments(function(err, count) {
-      if (err) { senderr(res, err); return; }
-      else if (count != 1) { senderr(res, "User does not belog to group 1"); return; }
-      else {
-        Auction.find({gid:igroup, uid: iuser}, (err, alist) => {
-          //console.log(gmlist.length);
-          var sum = 0;
-          alist.forEach(a_element => { 
-            //console.log(a_element);
-            sum = sum + a_element.bidAmount;
-          });
-          //console.log(sum);
-          res.send((1000 - sum).toString());
-        });
-      }
-    });
+  //mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {    
+  GroupMember.find({gid: igroup, uid: iuser}).countDocuments(function(err, count) {
+    if (err) 
+      senderr(err); 
+    else if (count != 1)
+    { 
+      senderr("User does not belog to group 1"); 
+    }else{
+      Auction.find({gid:igroup, uid: iuser}, (err, alist) => {
+        var mybal = 1000 - _.sumBy(alist, 'bidAmount'); //alist.reduce((a, {bidAmount}) => a + bidAmount, 0);
+        sendok(mybal.toString());
+      });
+    }
   });
 });
 
 router.get('/myteam', function(req, res, next) {
-  req.url = '/myteam/' + allUSER;
-  next('route');
+  CricRes = res;
+  publish_auctionedplayers(allUSER);
 });
 
 // get players purchased by me.
 // currently only group 1 supported
 router.get('/myteam/:userid', function(req, res, next) {
-var {userid} = req.params;
-let igroup = 1;   // default group 1
-let iuser = (userid.toUpperCase() != "ALL") ? parseInt(userid) : allUSER;
-if (isNaN(iuser)) { res.status(400).send("Invalid user " + userid); return; }
+  CricRes = res;
+  var {userid} = req.params;
+  let igroup = 1;   // default group 1
+  let iuser = (userid.toUpperCase() != "ALL") ? parseInt(userid) : allUSER;
+  if (isNaN(iuser))
+    senderr(`Invalid user ${userid}`);
+  else
+    publish_auctionedplayers(iuser);
 
-mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {    
-  Auction.find({gid: igroup}, (err, datalist) => {    
-    if (!datalist) { res.status(400).send(err); return; }
-
-    // filter if players of only given user is required. 0 means players of ALL users
-    if (iuser !=  allUSER)
-      datalist = _.filter(datalist, (e) => e.uid === iuser);
-
-    // make grouping of players per user
-    var grupdatalist = _.reduce(datalist, (result, user) => {
-      (result[user.uid] || (result[user.uid] = [])).push(user);
-      return result;
-    }, {});
-    //let keys = _.keys(grupdatalist);
-    //console.log(keys);
-    res.send(grupdatalist);
-  });
-});
 });
 
-function publish_users(res, filter_users)
+function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
 {
-  //console.log(filter_users);
-  mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {
-    User.find(filter_users,(err,ulist) =>{
-      if(!ulist){ res.status(400).send("Unable to fetch users from database"); return; }
-      else {
-        // console.log("Length is " + ulist.length);
-        //ulist.splice(ulist.findIndex(item => item.field === "password"), 1)
-        ulist = ulist.filter(function( obj ) {
-          return obj.field !== "password";
-        });
-        res.send(ulist);
-      }
-    });
+  var caporvice = (mytype == is_Captain) ? "Captain" : "ViceCaptain";
+  Captain.findOne({gid:1, uid: iuser}, function(err, caprec) {
+    if (err)
+      senderr(err);
+    else {
+      // if record found then check if captain already selected once (i.e. captain != 0)
+      // if record not found create brand new cpatain record since user has made selection 1st time
+      if (!caprec)
+        caprec = new Captain({ gid: 1, uid: iuser, captain: 0, viceCaptain: 0 });
+
+      // do BASIC validation
+      // 1. given role should not have been selected before
+      // 2. iplayer should not have been select for other role
+
+      // check if cpatain / vice captain already selected
+      // var alreadySet = (mytype == is_Captain) ? (caprec.captain != 0) : (caprec.viceCaptain != 0);
+      // console.log(`Status is ${alreadySet}`);
+      // if (alreadySet) 
+      //   { senderr(`${caporvice} already selected by user.`); return; }
+      
+        // now check player already selected for other role
+        // this is to make sure that captain and vice captain are not same player
+      alreadySet = (mytype == is_Captain) ? (caprec.viceCaptain == iplayer)
+                                          : (caprec.captain == iplayer);
+      if (alreadySet) 
+        { senderr(`Same player cannot be Captain as well as Vice Caaptain.`); return; }
+
+      // Update captain and write it back to database
+      if (mytype == is_Captain)
+        caprec.captain = iplayer;
+      else
+        caprec.viceCaptain = iplayer;
+
+      caprec.save(function(err) {
+        if (err) senderr(`Could not update ${caporvice}`);
+        else  sendok(`${caporvice} updated for user ${iuser}`);
+      });
+    }
   });
+
+
+}
+function publish_auctionedplayers(userid)
+{
+  var myfilter;
+  if (userid == allUSER)
+    myfilter = {gid: 1};
+  else
+    myfilter = {gid:1, uid: userid};
+
+  Auction.find(myfilter, (err, datalist) => {    
+    if (!datalist)
+      senderr(err);
+    else {
+      // filter if players of only specific user is required
+        // datalist = _.filter(datalist, (e) => e.uid === userid);
+
+      // make grouping of players per user
+      // NEED TO CLEAN UP THIS PIECE OF CODE
+      var grupdatalist = _.reduce(datalist, (result, user) => {
+        (result[user.uid] || (result[user.uid] = [])).push(user);
+        return result;
+      }, {});
+
+      sendok(grupdatalist);
+    }
+  }); 
 }
 
 
-function senderr(res, msg)    { res.status(400).send(msg); }
-function sendok(res, msg)     { res.send(msg); }
+async function publish_users(filter_users)
+{
+  //console.log(filter_users);
+  var ulist = await User.find(filter_users);
+  ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
+  sendok(ulist);
+}
+
+// return true if IPL has started
+function ipl_started()
+{
+  var justnow = new Date();
+  var difference = IPL_Start_Date - justnow;
+  return (difference <= 0)
+}
+
+function sendok(usrmgs) { CricRes.send(usrmgs);}
+function senderr(errmsg) { CricRes.status(400).send(errmsg);}
 module.exports = router;
+
+async function showGroupMembers(igroup)
+{
+  gmlist = await GroupMember.find({gid: igroup});
+  var userlist = _.map(gmlist, 'uid');      // [12, 14, 16, 18]
+  publish_users({ uid: { $in: userlist } });
+}
+
 
 /** codes used for testing
 let words = ['sky', 'wood', 'forest', 'falcon', 

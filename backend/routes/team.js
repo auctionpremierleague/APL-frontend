@@ -1,25 +1,29 @@
-var express = require('express');
+//var express = require('express');
 var router = express.Router();
-const mongoose = require("mongoose");
+//const mongoose = require("mongoose");
+let TeamRes;
 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
-res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  if (req.url == '/') req.url = '/list';
-  next('route');
+  TeamRes = res;
+  if (!db_connection) { senderr(ERR_NODB); return; }
+
+  if (req.url == '/') 
+    publish_teams({});
+  else
+    next('route');
 });
 
-router.get('/list', function(req, res, next) {
-  mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {
-    Team.find({},(err,resu)=>{
-      if (err) { req.statusCode(400).send(err); return; }
-      else {
-        if(resu){console.log(resu)}
-        res.send(resu);
-      }
-    });
-  }); 
-});
 
+async function publish_teams(filter_teams)
+{
+  var tlist = await Team.find(filter_teams);
+  tlist = _.map(tlist, o => _.pick(o, ['name', 'fullname']));
+  sendok(tlist);
+}
+
+function sendok(usrmsg) { TeamRes.send(usrmsg); }
+function senderr(errmsg) { TeamRes.status(400).send(errmsg); }
 module.exports = router;
