@@ -165,7 +165,9 @@ weekDays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Fr
 IPL_Start_Date = new Date("2020-09-19");   // IPL Starts on this date
 
 // Error messages
-DBERROR = 400; 
+DBERROR = 990; 
+DBFETCHERR = 991;
+CRICFETCHERR = 992;
 ERR_NODB="No connection to CricDream database";
 
 // Bid amount given to user when he/she joins group 1

@@ -34,10 +34,9 @@ var cricapi_MatchDetails_postkey = "&unique_id=";
 
 /* GET all users listing. */
 router.use('/', function(req, res, next) {
-res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   PlayerStatRes = res;
-  if (!db_connection) { senderr(ERR_NODB); return; }
+  setHeader();
+  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
 
   if (req.url == "/")
     publish_stats({});
@@ -47,6 +46,8 @@ res.header("Access-Control-Allow-Origin", "*");
 
 router.use('/test1/:mid', async function(req, res, next) {
   PlayerStatRes = res;  
+  setHeader();
+
   var {mid} = req.params;
   var i = parseInt(mid);
   var mydata = await CricapiMatch.find({mid: i});
@@ -56,6 +57,8 @@ router.use('/test1/:mid', async function(req, res, next) {
 
 router.use('/test2/:mid', async function(req, res, next) {
   PlayerStatRes = res;  
+  setHeader();
+
   var {mid} = req.params;
   var i = parseInt(mid);
   var mydata = await Match.find({mid: i});
@@ -65,6 +68,8 @@ router.use('/test2/:mid', async function(req, res, next) {
 
 router.use('/test', async function(req, res, next) {
   PlayerStatRes = res;  
+  setHeader();
+
   update_cricapi_data_r1(true);
   sendok("OK");
 });
@@ -73,7 +78,8 @@ router.use('/test', async function(req, res, next) {
 // currently only group 1 supported
 router.use('/score', async function(req, res, next) {
   PlayerStatRes = res;
-  
+  setHeader();
+
   // get list of users in group
   var igroup = 1;
   var gmembers = await GroupMember.find({gid: igroup});
@@ -108,7 +114,7 @@ router.use('/score', async function(req, res, next) {
 
       // now get the statistics of this player in various maches
       var myplayerstats = _.filter(statList, x => x.pid === p.pid);
-      //console.log(myplayerstats);
+      //console.log(myplayerstats)
 
       // update score of each match played by user
       // myplayerstats.forEach(s => {
@@ -116,7 +122,7 @@ router.use('/score', async function(req, res, next) {
       // })
       //var myScore = _.sumBy(myplayerstats, x => x.score);
       var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
-      var tmp = { uid: userPid, pid: p.pid, totalScore: myScore, stat: myplayerstats};
+      var tmp = { uid: userPid, pid: p.pid, playerScrore: myScore, stat: myplayerstats};
       //console.log(tmp);
       userScoreList.push(tmp);
     });
@@ -137,7 +143,7 @@ async function update_cricapi_data(logToResponse)
       console.log(matchesFromCricapi);
       var errmsg = "Could not fetch Match details from CricAPI"
       if (logToResponse) 
-        senderr(errmsg)
+        senderr(CRICFETCHERR, errmsg)
       else
         console.log(errmsg);
       return;
@@ -221,7 +227,7 @@ async function update_cricapi_data_r1(logToResponse)
       if (matchesFromCricapi.matches == undefined) {
         console.log(matchesFromCricapi);
         var errmsg = "Could not fetch Match details from CricAPI"
-        if (logToResponse)  senderr(errmsg)
+        if (logToResponse)  senderr(CRICFETCHERR, errmsg)
         else                console.log(errmsg);
         return;
       }
@@ -756,12 +762,16 @@ function publish_stats(filter_stats)
   //console.log(filter_stats);
   Stat.find(filter_stats,(err,slist) =>{
     if(slist) sendok(slist);
-    else      senderr("Unable to fetch statistics from database");
+    else      senderr(DBFETCHERR, "Unable to fetch statistics from database");
   });
 }
 
 function sendok(usrmsg) { PlayerStatRes.send(usrmsg); }
-function senderr(errmsg) { PlayerStatRes.status(400).send(errmsg); }
+function senderr(errcode, errmsg) { PlayerStatRes.status(errcode).send(errmsg); }
+function setHeader() {
+  PlayerStatRes.header("Access-Control-Allow-Origin", "*");
+  PlayerStatRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+}
 module.exports = router;
 
 // for testing async function

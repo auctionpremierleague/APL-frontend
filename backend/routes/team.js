@@ -5,10 +5,9 @@ let TeamRes;
 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   TeamRes = res;
-  if (!db_connection) { senderr(ERR_NODB); return; }
+  setHeader();
+  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
 
   if (req.url == '/') 
     publish_teams({});
@@ -25,5 +24,9 @@ async function publish_teams(filter_teams)
 }
 
 function sendok(usrmsg) { TeamRes.send(usrmsg); }
-function senderr(errmsg) { TeamRes.status(400).send(errmsg); }
+function senderr(errcode, errmsg) { TeamRes.status(errcode).send(errmsg); }
+function setHeader() {
+  TeamRes.header("Access-Control-Allow-Origin", "*");
+  TeamRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+}
 module.exports = router;

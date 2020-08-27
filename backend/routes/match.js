@@ -3,10 +3,9 @@ var MatchRes;
 
 /* GET all users listing. */
 router.use('/', function(req, res, next) {
-res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   MatchRes = res;
-  if (!db_connection) { senderr(ERR_NODB); return; }
+  setHeader();
+  if (!db_connection) { senderr(DBERROR,  ERR_NODB); return; }
 
   var tmp = req.url.split('/');
   if (tmp[1].toUpperCase() != "DATE")
@@ -37,6 +36,8 @@ res.header("Access-Control-Allow-Origin", "*");
 /* GET all matches of given listing. */
 router.use('/list/:myteam1/:myteam2', function(req, res, next) {
   MatchRes = res;
+  setHeader();
+
   var {myteam1,myteam2} = req.params;
   myteam1 = myteam1.toUpperCase();
   myteam2 = myteam2.toUpperCase();
@@ -58,11 +59,13 @@ router.use('/list/:myteam1/:myteam2', function(req, res, next) {
 /* GET all matches to be held on give date */
 router.use('/date/:mydate', function(req, res, next) {
   MatchRes = res;
+  setHeader();
+
   var {mydate} = req.params;
   var startDate, endDate;
 
   startDate =   new Date(mydate);
-  if (isNaN(startDate)) { senderr(`Invalid date ${mydate}`); return; }
+  if (isNaN(startDate)) { senderr(661, `Invalid date ${mydate}`); return; }
   
   endDate = new Date(startDate.getTime());        // clone start date
   endDate.setDate(startDate.getDate()+1);
@@ -88,5 +91,10 @@ async function publish_matches(myfilter)
 }
 
 function sendok(usrmsg) { MatchRes.send(usrmsg); }
-function senderr(errmsg) { MatchRes.send(errmsg); }
+function senderr(errcode, errmsg) { MatchRes.status(errcode).send(errmsg); }
+function setHeader() {
+  MatchRes.header("Access-Control-Allow-Origin", "*");
+  MatchRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+}
 module.exports = router;

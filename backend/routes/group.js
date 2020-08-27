@@ -3,10 +3,9 @@ var GroupRes;
 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   GroupRes = res;
-  if (!db_connection) { senderr(ERR_NODB);  return; };
+  setHeader();
+  if (!db_connection) { senderr(DBERROR, ERR_NODB);  return; };
 
   if (req.url == '/')
     publish_groups({});
@@ -17,30 +16,31 @@ router.use('/', function(req, res, next) {
  
 router.get('/add/:groupid/:ownerid/:userid', function(req, res, next) {
   GroupRes = res;
+  setHeader();
 
   var {groupid,ownerid,userid}=req.params;
   // groupAction = groupAction.toLowerCase();
-  if (groupid != "1") { senderr("Invalid Group"); return; }
-  if (ownerid != "9") { senderr(`User ${ownerid} is not owner of Group 1`); return; }
+  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+  if (ownerid != "9") { senderr(624, `User ${ownerid} is not owner of Group 1`); return; }
 
   igroup = parseInt(groupid);
-  if (isNaN(igroup)) { senderr("Invalid group"); return; }
+  if (isNaN(igroup)) { senderr(621, "Invalid group"); return; }
   iowner = parseInt(ownerid);
-  if (isNaN(iowner)) { senderr("Invalid owner"); return; }
+  if (isNaN(iowner)) { senderr(622, "Invalid owner"); return; }
   iuser = parseInt(userid);
-  if (isNaN(iuser)) { senderr("Invalid user"); return; }
+  if (isNaN(iuser)) { senderr(623, "Invalid user"); return; }
 
   User.findOne({uid:iuser}, (err, udoc) => {
     if (err)
-      senderr(err);
+      senderr(DBFETCHERR, err);
     else if (!udoc)
-      senderr("Invalid user");
+      senderr(623, "Invalid user");
     else { 
       GroupMember.findOne({gid:1, uid: iuser}, (err, gmdoc) =>  {
         if (err)
-          senderr(err);
+          senderr(DBFETCHERR, err);
         else if (gmdoc)
-          senderr("User already added to group 1");
+          senderr(624, "User already added to group 1");
         else {                
           //console.log("Valid USer");              
           //  confirmed that Group 1 exists
@@ -53,7 +53,7 @@ router.get('/add/:groupid/:ownerid/:userid', function(req, res, next) {
             balanceAmount: GROUP1_MAXBALANCE
           });
           gmrec.save(function(err) {
-            if (err) {senderr("Unable to added user to Group 1"); }
+            if (err) {senderr(DBFETCHERR, "Unable to added user to Group 1"); }
             else { sendok(`Added user ${iuser} to Group 1`); }
           });
         }
@@ -64,11 +64,15 @@ router.get('/add/:groupid/:ownerid/:userid', function(req, res, next) {
 
 router.get('/owner', function (req, res, next) {
   GroupRes = res;
+  setHeader();
+
   owneradmin();
 });
 
 router.get('/admin', function(req, res, next) {
   GroupRes = res;
+  setHeader();
+
   owneradmin();
 });
 
@@ -78,10 +82,10 @@ function owneradmin()
 {
   let igroup = 1;   // currently only group 1 supported
   IPLGroup.findOne({gid: 1},(err, grprec) => {
-    if (!grprec) { senderr("Invalid group"); return; }
+    if (!grprec) { senderr(621, "Invalid group"); return; }
     //console.log(grprec);
     User.findOne({uid: grprec.owner}, (err, userrec) => {
-      if (!userrec) { senderr(`Could fetch record of user ${grprec.uid}`); return; }
+      if (!userrec) { senderr(DBFETCHERR, `Could fetch record of user ${grprec.uid}`); return; }
       sendok(userrec);
     });
   });
@@ -90,6 +94,8 @@ function owneradmin()
 
 router.get('/members/:groupid', function(req, res, next) {
   GroupRes = res;
+  setHeader();
+
   var {groupid}=req.params;
   sendok("Member details under development");
 });
@@ -100,10 +106,15 @@ function publish_groups(filter_groups)
     if(glist)
       sendok(glist);
     else
-      senderr("Unable to fetch Groups from database");
+      senderr(DBFETCHERR, "Unable to fetch Groups from database");
   });
 }
 
-function senderr(msg)  { GroupRes.status(400).send(msg); }
+function senderr(errcode, msg)  { GroupRes.status(errcode).send(msg); }
 function sendok(msg)   { GroupRes.send(msg); }
+function setHeader() {
+  GroupRes.header("Access-Control-Allow-Origin", "*");
+  GroupRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+}
 module.exports = router;

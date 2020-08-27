@@ -3,10 +3,9 @@ var PlayerRes;
 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   PlayerRes = res;
-  if (!db_connection) { senderr(ERR_NODB); return};
+  setHeader();
+  if (!db_connection) { senderr(DBERROR, ERR_NODB); return};
 
   //console.log("In player router");
   if (req.url == "/")
@@ -19,6 +18,8 @@ router.use('/', function(req, res, next) {
 // get list of purchased players
 router.get('/sold', function(req, res, next) {
   PlayerRes = res;
+  setHeader();
+
   var mypid = [];
   Auction.find({gid:1}, (err, alist) => {
     alist.forEach(auction_element => { 
@@ -32,6 +33,7 @@ router.get('/sold', function(req, res, next) {
 // get list of players not purchased (only 1 group)
 router.get('/unsold', function(req, res, next) {
   PlayerRes = res;
+  setHeader();
 
   var mypid = [];
   Auction.find({gid:1}, (err, alist) => {
@@ -46,14 +48,16 @@ router.get('/unsold', function(req, res, next) {
 
 router.get('/available/:playerid', function(req, res, next) {
   PlayerRes = res;
+  setHeader();
+
   var {playerid}=req.params;
   var iplayer = parseInt(playerid);
-  if (isNaN(iplayer)) { senderr(`Invalid player id ${playerid}`); return; }
+  if (isNaN(iplayer)) { senderr(681, `Invalid player id ${playerid}`); return; }
   
   //  first confirm player id is correct
   Auction.find({gid: 1, pid:iplayer}).countDocuments(function(err, acount) {
     if (err)
-      senderr(err);
+      senderr(DBFETCHERR, DBerr);
     else
       sendok(acount == 0);
   });
@@ -71,5 +75,10 @@ async function publish_players(filter_players)
 }
 
 function sendok(usrmsg) { PlayerRes.send(usrmsg); }
-function senderr(errmsg) { PlayerRes.status(400).send(errmsg); }
+function senderr(errocode, errmsg) { PlayerRes.status(errocode).send(errmsg); }
+function setHeader() {
+  PlayerRes.header("Access-Control-Allow-Origin", "*");
+  PlayerRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+}
 module.exports = router;
