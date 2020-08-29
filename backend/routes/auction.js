@@ -13,17 +13,16 @@ router.use('/', function(req, res, next) {
     next();
 });
 
-router.get('/add/:groupId/:userId/:playerId/:bidValue', function(req, res, next) {
+router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res, next) {
   AuctionRes = res;
   setHeader();
 
   var {groupId,userId,playerId,bidValue}=req.params;
-  // only operation currently supported is ADD
-  // oper = oper.toLowerCase();
-  // if (oper != "add") { senderr(701, "Invalid operation for aution"); return; }
-  if (groupId != "1") { senderr(702, "Invalid Group"); return; }
-  var igroup = 1;
 
+  var igroup = defaultGroup;
+  var grpstr = igroup.toString();
+
+  if (groupId != grpstr) { senderr(702, "Invalid Group"); return; }
   var iuser = parseInt(userId);
   if (isNaN(iuser)) { senderr(703, "Invalid User"); return next;}
   var iplayer = parseInt(playerId);
@@ -31,61 +30,47 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', function(req, res, next)
   var ibid = parseInt(bidValue);
   if (isNaN(ibid)) { senderr(705, "Invalid bid amount"); return;} 
 
-  var oper = "ADD";
-  console.log(oper);
   console.log(igroup);
   console.log(iuser);
   console.log(iplayer);
   console.log(ibid);
 
-  GroupMember.find({gid:1, uid: iuser}).countDocuments(function(err, count) {
-    if (err)
-      senderr(DBFETCHERR, err);
-    else if (count != 1)
-      senderr(706, `User ${iuser} does not belong to Group 1`);
-    else {
-      // user correct and belongs to group. Now check player is correct
-      Player.find({pid:iplayer}).countDocuments(function(err, pcount) {
-      if (err)
-        senderr(DBFETCHERRerr);
-      else if (pcount != 1)
-        senderr(704, "Invalid player");
-      else {
-        // user and players valid. Now check player is already purchased
-        Auction.find({gid: igroup,pid:iplayer}).countDocuments(function(err, result) {
-          if (err) {senderr(DBFETCHERR, err); return;}
-          else if (result > 0) {senderr(707, "Already purchased"); return;}
-          else {
-            console.log("Player available");
-            Auction.find({gid: 1, uid: iuser}).exec(function (err, doc) {
-              if (err) senderr(DBFETCHERR, err);
-              else {
-                // const balance = GROUP1_MAXBALANCE - doc.reduce((accum, userrec) => {
-                //     return accum + userrec.bidAmount;
-                // }, 0);
-                var balance = GROUP1_MAXBALANCE - _.sumBy(doc, x => x.bidAmount);
-                console.log(balance);
-                if (balance < ibid ) senderr(708, `Insufficient balance. Bid balance available is ${balance}`);
-                else {
-                  console.log("Balance availab;e");
-                  var bidrec = new Auction({ uid: iuser,
-                    pid: iplayer,
-                    gid: 1,
-                    bidAmount: ibid 
-                  });
-                  bidrec.save(function(err) {
-                    if (err) senderr(DBFETCHERR, "Could not add new Auction record");
-                    else sendok(`Added bid for player ${iplayer} with amount ${bidrec.bidAmount}`);
-                  }); 
-                }
-              }
-            });          
-          }
-        });
-      }   
-    });  // players find   
-    }
-  }); // user find    
+  var gmember = await GroupMember.findOne({gid: igroup, uid: iuser});
+  if (!gmember) {
+    senderr(706, `User ${iuser} does not belong to Group 1`);
+    return;
+  }
+  var myplayer = await Player.findOne({pid: iplayer});
+  if (!myplayer) {
+    senderr(704, "Invalid player");
+    return
+  }
+  var myauction = await Auction.findOne({gid: igroup, pid:iplayer});
+  if (myauction) {
+    senderr(707, "Player already purchased");
+    return;
+  }
+
+  console.log("Player available");
+  var doc = await Auction.find({gid: igroup, uid: iuser});
+  var balance = GROUP1_MAXBALANCE - _.sumBy(doc, x => x.bidAmount);
+  console.log(balance);
+  if (balance < ibid ) {
+    senderr(708, `Insufficient balance. Bid balance available is ${balance}`);
+    return;
+  }
+
+  console.log("Balance availab;e");
+  var bidrec = new Auction({ 
+    uid: iuser,
+    pid: iplayer,
+    playerName: myplayer.name,
+    gid: igroup,
+    bidAmount: ibid 
+  });
+  bidrec.save();
+  balance = balance - ibid;
+  sendok(`Added bid for player ${iplayer} with amount ${bidrec.bidAmount}> New Balance is ${balance}`);
 });  // aution get
 
 

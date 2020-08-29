@@ -22,8 +22,8 @@ playersRouter = require('./routes/player');
 groupRouter = require('./routes/group');
 teamRouter = require('./routes/team');
 statRouter = require('./routes/playerstat');
-matchRouter = require('./routes/match')
-
+matchRouter = require('./routes/match');
+tournamentRouter = require('./routes/tournament');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -40,6 +40,7 @@ app.use('/group',   groupRouter);
 app.use('/team',    teamRouter);
 app.use('/stat',    statRouter);
 app.use('/match',   matchRouter);
+app.use('/tournament', tournamentRouter);
 
 // ---- start of globals
 // connection string for database
@@ -55,9 +56,11 @@ UserSchema = mongoose.Schema({
   });
 IPLGroupSchema = mongoose.Schema({
     gid:Number,
-    nameName:String,
+    name:String,
     owner:Number,
-    maxBidAmount:Number
+    maxBidAmount:Number,
+    //tournamentOver:Boolean,
+    tournament:String
 });
 PlayerSchema = mongoose.Schema({
     pid:Number,
@@ -72,6 +75,7 @@ AuctionSchema = mongoose.Schema({
     gid:Number,
     uid:Number,
     pid:Number,
+    playerName:String,
     bidAmount:Number
   });
 GroupMemberSchema = mongoose.Schema({
@@ -87,8 +91,15 @@ CaptainSchema = mongoose.Schema({
 });
 TeamSchema = mongoose.Schema({
     name:String,
-    fullname:String
+    fullname:String,
+    tournament:String
 })
+TournamentSchema = mongoose.Schema({
+  name:String,
+  desc:String,
+  enabled:Boolean
+})
+
 MatchSchema = mongoose.Schema({
     mid:Number,
     description:String,
@@ -125,18 +136,18 @@ StatSchema = mongoose.Schema({
 //--- data available from CRICAPI
 CricapiMatchSchema = mongoose.Schema({
   mid:Number,
-  description:String,
+  tournament:String,
   team1:String,
   team2:String,
-  team1Description:String,
-  team2Description:String,
-  matchStartTime:Date,
+  // team1Description:String,
+  // team2Description:String,
   weekDay:String,
   type:String,
-  squad:Boolean,
   matchStarted:Boolean,
+  matchEnded:Boolean,
+  matchStartTime:Date,
   matchEndTime:Date,
-  matchEnded:Boolean
+  squad:Boolean
 })
 
 // models
@@ -149,6 +160,8 @@ Captain = mongoose.model("iplcaptains",       CaptainSchema);
 Team = mongoose.model("iplteams",             TeamSchema);
 Match = mongoose.model("iplmatches",          MatchSchema);
 Stat = mongoose.model("iplplayerstats",       StatSchema);
+Tournament = mongoose.model("tournaments",       TournamentSchema);
+
 
 CricapiMatch = mongoose.model("cricApiMatch",   CricapiMatchSchema)
 
@@ -175,6 +188,9 @@ GROUP1_MAXBALANCE = 1000;
 
 // Number of hours after which match details to be read frpom cricapi.
 MATCHREADINTERVAL = 3;
+
+// currently only 1 group defined
+defaultGroup = 1;
 
 // Point scroring
 ViceCaptain_MultiplyingFactor = 1.5;
@@ -241,6 +257,7 @@ cron.schedule('*/15 * * * * *', () => {
   if (!connectRequest)
     mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
 });
+
 
 // start app to listen on specified port
 app.listen(PORT, ()=> {

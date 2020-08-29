@@ -5,19 +5,18 @@ const allUSER = 99999999;
 const is_Captain = true;
 const is_ViceCaptain = false;
 let CricRes;
+var groupRecord;
 
 /* GET all users listing. */
 router.get('/', function(req, res, next) {
   CricRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB);  return; }
-
+  
   if (req.url == "/")
     publish_users({});
   else
     next('route');
-
-
   });
 
 
@@ -316,13 +315,13 @@ async function publish_auctionedplayers(userid)
 {
   var myfilter;
   if (userid == allUSER)
-    myfilter = {gid: 1};
+    myfilter = {gid: defaultGroup};
   else
-    myfilter = {gid:1, uid: userid};
+    myfilter = {gid:defaultGroup, uid: userid};
 
   var datalist = await Auction.find(myfilter);
   if (!datalist) { senderr(DBFETCHERR,err); return; }
-  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'bidAmount']));
+  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'bidAmount']));
   // make grouping of players per user
   // NEED TO CLEAN UP THIS PIECE OF CODE
   var userlist = _.map(datalist, d => _.pick(d, ['uid']));

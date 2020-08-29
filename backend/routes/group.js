@@ -13,7 +13,26 @@ router.use('/', function(req, res, next) {
     next('route');
 });
 
- 
+router.get('/close/:groupid/:ownerid', function(req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var {groupid,ownerid}=req.params;
+  // groupAction = groupAction.toLowerCase();
+  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+  if (ownerid != "9") { senderr(624, `User ${ownerid} is not owner of Group 1`); return; }
+
+  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+    else {
+      console.log(gdoc);
+      gdoc.tournamentOver = true;
+      gdoc.save();
+      sendok(true);
+    }
+  });
+});
+
 router.get('/add/:groupid/:ownerid/:userid', function(req, res, next) {
   GroupRes = res;
   setHeader();
@@ -91,14 +110,49 @@ function owneradmin()
   });
 };
 
-
-router.get('/members/:groupid', function(req, res, next) {
+router.get('/test', function(req, res, next) {
   GroupRes = res;
   setHeader();
 
-  var {groupid}=req.params;
-  sendok("Member details under development");
+  update_tournament_max(1);
 });
+
+// router.get('/members/:groupid', function(req, res, next) {
+//   GroupRes = res;
+//   setHeader();
+
+//   var {groupid}=req.params;
+//   sendok("Member details under development");
+// });
+
+async function update_tournament_max(groupno)
+{
+  // first find maximum of run scored by batsman and wickets taken by bowler 
+  // get list of players beloging to group
+  //var auctionList = await Auction.find({gid: groupno});
+  //var allplayers = _.map(auctionList, 'pid');
+  var playersList = await Player.find({});
+  var allplayers = _.map(playersList, 'pid');
+  //ar maxRuns, maxWickets, maxRunsPlayer, maxWicketsPlayer;
+  var statList = await Stat.find({pid: {$in: allplayers}});
+  var maxStat = [];
+  allplayers.forEach(mypid => {
+    var playerStat = _.filter(statList, x => x.pid == mypid);
+    if (playerStat.length === 0) return;
+    var myruns = _.sumBy(playerStat, 'run');
+    var mywkt = _.sumBy(playerStat, 'wicket');
+    if ((myruns + mywkt) === 0) return;
+    maxStat.push({pid: mypid, run: myruns, wicket: mywkt});
+  });
+  console.log(maxStat);
+  // we now have players total of run an wickets.  Get max run and wicket
+  var maxRunRec = _.maxBy(maxStat, o => o.run);
+  var maxWicketRec = _.maxBy(maxStat, o => o.wicket);
+  // get all records with max runs and max wickets
+  var allMaxRunRec = _.filter(maxStat, x => x.run == maxRunRec.run);
+  var allMaxWicketRec = _.filter(maxStat, x => x.wicket == maxWicketRec.wicket);
+  sendok(allMaxWicketRec);
+}
 
 function publish_groups(filter_groups)
 {
