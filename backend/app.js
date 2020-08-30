@@ -69,7 +69,8 @@ PlayerSchema = mongoose.Schema({
     Team:String,
     role:String,
     bowlingStyle:String,
-    battingStyle:String
+    battingStyle:String,
+    tournament:String
   }); 
 AuctionSchema = mongoose.Schema({
     gid:Number,
@@ -87,7 +88,9 @@ CaptainSchema = mongoose.Schema({
   gid:Number,
   uid:Number,
   captain:Number,     // captain's player id 
-  viceCaptain:Number  // viceCaptain's players id
+  captainName:String,
+  viceCaptain:Number,  // viceCaptain's players id
+  viceCaptainName:String
 });
 TeamSchema = mongoose.Schema({
     name:String,

@@ -2,18 +2,6 @@ router = express.Router();
 var PlayerStatRes;
 
 /*
-const cricapiKey = "iiyI0vNqKaS4Srie6thRQZe5hIi1";
-const cricapiKey = "r4ZAGKxe9pdy9AuYzViW486eGI83";
-r4ZAGKxe9pdy9AuYzViW486eGI83
-LrNnasvQp0e2p5JfpAI5Q642o512
-var cricapiMatchInfo = 
-  `https://cricapi.com/api/matches?apikey=${cricapiKey}`;
-var cricapi_MatchDetails =
-  `https://cricapi.com/api/fantasySummary?apikey=${cricapiKey}&unique_id=`;
-*/
-
-
-
 const keylist = ["bbdCNNOKBtPnL54mvGSgpToFUlA2",
                 // padmavti mata from here
                 "O9vYC5AxilYm7V0EkYkvRP5jF9B2","RTf9weNrX8Xn2ts1ksdzAXcuxnE3",
@@ -21,15 +9,25 @@ const keylist = ["bbdCNNOKBtPnL54mvGSgpToFUlA2",
                 "EstH4EqbfEXMKXcS9M83k7cqUs13","ApVnpFFO6kgxTYXVwWQTEeiFVCO2",
                 "72QuFkQezxf5IdqxV1CtGJrAtcn1"
                 ];
-
+*/
+const keylist = [				
+"O9vYC5AxilYm7V0EkYkvRP5jF9B2","RTf9weNrX8Xn2ts1ksdzAXcuxnE3","H2ObZFee6BVMN5kCjLxYCMwcEp52",
+"kAWvFxmpeJZmbtyNeDLXtxUPrAH3","EstH4EqbfEXMKXcS9M83k7cqUs13","ApVnpFFO6kgxTYXVwWQTEeiFVCO2",
+"72QuFkQezxf5IdqxV1CtGJrAtcn1","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
+"4mtu16sveyTPWgz5ID7ru9liwE12","iEsdTQufBnToUI1xVxWMQF6wauX2","bbdCNNOKBtPnL54mvGSgpToFUlA2",
+"AM690XluFdZJ85PYvOP7IxgcxUI2","85L3mbm1GiXSfYmQWZJSeayoG2s1","LrNnasvQp0e2p5JfpAI5Q642o512",
+"UsE0jiSe6ZbLSQlO6k9W8ePWT043","ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93",
+"fvxbB9BLVNfxatmOaiseF7Jzz6B2","Klr0NkJuG3YpZ1KburbMBNpfO1q1"
+];
 
 /** const keylist = [ "LrNnasvQp0e2p5JfpAI5Q642o512"]; **/
 
+// to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
 const cricapiMatchInfo_postkey = "";
-
-var cricapi_MatchDetails_prekey = "https://cricapi.com/api/fantasySummary?apikey=";
-var cricapi_MatchDetails_postkey = "&unique_id=";
+// to get match statistics
+const cricapi_MatchDetails_prekey = "https://cricapi.com/api/fantasySummary?apikey=";
+const cricapi_MatchDetails_postkey = "&unique_id=";
 
 
 /* GET all users listing. */
@@ -55,15 +53,24 @@ router.use('/test1/:mid', async function(req, res, next) {
   sendok(mydata);
 });
 
-router.use('/test2/:mid', async function(req, res, next) {
+router.use('/test2', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
 
-  var {mid} = req.params;
-  var i = parseInt(mid);
-  var mydata = await Match.find({mid: i});
-  console.log(`Starts at ${mydata[0].matchTime}`);  
-  sendok(mydata);
+  var allplayers = await Player.find({});
+  allplayers.forEach(x => {
+    switch (x.Team) {
+      case "NEWTEAM": 
+      case "PAK":
+        x.tournament = "ENGPAKT20";
+        break;
+      default:
+        x.tournament = "IPL2020";
+        break;
+    }
+    x.save();
+  })
+  sendok("OK");
 });
 
 router.use('/test', async function(req, res, next) {
@@ -303,9 +310,6 @@ async function update_cricapi_data_r1(logToResponse)
         var myTeam2 = x['team-2'].toUpperCase();
         //console.log(`Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
 
-        // currently will consider only T20 matches
-        // if (!x.type.includes("20")) return;
-
         // do not consider match if team not yer decided
         if ((myTeam1 === "TBA") || (myTeam2 === "TBA")) return;
 
@@ -320,9 +324,6 @@ async function update_cricapi_data_r1(logToResponse)
         var matchTournament = isTeam[0].tournament;
         console.log(`Match is part of ${matchTournament}`);
 
-        //console.log(`Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
-
-        // only T20 and have team announced and both team belongs to our team list
         var mymatch = _.find(existingmatches, m => m.mid == parseInt(x.unique_id));
         if (mymatch === undefined) {
           mymatch = new CricapiMatch();
@@ -348,16 +349,9 @@ async function update_cricapi_data_r1(logToResponse)
 
     // get stas of all these matches
     await matchesFromDB.forEach(async (mmm) => {
-      //if (mmm.)
-      if (mmm.matchStarted)
-      {
-        var afterStartTime = true;
-        if (afterStartTime)
-        {
-          const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
-          var newstats = updateMatchStats_r1(mmm, cricData.data);
-        }
-      }
+      const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
+      var newstats = updateMatchStats_r1(mmm, cricData.data);
+      // if pasrt end time. Then set matchended as true
       var currdate = new Date();
       console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
       if (mmm.matchEndTime < new Date()) {
@@ -398,19 +392,15 @@ async function updateMatchStats_r1(mmm, cricdata)
   //console.log("Bowlong Started");
   bowlingArray.forEach( x => {
     x.scores.forEach(bowler => {
-      // if (bowler.pid == '922943') {
-      //   //console.log(allplayerstats[myindex]);
-      //   console.log(bowler);
-      // }
+      // ***********************  IMP IMP IMP ***********************
+      // some garbage records are sent by cricapi. Have found that in all these case Overs ("O") 
+      // was set as "Allrounder", "bowler" "batsman".
+      // ideally it should have #overs bowled i.e. numeric
       if (isNaN(bowler.O)) {
         //console.log(`Invalid Over ${bowler.O}. Skipping this recird`);
         return;
       }
-//      console.log("Normal");
-      // if (bowler.pid === '227758') {
-      //   console.log(bowler);
-      //   console.log(`Player: ${bowler.pid}  Wickets ${bowler.W}`)
-      // }
+
       myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(bowler.pid)});
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
@@ -435,7 +425,6 @@ async function updateMatchStats_r1(mmm, cricdata)
       if (allplayerstats[myindex].pid === manOfTheMatchPid)
         allplayerstats[myindex].manOfTheMatch = true;
       
-      allplayerstats[myindex].score = 0;  //calculateScore(allplayerstats[myindex]);
       var myscore = calculateScore(allplayerstats[myindex]);
       allplayerstats[myindex].score = myscore;
     });
@@ -468,7 +457,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       }
       if (allplayerstats[myindex].pid === manOfTheMatchPid)
         allplayerstats[myindex].manOfTheMatch = true;
-      allplayerstats[myindex].score = 0;  //calculateScore(allplayerstats[myindex]);
+
       var myscore = calculateScore(allplayerstats[myindex]);
       allplayerstats[myindex].score = myscore;
       //console.log(`Score; ${myscore} `);
@@ -493,7 +482,6 @@ function getMatchDetails(cricapiRec, mymatch, tournamentName) {
   
   //var tmp = new CricapiMatch({
     mymatch.mid = cricapiRec.unique_id;
-    //mymatch.description = cricapiRec['team-1'] + ' vs ' + cricapiRec['team-2'];
     mymatch.tournament = tournamentName;
     mymatch.team1 = cricapiRec['team-1'];
     mymatch.team2 = cricapiRec['team-2'];
@@ -512,8 +500,6 @@ function getMatchDetails(cricapiRec, mymatch, tournamentName) {
     else
       mymatch.matchEnded = false;
 
-    if (mymatch.mid === 1198244)
-      mymatch.matchEnded = false;
     return mymatch;
 }
 
@@ -626,13 +612,14 @@ function get_cricapi_MatchDetails_URL(matchid)
 
 function timeToFetchMatches() {
   var currtime = new Date();
-  console.log(`Next FetchTime: ${nextMatchFetchTime}`);
+  //console.log(`Next FetchTime: ${nextMatchFetchTime}`);
   if (currtime >= nextMatchFetchTime)
     return true;
   else
     return false;
 }
 
+// not used now. obsolete
 function tomorrowFetchTime() {
   const tomorrowAtHours = 7;
   var newdt = new Date();

@@ -191,6 +191,25 @@ router.get('/vicecaptain/:myuser/:myplayer', function(req,  res, next) {
   });
 });
 
+// select caption for the user (currently only group 1 supported by default)
+router.get('/getcaptain/:myuser', function(req,  res, next) {
+  CricRes = res;
+  setHeader();
+
+  var {myuser} = req.params;
+  var igroup = defaultGroup;
+
+  var myfilter;
+  if (myuser.toUpperCase() === "ALL")
+    myfilter = {gid: defaultGroup};
+  else {
+    var iuser = parseInt(myuser);
+    if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
+    myfilter = {gid: defaultGroup, uid: iuser};
+  }
+  publishCaptain(myfilter);
+});
+
 // get users balance
 // only group 1 supported which is default group
 router.get('/balance/:myuser', function(req, res, next) {
@@ -241,8 +260,9 @@ router.get('/myteam/:userid', function(req, res, next) {
 
 });
 
-function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
+async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
 {
+  var myplayer = await Player.findOne({pid: iplayer});
   var caporvice = (mytype == is_Captain) ? "Captain" : "ViceCaptain";
   Captain.findOne({gid:1, uid: iuser}, function(err, caprec) {
     if (err)
@@ -251,31 +271,30 @@ function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
       // if record found then check if captain already selected once (i.e. captain != 0)
       // if record not found create brand new cpatain record since user has made selection 1st time
       if (!caprec)
-        caprec = new Captain({ gid: 1, uid: iuser, captain: 0, viceCaptain: 0 });
+        caprec = new Captain({ 
+          gid: 1, 
+          uid: iuser, 
+          captain: 0,  
+          captainName: "",
+          viceCaptain: 0,
+          viceCaptainName: ""
+        });
 
-      // do BASIC validation
-      // 1. given role should not have been selected before
-      // 2. iplayer should not have been select for other role
-
-      // check if cpatain / vice captain already selected
-      // var alreadySet = (mytype == is_Captain) ? (caprec.captain != 0) : (caprec.viceCaptain != 0);
-      // console.log(`Status is ${alreadySet}`);
-      // if (alreadySet) 
-      //   { senderr(,`${caporvice} already selected by user.`); return; }
-      
-        // now check player already selected for other role
-        // this is to make sure that captain and vice captain are not same player
       alreadySet = (mytype == is_Captain) ? (caprec.viceCaptain == iplayer)
                                           : (caprec.captain == iplayer);
-      if (alreadySet) 
-        { senderr(609,`Same player cannot be Captain as well as Vice Captain.`); return; }
+      if (alreadySet) {
+        senderr(609,`Same player cannot be Captain as well as Vice Captain.`); 
+        return; 
+      }
 
       // Update captain and write it back to database
-      if (mytype == is_Captain)
+      if (mytype == is_Captain) {
         caprec.captain = iplayer;
-      else
+        caprec.captainName = myplayer.name;
+      }else {
         caprec.viceCaptain = iplayer;
-
+        caprec.viceCaptainName = myplayer.name;
+      }
       caprec.save(function(err) {
         if (err) senderr(DBFETCHERR,`Could not update ${caporvice}`);
         else  sendok(`${caporvice} updated for user ${iuser}`);
@@ -284,32 +303,6 @@ function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
   });
 }
 
-function publish_auctionedplayers_r0(userid)
-{
-  var myfilter;
-  if (userid == allUSER)
-    myfilter = {gid: 1};
-  else
-    myfilter = {gid:1, uid: userid};
-
-  Auction.find(myfilter, (err, datalist) => {    
-    if (!datalist)
-      senderr(DBFETCHERR, err);
-    else {
-      // filter if players of only specific user is required
-        // datalist = _.filter(datalist, (e) => e.uid === userid);
-
-      // make grouping of players per user
-      // NEED TO CLEAN UP THIS PIECE OF CODE
-      var grupdatalist = _.reduce(datalist, (result, user) => {
-        (result[user.uid] || (result[user.uid] = [])).push(user);
-        return result;
-      }, {});
-
-      sendok(grupdatalist);
-    }
-  }); 
-}
 
 async function publish_auctionedplayers(userid)
 {
@@ -326,11 +319,6 @@ async function publish_auctionedplayers(userid)
   // NEED TO CLEAN UP THIS PIECE OF CODE
   var userlist = _.map(datalist, d => _.pick(d, ['uid']));
   userlist = _.uniqBy(userlist, 'uid');
-  //console.log(userlist);
-  // var grupdatalist = _.reduce(datalist, (result, user) => {
-  //   (result[user.uid] || (result[user.uid] = [])).push(user);
-  //   return result;
-  // }, {});
 
   var grupdatalist = [];
   userlist.forEach( myuser => {
@@ -347,6 +335,16 @@ async function publish_users(filter_users)
   //console.log(filter_users);
   var ulist = await User.find(filter_users);
   ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
+  sendok(ulist);
+}
+
+async function publishCaptain(filter_users)
+{
+  //console.log(filter_users);
+  var ulist = await Captain.find(filter_users);
+  ulist = _.map(ulist, o => _.pick(o, ['gid', 'uid', 
+      'captain', 'captainName', 
+      'viceCaptain', 'viceCaptainName']));
   sendok(ulist);
 }
 
