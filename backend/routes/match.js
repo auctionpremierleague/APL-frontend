@@ -1,14 +1,22 @@
 var router = express.Router();
 var MatchRes;
+var _group;
+var _tournament;
 
 /* GET all users listing. */
 router.use('/', function(req, res, next) {
   MatchRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR,  ERR_NODB); return; }
-
+  _group = defaultGroup;
+  _tournament = defaultTournament;
+  
   var tmp = req.url.split('/');
-  if (tmp[1].toUpperCase() != "DATE")
+  if ((tmp[1].toUpperCase() != "DATE") &&
+      (tmp[1].toUpperCase() != "TODAY") &&
+      (tmp[1].toUpperCase() != "YESTERDAY") &&
+      (tmp[1].toUpperCase() != "TOMORROW")
+  )
   {
     // take care of /list/csk  ,   /list/csk/rr,  /list
     switch (tmp.length)
@@ -46,29 +54,68 @@ router.use('/list/:myteam1/:myteam2', function(req, res, next) {
 
   let myfilter;
   if (myteam1 == "ALL")  
-    myfilter = {};
+    myfilter = {tournament: _tournament};
   else if (myteam2 == "NONE") 
-    myfilter = {$or: [ {team1: myteam1}, {team2: myteam1} ]};
+    myfilter = {tournament: _tournament, $or: [ {team1: myteam1}, {team2: myteam1} ]};
   else
-    myfilter = {team1: {$in: [myteam1, myteam2]}, team2: {$in: [myteam1, myteam2]} };
+    myfilter = {tournament: _tournament, team1: {$in: [myteam1, myteam2]}, team2: {$in: [myteam1, myteam2]} };
     //console.log(myfilter);
   publish_matches(myfilter);
 });
 
+// GET all matches to be held on give date 
+/*
+router.use('/today', function(req, res, next) {
+  MatchRes = res;
+  setHeader();
+  req.url = '/date/today';
+  next('route');
+});
+*/
 
-/* GET all matches to be held on give date */
+// GET all matches to be held on give date 
 router.use('/date/:mydate', function(req, res, next) {
   MatchRes = res;
   setHeader();
-
   var {mydate} = req.params;
-  var startDate, endDate;
+  var todayDate = new Date();
 
+  var maxDayRange = 1;
+  switch (mydate.toUpperCase())
+  {
+    case "UPCOMING":
+      //todayDate.setDate(todayDate.getDate()-10);
+      mydate = todayDate.getFullYear().toString() + "-" +
+              (todayDate.getMonth()+1).toString() + "-" +
+              todayDate.getDate().toString() + " " +
+              todayDate.getHours().toString() + ":" +
+              todayDate.getMinutes().toString();
+      maxDayRange = 200;
+      break;
+    case "TODAY":
+      mydate = todayDate.getFullYear().toString() + "-" +
+              (todayDate.getMonth()+1).toString() + "-" +
+              todayDate.getDate().toString();
+      break;
+    case "YESTERDAY":
+      todayDate.setDate(todayDate.getDate()-1);
+      mydate = todayDate.getFullYear().toString() + "-" +
+              (todayDate.getMonth()+1).toString() + "-" +
+              todayDate.getDate().toString();
+      break;
+    case "TOMORROW":
+      todayDate.setDate(todayDate.getDate()+1);
+      mydate = todayDate.getFullYear().toString() + "-" +
+              (todayDate.getMonth()+1).toString() + "-" +
+              todayDate.getDate().toString();
+      break;
+  }
+  console.log(`Date: ${mydate} and Range ${maxDayRange}`)
+  var startDate, endDate;
   startDate =   new Date(mydate);
   if (isNaN(startDate)) { senderr(661, `Invalid date ${mydate}`); return; }
-  
   endDate = new Date(startDate.getTime());        // clone start date
-  endDate.setDate(startDate.getDate()+1);
+  endDate.setDate(startDate.getDate()+maxDayRange);
   endDate.setHours(0);
   endDate.setMinutes(0);
   endDate.setSeconds(0);
@@ -77,12 +124,17 @@ router.use('/date/:mydate', function(req, res, next) {
   console.log(`Curr Date: ${currdate} Start Date: ${startDate}   End Date: ${endDate}`);
 
   //Income.find({owner: userId, date: { $gte: start, $lt: end }}, callback);
-  let myfilter = { matchTime: { $gte: startDate, $lt: endDate } };
+  let myfilter = { tournament: _tournament, matchStartTime: { $gte: startDate, $lt: endDate } };
   publish_matches(myfilter);
 });
 
-
 async function publish_matches(myfilter)
+{
+  console.log(myfilter);
+  var matchlist = await CricapiMatch.find(myfilter);  
+  sendok(matchlist);
+}
+async function publish_matches_r0(myfilter)
 {
   //console.log(myfilter);
     var matchlist = await Match.find(myfilter);

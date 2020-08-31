@@ -64,7 +64,7 @@ IPLGroupSchema = mongoose.Schema({
 });
 PlayerSchema = mongoose.Schema({
     pid:Number,
-    name:String,
+    playerName:String,
     fullName:String,
     Team:String,
     role:String,
@@ -82,6 +82,7 @@ AuctionSchema = mongoose.Schema({
 GroupMemberSchema = mongoose.Schema({
     gid:Number,
     uid:Number,
+    userName:String,
     balanceAmount:Number        // balance available to be used for bid
 });
 CaptainSchema = mongoose.Schema({
@@ -192,8 +193,9 @@ GROUP1_MAXBALANCE = 1000;
 // Number of hours after which match details to be read frpom cricapi.
 MATCHREADINTERVAL = 3;
 
-// currently only 1 group defined
 defaultGroup = 1;
+defaultTournament = "ENGPAKT20";
+forceGroupInfo = false;
 
 // Point scroring
 ViceCaptain_MultiplyingFactor = 1.5;
@@ -260,6 +262,7 @@ cron.schedule('*/15 * * * * *', () => {
   if (!connectRequest)
     mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
 });
+
 
 
 // start app to listen on specified port

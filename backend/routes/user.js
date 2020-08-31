@@ -5,7 +5,7 @@ const allUSER = 99999999;
 const is_Captain = true;
 const is_ViceCaptain = false;
 let CricRes;
-var groupRecord;
+var _group;
 
 /* GET all users listing. */
 router.get('/', function(req, res, next) {
@@ -13,6 +13,7 @@ router.get('/', function(req, res, next) {
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB);  return; }
   
+  _group = defaultGroup;
   if (req.url == "/")
     publish_users({});
   else
@@ -24,8 +25,8 @@ router.get('/', function(req, res, next) {
 router.get('/group', async function(req, res, next) {
   CricRes = res;
   setHeader();  
-
-  showGroupMembers(1);
+  _group = defaultGroup;
+  showGroupMembers();
 });
 
 // get users belonging to group "mygroup"
@@ -34,10 +35,20 @@ router.get('/group/:mygroup', async function(req, res, next) {
   setHeader();
 
   var {mygroup} = req.params;
+  //_group = 0;
+  var tmpRec = null;
+  var _group = parseInt(mygroup);
+  if (!isNaN(_group)) {
+    var tmpRec = await IPLGroup.findOne({gid: _group});
+  }
+  if (!tmpRec) {
+    senderr(601, "Invalid group number"); 
+    return;
+  }
 
   // currently only Group 1 supported.
-  if (mygroup != "1") {senderr(601, "Invalid group number"); return;}
-  showGroupMembers(1);
+  //if (mygroup != "1") {senderr(601, "Invalid group number"); return;}
+  showGroupMembers();
 
 });
 
@@ -364,10 +375,11 @@ function setHeader() {
 }
 module.exports = router;
 
-async function showGroupMembers(igroup)
+async function showGroupMembers()
 {
-  gmlist = await GroupMember.find({gid: igroup});
-  var userlist = _.map(gmlist, 'uid');      // [12, 14, 16, 18]
+  console.log(_group);
+  gmlist = await GroupMember.find({gid: _group});
+  var userlist = _.map(gmlist, 'uid'); 
   publish_users({ uid: { $in: userlist } });
 }
 
