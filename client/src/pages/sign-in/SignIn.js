@@ -26,7 +26,7 @@ class SignIn extends React.Component {
        password:this.state.password
       },
       () =>{
-        fetch(`http://192.168.29.191:4000/users/${this.state.userName}/${this.state.password}`, {
+        fetch(`user/${this.state.userName}/${this.state.password}`, {
       method: 'GET'
     }).then(res=>{if(res.status===400){
 console.log("fail");}

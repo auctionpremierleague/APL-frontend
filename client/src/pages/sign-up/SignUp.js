@@ -26,7 +26,7 @@ class SignUp extends React.Component {
        password:this.state.password
       },
       () =>{
-        fetch('http://192.168.29.191:4000/users', {
+        fetch('user', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

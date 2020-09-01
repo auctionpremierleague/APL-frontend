@@ -10,7 +10,7 @@ fetch = require('node-fetch');
 _ = require("lodash");
 cron = require('node-cron');
 app = express(),
-PORT = 4000;
+PORT = process.env.PORT ||4000;
 
 
 // Routers
@@ -24,14 +24,16 @@ teamRouter = require('./routes/team');
 statRouter = require('./routes/playerstat');
 matchRouter = require('./routes/match');
 tournamentRouter = require('./routes/tournament');
-
+app.set('view engine', 'html');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../client/build/')));
 app.use(express.json());
-
+// router.use(function(req, res) {
+// 	res.sendFile(path.join(__dirname, '../client/build/index.html'));
+// });
 app.use('/',        indexRouter);
 app.use('/user',    usersRouter);
 app.use('/player',  playersRouter);
