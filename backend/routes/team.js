@@ -19,7 +19,6 @@ router.use('/', function(req, res, next) {
 async function publish_teams(filter_teams)
 {
   var tlist = await Team.find(filter_teams);
-    tournament:String,
   tlist = _.map(tlist, o => _.pick(o, ['name', 'fullname', 'tournament']));
   sendok(tlist);
 }

@@ -64,7 +64,7 @@ IPLGroupSchema = mongoose.Schema({
 });
 PlayerSchema = mongoose.Schema({
     pid:Number,
-    playerName:String,
+    name:String,
     fullName:String,
     Team:String,
     role:String,
@@ -101,7 +101,8 @@ TeamSchema = mongoose.Schema({
 TournamentSchema = mongoose.Schema({
   name:String,
   desc:String,
-  enabled:Boolean
+  type:String,
+  over:Boolean
 })
 
 MatchSchema = mongoose.Schema({
@@ -134,6 +135,8 @@ StatSchema = mongoose.Schema({
   hattrick:Number,
   maiden:Number,
   oversBowled:Number,
+  maxTouramentRun:Number,
+  maxTouramentWicket:Number,
   // overall performance
   manOfTheMatch:Boolean
 });
@@ -193,8 +196,13 @@ GROUP1_MAXBALANCE = 1000;
 // Number of hours after which match details to be read frpom cricapi.
 MATCHREADINTERVAL = 3;
 
+// match id for record which has bonus score for  Maximum Run and Maximum Wicket
+// Note that it has be be set -ve
+MaxRunMid   = -1;
+MaxWicketMid = -2;
+
 defaultGroup = 1;
-defaultTournament = "ENGPAKT20";
+defaultTournament = "IPL2020";
 forceGroupInfo = false;
 
 // Point scroring
@@ -214,6 +222,9 @@ BonusMaiden = 20;
 BonusDuck = -5;
 BonusNoWkt = 0;
 BonusMOM = 20;
+
+BonusMaxRun = 100;
+BonusMaxWicket = 100;
 
 
 // ----------------  end of globals

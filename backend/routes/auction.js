@@ -1,14 +1,17 @@
 var router = express.Router();
 let AuctionRes;
-
+var _group;
+var _tournament;
 /* GET users listing. */
 router.use('/', function(req, res, next) {
   AuctionRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
 
+  _group = defaultGroup;
+  _tournament = defaultTournament
   if (req.url == "/")
-    publish_auctions({});
+    publish_auctions({gid: _group});
   else
     next();
 });
@@ -19,7 +22,7 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
 
   var {groupId,userId,playerId,bidValue}=req.params;
 
-  var igroup = defaultGroup;
+  var igroup = _group;
   var grpstr = igroup.toString();
 
   if (groupId != grpstr) { senderr(702, "Invalid Group"); return; }
