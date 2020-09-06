@@ -255,12 +255,6 @@ router.get('/balance/:myuser', async function(req, res, next) {
   sendok(balanceDetails);
 })
 
-router.get('/myteam', function(req, res, next) {
-  CricRes = res;
-  setHeader(); 
-
-  publish_auctionedplayers(allUSER);
-});
 
 // get players purchased by me.
 // currently only group 1 supported
@@ -269,7 +263,7 @@ router.get('/myteam/:userid', function(req, res, next) {
   setHeader();
 
   var {userid} = req.params;
-  let igroup = 1;   // default group 1
+  let igroup = _group;   // default group 1
   let iuser = (userid.toUpperCase() != "ALL") ? parseInt(userid) : allUSER;
   if (isNaN(iuser))
     senderr(605, `Invalid user ${userid}`);
@@ -379,8 +373,10 @@ async function publish_auctionedplayers(userid)
     myfilter = {gid: _group, uid: userid};
 
   var datalist = await Auction.find(myfilter);
+  //console.log(datalist);
   if (!datalist) { senderr(DBFETCHERR,err); return; }
   datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'bidAmount']));
+
   // make grouping of players per user
   // NEED TO CLEAN UP THIS PIECE OF CODE
   var userlist = _.map(datalist, d => _.pick(d, ['uid']));
