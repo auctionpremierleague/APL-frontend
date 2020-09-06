@@ -1,4 +1,4 @@
-const { route } = require(".");
+const { route, use } = require(".");
 router = express.Router();
 
 const allUSER = 99999999;
@@ -274,6 +274,53 @@ router.get('/myteam/:userid', function(req, res, next) {
     publish_auctionedplayers(iuser);
 
 });
+
+
+// Which group I am the member
+// each group will have have the tournament name
+router.get('/mygroup/:userid', async function(req, res, next) {
+  CricRes = res;
+  setHeader();
+
+  var {userid} = req.params;
+  var userFilter;
+  if (userid.toUpperCase() == "ALL")
+  {
+    userFilter = {};
+  } else {
+    if (isNaN(userid)) { senderr(605, `Invalid user ${userid}`); return; }
+    userFilter = {uid: parseInt(userid)};
+  }
+  var userRec = await User.find(userFilter);
+  if (userRec.length === 0) { senderr(605, `Invalid user ${userid}`); return; }
+
+  userRec = _.sortBy(userRec, 'uid');
+  var userList = _.map(userRec, 'uid');
+  //userList = sort user list
+  var gmRec = await GroupMember.find({uid: {$in: userList}});
+  gmRec = _.sortBy(gmRec, 'gid');
+  var result = [];
+  if (gmRec.length > 0) {
+    groupList = _.map(gmRec, 'gid');
+    var groupRec = await IPLGroup.find({gid: {$in: groupList}});
+    //console.log(groupRec);
+    userRec.forEach( u => {
+      var memberof = _.filter(gmRec, x => x.uid == u.uid);
+      memberof.forEach( gm => {
+        //console.log(gm);
+        var mygroup = _.filter(groupRec, x => x.gid == gm.gid);
+        result.push({ uid: u.uid, 
+          userName: u.userName, displayName: u.displayName,
+          gid: mygroup[0].gid, groupName: mygroup[0].name, 
+          tournament: mygroup[0].tournament
+        });
+      })
+    })
+  }
+  //console.log(result);
+  sendok(result);
+ // sendok(gmRec);
+})
 
 async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
 {

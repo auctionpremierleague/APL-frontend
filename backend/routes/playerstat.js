@@ -70,7 +70,7 @@ router.use('/test1/:mid', async function(req, res, next) {
   sendok(mydata);
 });
 
-router.use('/swap/:gid1/:gid2', async function(req, res, next) {
+router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
   var {gid1, gid2} = req.params;
