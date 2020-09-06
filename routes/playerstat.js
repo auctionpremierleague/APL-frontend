@@ -955,7 +955,8 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].wicket3 = ((bowler.W >= 3) && (bowler.W < 5)) ? 1 : 0;
       allplayerstats[myindex].hattrick = 0;
       allplayerstats[myindex].maiden = (bowler.M === undefined) ? 0 : bowler.M
-
+      allplayerstats[myindex].maxTouramentRun = 0;
+      allplayerstats[myindex].maxTouramentWicket = 0;
       console.log(`Wicket by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].wicket}`)
       if (!(bowler.O === undefined)) {
         var i = parseInt(bowler.O);
@@ -991,6 +992,8 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].hundred = (batsman.R >= 100) ? 1 : 0;
       allplayerstats[myindex].four = (batsman["4s"] === undefined) ? 0 : batsman["4s"];
       allplayerstats[myindex].six = (batsman["6s"] === undefined) ? 0 : batsman["6s"];
+      allplayerstats[myindex].maxTouramentRun = 0;
+      allplayerstats[myindex].maxTouramentWicket = 0;
 
       console.log(`Runs by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].run}`)
 
