@@ -445,11 +445,8 @@ async function showGroupMembers()
 /** codes used for testing
 let words = ['sky', 'wood', 'forest', 'falcon', 
     'pear', 'ocean', 'universe'];
-
 let fel = _.first(words);
 let lel = _.last(words);
-
-
 let users = [
   { name: 'John', age: 25, occupation: 'gardener' },
   { name: 'Lenny', age: 45, occupation: 'programmer' },
@@ -460,21 +457,15 @@ let users = [
   { name: 'Adam', age: 25, occupation: 'teacher' },
   { name: 'Robert', age: 43, occupation: 'driver' }
 ];
-
 //let u2 = _.find(users, (u) => { return u.age < 30 });
 // var u2 = YourArray.filter(function( obj ) {
 //   return obj.value === 1;
 // });
 // console.log(u2);
-
 let grouped = _.reduce(users, (result, user) => {
-
     (result["AGE"+user.age] || (result["AGE"+user.age] = [])).push(user);  
     return result;
 }, {});
-
 var g25 = grouped.AGE25;
-
-
  
  */

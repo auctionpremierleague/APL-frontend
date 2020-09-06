@@ -360,7 +360,6 @@ router.use('/updatemax', async function(req, res, next) {
 router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
   PlayerStatRes = res;
   setHeader();
-
   var {infoType, whichUser} = req.params;
   console.log(`${infoType}  && ${whichUser}`)
   if (whichUser.toUpperCase() === "ALL") whichUser = '0';
@@ -368,7 +367,6 @@ router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
     senderr(721, `Invalid user id ${whichUser}`);
     return;
   }
-
   var iwhichUser = parseInt(whichUser);
   // find out users belnging to Group 1 (this is default). and set in igroup
   var igroup = _group;
@@ -379,7 +377,6 @@ router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
   var captainlist = await Captain.find({gid: igroup});
   // Set collection name 
   var tournamentStat = mongoose.model(myGroup.tournament, StatSchema);
-
   // var tourmanetStatus = await tournamentOver(igroup);
   // console.log(`Group 1 tournamemnet status: ${tourmanetStatus}`);
   
@@ -387,7 +384,6 @@ router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
   var auctionList = await Auction.find({gid: igroup,  uid: { $in: userlist }});
   var allplayer = _.map(auctionList, 'pid')
   var statList = await tournamentStat.find({pid: {$in: allplayer}});
-
   // now calculate score for each user
   var userRank = [];
   gmembers.forEach( gm => {
@@ -399,7 +395,6 @@ router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
     var capinfo = _.find(captainlist, x => x.gid == igroup && x.uid == userPid);
     if (capinfo === undefined)
       capinfo = new Captain ({ gid: _group, uid: userPid, captain: 0, viceCaptain: 0});
-
     // find out players of this user
     var myplayers = _.filter(auctionList, a => a.gid === igroup && a.uid === userPid); 
     //console.log(myplayers);
@@ -419,7 +414,6 @@ router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
         //console.log(`None of the above: ${p.pid}`);
       }
       //console.log(`Mul factor: ${MF}`);
-
       // now get the statistics of this player in various maches
       var myplayerstats = _.filter(statList, x => x.pid === p.pid);
       var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
@@ -1196,7 +1190,6 @@ function updateMatchFetchTime(provider) {
   } else {
     // advance match fetch time by 3 hours
     // if end of day then set it to tomorrow at 7
-
     var newhr = nextMatchFetchTime.getHours() + 3;
     if (newhr > 23) {
       newdt = tomorrowFetchTime();
@@ -1311,4 +1304,3 @@ module.exports = router;
 //   let result = await promise;
 //   console.log(result);
 // }
-
