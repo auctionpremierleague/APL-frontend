@@ -6,7 +6,7 @@ const doMaxRun = 1;
 const doMaxWicket = 2;
 
 // user these keys in rotation for fetch data from cricapi
-const keylist = [				
+const keylist = [       
 "O9vYC5AxilYm7V0EkYkvRP5jF9B2","RTf9weNrX8Xn2ts1ksdzAXcuxnE3","H2ObZFee6BVMN5kCjLxYCMwcEp52",
 "kAWvFxmpeJZmbtyNeDLXtxUPrAH3","EstH4EqbfEXMKXcS9M83k7cqUs13","ApVnpFFO6kgxTYXVwWQTEeiFVCO2",
 "72QuFkQezxf5IdqxV1CtGJrAtcn1","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -70,7 +70,7 @@ router.use('/test1/:mid', async function(req, res, next) {
   sendok(mydata);
 });
 
-router.use('/swap/:gid1/:gid2', async function(req, res, next) {
+router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
   var {gid1, gid2} = req.params;
