@@ -6,6 +6,8 @@ const is_Captain = true;
 const is_ViceCaptain = false;
 let CricRes;
 var _group;
+var _tournament;
+
 
 /* GET all users listing. */
 router.get('/', function(req, res, next) {
@@ -14,6 +16,7 @@ router.get('/', function(req, res, next) {
   if (!db_connection) { senderr(DBERROR, ERR_NODB);  return; }
   
   _group = defaultGroup;
+  _tournament = defaultTournament;
   if (req.url == "/")
     publish_users({});
   else
@@ -25,7 +28,7 @@ router.get('/', function(req, res, next) {
 router.get('/group', async function(req, res, next) {
   CricRes = res;
   setHeader();  
-  _group = defaultGroup;
+  //_group = defaultGroup;
   showGroupMembers();
 });
 
@@ -88,7 +91,7 @@ router.get('/internal/:userAction/:userName/:userParam', function(req, res, next
       switch (userAction) {
         case "login":
           if ((urec) && (urec.password == userParam))
-            sendok(`${urec.uid}`);
+            sendok(urec.uid.toString());
           else
             senderr(602, "Invalid User name or password");
           break;
@@ -98,7 +101,7 @@ router.get('/internal/:userAction/:userName/:userParam', function(req, res, next
             urec.save(function(err) {
               //console.log(err);
               if (err)  senderr(DBFETCHERR,"Could not reset password");
-              else      sendok("Password updated for user " + userName);
+              else      sendok(urec.uid.toString());
             });
           } else
             senderr(602, "Invalid User name or password");
@@ -110,7 +113,7 @@ router.get('/internal/:userAction/:userName/:userParam', function(req, res, next
             urec.save(function(err) {
               //console.log(err);
               if (err)  senderr(DBFETCHERR,"Could not update display name");
-              else      sendok("Display Name updated for user " + userName);
+              else      sendok(urec.uid.toString());
             });
           } else
             senderr(602, "Invalid User name or password");
@@ -132,7 +135,7 @@ router.get('/internal/:userAction/:userName/:userParam', function(req, res, next
                   if (err)
                     senderr(DBFETCHERR, "Unable to add new User record");
                   else 
-                    sendok("Welcome to CricDream " + user1.userName);
+                    sendok(user1.uid.toString());
                 });
               }
             });
@@ -157,12 +160,12 @@ router.get('/captain/:myuser/:myplayer', function(req,  res, next) {
   var {myuser, myplayer} = req.params;
   var iuser = parseInt(myuser);
   var iplayer = parseInt(myplayer);
-  var igroup = 1;
+  //var igroup = _group;
 
   if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
   if (isNaN(iplayer)) { senderr(606, "Invalid player"); return; }
 
-  Auction.find({gid: igroup, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
+  Auction.find({gid: _group, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
     if (err)
       senderr(DBFETCHERR, err);
     else if (count == 0)
@@ -189,8 +192,8 @@ router.get('/vicecaptain/:myuser/:myplayer', function(req,  res, next) {
 
   if (isNaN(iuser)) { senderr(605,"Invalid user"); return; }
   if (isNaN(iplayer)) { senderr(606, "Invalid player"); return; }
-  var igroup = 1;
-  Auction.find({gid: igroup, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
+  
+  Auction.find({gid: _group, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
     if (err)
       senderr(DBFETCHERR, err);
     else if (count == 0)
@@ -216,7 +219,7 @@ router.get('/getcaptain/:myuser', function(req,  res, next) {
   else {
     var iuser = parseInt(myuser);
     if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
-    myfilter = {gid: defaultGroup, uid: iuser};
+    myfilter = {gid: _group, uid: iuser};
   }
   publishCaptain(myfilter);
 });
@@ -230,6 +233,7 @@ router.get('/balance/:myuser', function(req, res, next) {
   var {myuser} = req.params;
   var iuser = parseInt(myuser);
   var igroup = 1;
+
   if (isNaN(iuser)) { senderr(605,"Invalid user " + myuser); return; }
 
   //mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true }, function() {    
@@ -240,7 +244,7 @@ router.get('/balance/:myuser', function(req, res, next) {
     { 
       senderr(608,"User does not belong to group 1"); 
     }else{
-      Auction.find({gid:igroup, uid: iuser}, (err, alist) => {
+      Auction.find({gid: _group, uid: iuser}, (err, alist) => {
         var mybal = 1000 - _.sumBy(alist, 'bidAmount'); //alist.reduce((a, {bidAmount}) => a + bidAmount, 0);
         sendok(mybal.toString());
       });
@@ -250,7 +254,7 @@ router.get('/balance/:myuser', function(req, res, next) {
 
 router.get('/myteam', function(req, res, next) {
   CricRes = res;
-  setHeader();
+  setHeader(); 
 
   publish_auctionedplayers(allUSER);
 });
@@ -275,7 +279,7 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
 {
   var myplayer = await Player.findOne({pid: iplayer});
   var caporvice = (mytype == is_Captain) ? "Captain" : "ViceCaptain";
-  Captain.findOne({gid:1, uid: iuser}, function(err, caprec) {
+  Captain.findOne({gid: _group, uid: iuser}, function(err, caprec) {
     if (err)
       senderr(DBFETCHERR, err);
     else {
@@ -283,7 +287,7 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
       // if record not found create brand new cpatain record since user has made selection 1st time
       if (!caprec)
         caprec = new Captain({ 
-          gid: 1, 
+          gid: _group, 
           uid: iuser, 
           captain: 0,  
           captainName: "",
@@ -299,6 +303,8 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
       }
 
       // Update captain and write it back to database
+      //console.log(myplayer);
+      //console.log(myplayer.name)
       if (mytype == is_Captain) {
         caprec.captain = iplayer;
         caprec.captainName = myplayer.name;
@@ -306,6 +312,7 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
         caprec.viceCaptain = iplayer;
         caprec.viceCaptainName = myplayer.name;
       }
+      //console.log(caprec);
       caprec.save(function(err) {
         if (err) senderr(DBFETCHERR,`Could not update ${caporvice}`);
         else  sendok(`${caporvice} updated for user ${iuser}`);
@@ -319,9 +326,9 @@ async function publish_auctionedplayers(userid)
 {
   var myfilter;
   if (userid == allUSER)
-    myfilter = {gid: defaultGroup};
+    myfilter = {gid: _group};
   else
-    myfilter = {gid:defaultGroup, uid: userid};
+    myfilter = {gid: _group, uid: userid};
 
   var datalist = await Auction.find(myfilter);
   if (!datalist) { senderr(DBFETCHERR,err); return; }

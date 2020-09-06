@@ -70,23 +70,52 @@ router.use('/test1/:mid', async function(req, res, next) {
   sendok(mydata);
 });
 
-router.use('/test2', async function(req, res, next) {
+router.use('/swap/:gid1/:gid2', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
+  var {gid1, gid2} = req.params;
+  if (isNaN(gid1)) { senderr(400, "Invalid GID1"); return}
+  if (isNaN(gid2)) { senderr(400, "Invalid GID2"); return}
+  var igid1 = parseInt(gid1);
+  var igid2 = parseInt(gid2);
 
-  // var allplayers = await Player.find({});
-  // allplayers.forEach(x => {
-  //   switch (x.Team) {
-  //     case "NEWTEAM": 
-  //     case "PAK":
-  //       x.tournament = "ENGPAKT20";
-  //       break;
-  //     default:
-  //       x.tournament = "IPL2020";
-  //       break;
-  //   }
-  //   x.save();
-  // })
+  var tmp = await IPLGroup.findOne({gid: igid1});
+  if (!tmp) { senderr(400, "Invalid GID1"); return}
+  tmp = await IPLGroup.findOne({gid: igid2});
+  if (!tmp) { senderr(400, "Invalid GID2"); return}
+
+  // swap GROUP 
+  var allRecs = await IPLGroup.find({gid: {$in: [igid1, igid2]} })
+  //console.log(allRecs);
+  allRecs.forEach( x => {
+    if      (x.gid == igid1)  x.gid = igid2;
+    else if (x.gid == igid2)  x.gid = igid1;
+    x.save();   
+  })
+  // swap GROUP Members
+  var allRecs = await GroupMember.find({gid: {$in: [igid1, igid2]} })
+  //console.log(allRecs);
+  allRecs.forEach( x => {
+    if      (x.gid == igid1)  x.gid = igid2;
+    else if (x.gid == igid2)  x.gid = igid1;
+    x.save();   
+  })
+  // swap Auction
+  var allRecs = await Auction.find({gid: {$in: [igid1, igid2]} })
+  //console.log(allRecs);
+  allRecs.forEach( x => {
+    if      (x.gid == igid1)  x.gid = igid2;
+    else if (x.gid == igid2)  x.gid = igid1;
+    x.save();   
+  })
+  // swap Captain
+  var allRecs = await Captain.find({gid: {$in: [igid1, igid2]} })
+  //console.log(allRecs);
+  allRecs.forEach( x => {
+    if      (x.gid == igid1)  x.gid = igid2;
+    else if (x.gid == igid2)  x.gid = igid1;
+    x.save();   
+  })
   sendok("OK");
 });
 
@@ -94,13 +123,14 @@ router.use('/test', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
 
-  update_cricapi_data_r1(true);
+  await update_cricapi_data_r1(true);
   sendok("OK");
 });
 
 // provide scrore of users beloging to the group
 // currently only group 1 supported
-router.use('/internal/score', async function(req, res, next) {
+
+router.use('/junked/internal/score', async function(req, res, next) {
   PlayerStatRes = res;
   setHeader();
 
@@ -158,6 +188,7 @@ router.use('/internal/score', async function(req, res, next) {
   //console.log(userScoreList);
   sendok(userScoreList);
 });
+
 
 router.use('/maxrun/:myuser', async function(req, res, next) {
   PlayerStatRes = res;
@@ -250,8 +281,82 @@ router.use('/rank/:myuser', async function(req, res, next) {
   statRank(iuser);
 });
 
+router.use('/updatemax', async function(req, res, next) {
+  PlayerStatRes = res;
+  setHeader();
+
+  // first check if tournament is over (END has been signalled)
+  var myTournament = await Tournament.findOne({name: _tournament});
+  if (!myTournament.over) {
+    senderr(723, "Tournament not yet over. Cannot assign Bonus point for Tournament Max Run and Wicket");
+    return;
+  }
+
+  var tournamentStat = mongoose.model(_tournament, StatSchema);
+  var tdata = await tournamentStat.find({});
+  var tmp = _.filter(tdata, x => x.mid == MaxRunMid);
+  if (tmp.length > 0) {
+    senderr(724, "Bonus point for Maximum run already assigned");
+    return;
+  }
+  var tmp = _.filter(tdata, x => x.mid == MaxWicketMid);
+  if (tmp.length > 0) {
+    senderr(724, "Bonus point for Maximum wicket already assigned");
+    return;
+  }
+  pidList = _.map(tdata, 'pid');
+  pidList = _.uniqBy(pidList);
+
+  // calculate total runs and total wockets of each player (played in tournament matches)
+  var sumList = [];
+  pidList.forEach( mypid => {
+    tmp = _.filter(tdata, x => x.pid === mypid);
+    if (tmp.length > 0) {
+      var iRun = _.sumBy(tmp, 'run');
+      var iWicket = _.sumBy(tmp, 'wicket');
+      sumList.push({pid: mypid, playerName: tmp[0].playerName, totalRun: iRun, totalWicket: iWicket});
+    }
+  });
+
+  // now get list of players who have score max runs (note there can be more than 1)
+  var tmp = _.maxBy(sumList, x => x.totalRun);
+  console.log(tmp);
+  var maxList = _.filter(sumList, x => x.totalRun == tmp.totalRun);
+  var bonusAmount  = BonusMaxRun / maxList.length;
+  maxList.forEach( mmm => {
+    var myrec = getBlankStatRecord(tournamentStat);
+    myrec.mid = MaxRunMid;
+    myrec.pid = mmm.pid;
+    myrec.playerName = mmm.playerName;
+    myrec.score = bonusAmount;
+    myrec.maxTouramentRun = mmm.totalRun;  
+    myrec.save(); 
+  });
+
+  // now get list of players who have taken max wickets (note there can be more than 1)
+  var tmp = _.maxBy(sumList, x => x.totalWicket);
+  console.log(tmp);
+  var maxList = _.filter(sumList, x => x.totalWicket == tmp.totalWicket);
+  bonusAmount  = BonusMaxWicket / maxList.length;
+  maxList.forEach( mmm => {
+    var myrec = getBlankStatRecord(tournamentStat);
+    myrec.mid = MaxWicketMid;
+    myrec.pid = mmm.pid;
+    myrec.playerName = mmm.playerName;
+    myrec.score = bonusAmount;
+    myrec.maxTouramentWicket = mmm.totalWicket;
+    myrec.save(); 
+  });
+  
+  sendok("OK");
+  // allocate bonus points to player with maximum run and maximum wicket
+});
+
+
+
 // provide scrore of users beloging to the group
 // currently only group 1 supported
+/*
 router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
   PlayerStatRes = res;
   setHeader();
@@ -348,7 +453,7 @@ router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
   //console.log(userRank);
   sendok(userRank);
 });
-
+*/
 
 async function statBrief(iwhichuser)
 {
@@ -673,57 +778,99 @@ async function update_cricapi_data_r1(logToResponse)
 
     // 1st if time is up then get match details from cricapi
     if (timeToFetchMatches()) {
-      // first get the team list
-      var mytournament = await Tournament.find({ enabled: true });
-      mytournament = _.map(mytournament, 'name');
-      console.log(mytournament);
-      var allTeams = await Team.find({tournament: {$in: mytournament}});
-      //console.log(allTeams);
-
       //console.log("time to fetch match details");
       var existingmatches = await CricapiMatch.find({});
         
-      // now get match details from cricapi
+      // now fetch fresh match details from cricapi
       var matchesFromCricapi = await fetchMatchesFromCricapi();
       if (matchesFromCricapi.matches == undefined) {
         console.log(matchesFromCricapi);
         var errmsg = "Could not fetch Match details from CricAPI"
         if (logToResponse)  senderr(CRICFETCHERR, errmsg)
         else                console.log(errmsg);
-        return;
+        return; 
       }
 
-      // next step update all the match details in mongoose
+      // get all tournamnet and their teams
+      allTournament = await Tournament.find({over: false});
+      var tournamentList = _.map(allTournament, 'name'); 
+      var allTeams = await Team.find({tournament: {$in: tournamentList} });
+
+      // process each match found in cricapy
       matchesFromCricapi.matches.forEach(x => {
+        // if (x.unique_id == 1198246) console.log(`Match found has id: ${x.unique_id}`);
         var myTeam1 = x['team-1'].toUpperCase();
         var myTeam2 = x['team-2'].toUpperCase();
-        //console.log(`Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
-
-        // do not consider match if team not yer decided
         if ((myTeam1 === "TBA") || (myTeam2 === "TBA")) return;
-
-        // consider match only if team1 and team2 are part of our team list
-        var isTeam = _.filter(allTeams, x => x.name == myTeam2);
-        if (isTeam.length === 0) return;
-        isTeam = _.filter(allTeams, x => x.name == myTeam1);
-        if (isTeam.length === 0) return;
-        // filter over
-
-        // identify the tournament name
-        var matchTournament = isTeam[0].tournament;
-        console.log(`Match is part of ${matchTournament}`);
+        // find out if these 2 teams belong to any tournament.
+        // ALSO match the tournament type viz. TEST, ODI, 20-2
+        var matchTournament = '';
+        var mytype = x.type.toUpperCase();
+        allTournament.forEach(t => {
+          var typeHasMatched = false;
+          switch (t.type) {
+            case "TEST":
+              if (mytype.includes("TEST"))
+                typeHasMatched = true;
+              break;
+            case "ODI":
+              if (mytype.includes("ODI"))
+                typeHasMatched = true;
+              break;
+            case "T20":
+              if (mytype.includes("20") || mytype.includes("TWENTY"))
+                typeHasMatched = true;
+              break;
+          }
+          if (!typeHasMatched) return;
+          var myteams = _.filter(allTeams, tm => tm.tournament == t.name);
+          // find team 1  is part of this tournament
+          var myindex = -1;
+          for(var i=0; i < myteams.length; ++i) {
+            if (myteams[i].name == myTeam1) {
+              myindex = i;
+              break;
+            }
+          } 
+          // var myindex = _.indexOf(myteams, z => z.name == myTeam1);
+          if (x.unique_id == 1198246) {
+            // console.log("START---------------------------")
+            // console.log(myteams)
+            // console.log(`Team NAME is ${myTeam1}. Index 1 is ${myindex}`);
+            // console.log("END---------------------------")
+          }
+          //if (x.unique_id == 1198246) console.log(`index 1 is ${myindex}`);
+          if (myindex < 0) return;
+          myindex = -1;
+          for(var i=0; i < myteams.length; ++i) {
+            if (myteams[i].name == myTeam2) {
+              myindex = i;
+              break;
+            }
+          }
+          //var myindex = _.indexOf(myteams, xxx => xxx.name == myTeam2);
+          //if (x.unique_id == 1198246) console.log(`index 2 is ${myindex}`);
+          if (myindex < 0) return;
+          // both the teams belong to this tournament. 
+          //console.log(`Team: ${myTeam1} and ${myTeam2} are part of tournament ${t.name}`);
+          matchTournament = t.name;
+        });
+        if (matchTournament.length === 0) return;
+        console.log(`Tournament: ${matchTournament} Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
 
         var mymatch = _.find(existingmatches, m => m.mid == parseInt(x.unique_id));
-        if (mymatch === undefined) {
-          mymatch = new CricapiMatch();
-        } 
+        if (mymatch === undefined) mymatch = new CricapiMatch();
+        console.log(`dating match of ${x.unique_id}`)
         mymatch = getMatchDetails(x, mymatch, matchTournament);
+        //console.log(mymatch);
         mymatch.save();
       });
+      // end of check if this match part of our tournament
+
       // set next fetch time
       updateMatchFetchTime(matchesFromCricapi.provider);
     }
-    else
+    else 
       console.log("Match details not to be fetched now");
 
     // match update job done. Now get all matches which have started before current time
@@ -778,7 +925,7 @@ async function updateMatchStats_r1(mmm, cricdata)
   if (cricdata["man-of-the-match"].pid.length > 0)
     manOfTheMatchPid = parseInt(cricdata["man-of-the-match"].pid);
 
-  console.log(`Man of the match is ${manOfTheMatchPid} as per cric api ${cricdata["man-of-the-match"]}`)
+  //console.log(`Man of the match is ${manOfTheMatchPid} as per cric api ${cricdata["man-of-the-match"]}`)
   var allplayerstats = await tournamentStat.find({mid: mmm.mid});
   // update bowling details
   //console.log("Bowlong Started");
@@ -809,7 +956,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].hattrick = 0;
       allplayerstats[myindex].maiden = (bowler.M === undefined) ? 0 : bowler.M
 
-      //console.log(`Wicket by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].wicket}`)
+      console.log(`Wicket by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].wicket}`)
       if (!(bowler.O === undefined)) {
         var i = parseInt(bowler.O);
         if (isNaN(i))
@@ -845,7 +992,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].four = (batsman["4s"] === undefined) ? 0 : batsman["4s"];
       allplayerstats[myindex].six = (batsman["6s"] === undefined) ? 0 : batsman["6s"];
 
-      //console.log(`Runs by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].run}`)
+      console.log(`Runs by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].run}`)
 
       if (!(batsman.B === undefined)) {
         var i = parseInt(batsman.B);
@@ -900,8 +1047,8 @@ function getMatchDetails(cricapiRec, mymatch, tournamentName) {
       mymatch.matchEnded = true;
     else
       mymatch.matchEnded = false;
-    //if (mymatch.mid === 1198245) mymatch.matchEnded = false;
-    console.log(`Match-ID: ${mymatch.mid}  Started: ${mymatch.matchStarted}  Ended: ${mymatch.matchEnded}`)
+    //if (mymatch.mid === 1198246) mymatch.matchEnded = false;
+    //console.log(`Match-ID: ${mymatch.mid}  Started: ${mymatch.matchStarted}  Ended: ${mymatch.matchEnded}`)
     return mymatch;
 }
 
@@ -927,11 +1074,12 @@ function getBlankStatRecord(tournamentStat) {
     hattrick: 0,
     maiden: 0,
     oversBowled: 0,
+    maxTouramentRun: 0,
+    maxTouramentWicket: 0,
     // overall performance
     manOfTheMatch: false
   });
 }
-
 
 function calculateScore(mystatrec) {
   //console.log(mystatrec);
@@ -947,7 +1095,9 @@ function calculateScore(mystatrec) {
     (mystatrec.wicket5 * BonusWkt5) +
     (mystatrec.maiden * BonusMaiden) +
     //((mystatrec.wicket == 0) ? BonusDuck : 0) +
-    ((mystatrec.manOfTheMatch) ? BonusMOM : 0);
+    ((mystatrec.manOfTheMatch) ? BonusMOM : 0) + 
+    ((mystatrec.maxTouramentRun > 0) ? BonusMaxRun : 0) +
+    ((mystatrec.maxTouramentWicket > 0) ?  BonusMaxWicket : 0);
 
     // if ((mystatrec.ballsPlayed > 0) && (mystatrec.run == 0))
     //   mysum += BonusDuck;
@@ -984,7 +1134,7 @@ async function fetchMatchesFromCricapi() {
 }
 
 // schedule task
-cron.schedule('*/2 * * * *', () => {
+cron.schedule('*/1 * * * *', () => {
   console.log('==========running every N minute');
   if (db_connection)
     update_cricapi_data_r1(false);

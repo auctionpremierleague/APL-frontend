@@ -69,6 +69,7 @@ router.get('/add/:groupid/:ownerid/:userid', function(req, res, next) {
           var gmrec = new GroupMember({ 
             gid: 1,
             uid: iuser,
+            userName: udoc.userName,
             balanceAmount: GROUP1_MAXBALANCE
           });
           gmrec.save(function(err) {
