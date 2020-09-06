@@ -10,6 +10,11 @@ import {
 } from "assets/jss/material-dashboard-react.js";
 
 const tableStyle = theme => ({
+  root: {
+    '& > *': {
+      borderBottom: 'unset',
+    }
+  },
   warningTableHeader: {
     color: warningColor[0]
   },
@@ -70,7 +75,10 @@ const tableStyle = theme => ({
     color: "inherit",
     display: "table-row",
     outline: "none",
-    verticalAlign: "middle"
+    verticalAlign: "middle",
+    '& > *': {
+      borderBottom: 'unset',
+    }
   }
 });
 

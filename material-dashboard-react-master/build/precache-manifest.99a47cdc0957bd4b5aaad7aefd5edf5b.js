@@ -1,31 +1,31 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "1993219e00dfae88f48349c9b8d43805",
+    "revision": "a9b3932a97190d3e357728e1bd50f2b9",
     "url": "/material-dashboard-react/index.html"
   },
   {
-    "revision": "f6ed229227b9d03a61ab",
+    "revision": "3a8508a3b5ccde9891b6",
     "url": "/material-dashboard-react/static/css/2.d0176e96.chunk.css"
   },
   {
-    "revision": "d2430bb5c4c4037cbba6",
+    "revision": "c9278d49159effc22a47",
     "url": "/material-dashboard-react/static/css/main.8e9f8467.chunk.css"
   },
   {
-    "revision": "f6ed229227b9d03a61ab",
-    "url": "/material-dashboard-react/static/js/2.f65c4bef.chunk.js"
+    "revision": "3a8508a3b5ccde9891b6",
+    "url": "/material-dashboard-react/static/js/2.dafa32a6.chunk.js"
   },
   {
     "revision": "34491c6de1fbcf2388878b87785c74e7",
-    "url": "/material-dashboard-react/static/js/2.f65c4bef.chunk.js.LICENSE.txt"
+    "url": "/material-dashboard-react/static/js/2.dafa32a6.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "d2430bb5c4c4037cbba6",
-    "url": "/material-dashboard-react/static/js/main.e11cb934.chunk.js"
+    "revision": "c9278d49159effc22a47",
+    "url": "/material-dashboard-react/static/js/main.651de320.chunk.js"
   },
   {
     "revision": "f7bdf0cfc9ea0dd44285692948c2d84f",
-    "url": "/material-dashboard-react/static/js/main.e11cb934.chunk.js.LICENSE.txt"
+    "url": "/material-dashboard-react/static/js/main.651de320.chunk.js.LICENSE.txt"
   },
   {
     "revision": "a025ab54ec03fed337bb",

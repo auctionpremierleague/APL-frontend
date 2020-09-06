@@ -64,11 +64,11 @@ export default function Dashboard() {
   const tableData=(rankDetails)=>{
   const arr=  rankDetails.map(element =>{
 
-      const {rank,displayName,userName,grandScore}=element
-    return  Object.values({rank,displayName,userName,displayName,grandScore})
+      const {rank,displayName,userName,grandScore}=element;
+    return {data:Object.values({rank,displayName,userName,displayName,grandScore}),collapse:[]}
     });
 
-    return arr;
+    return  arr;
   }
   useEffect(() => {
 
