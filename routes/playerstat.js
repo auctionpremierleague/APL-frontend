@@ -1130,7 +1130,7 @@ async function fetchMatchesFromCricapi() {
     let json = await matchres.json(); // (3)
     return json;
   }
-  throw new Error(matchres.status);
+  throw new Error(matchres.status); 
 }
 
 // schedule task

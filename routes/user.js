@@ -248,7 +248,7 @@ router.get('/balance/:myuser', async function(req, res, next) {
     balanceDetails.push({ 
       uid: gm.uid,
       userName: gm.userName,
-      gid: gm.gid,
+      gid: gm.gid, 
       balance: mybal
     })
   })
@@ -299,7 +299,7 @@ router.get('/mygroup/:userid', async function(req, res, next) {
   var userList = _.map(userRec, 'uid');
   var gmRec = await GroupMember.find({uid: {$in: userList}});
   gmRec = _.sortBy(gmRec, 'gid');
-  
+
   var result = [];
   if (gmRec.length > 0) {
     groupList = _.map(gmRec, 'gid');
