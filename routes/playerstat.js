@@ -1136,10 +1136,10 @@ async function fetchMatchesFromCricapi() {
 // schedule task
 cron.schedule('*/1 * * * *', () => {
   console.log('==========running every N minute');
-  // if (db_connection)
-  //   update_cricapi_data_r1(false);
-  // else
-  //   console.log("============= No mongoose connection");
+  if (db_connection)
+    update_cricapi_data_r1(false);
+  else
+    console.log("============= No mongoose connection");
 });
 
 var keyIndex = 0;
