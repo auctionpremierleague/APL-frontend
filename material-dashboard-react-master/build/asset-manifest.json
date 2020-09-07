@@ -1,31 +1,31 @@
 {
   "files": {
-    "main.css": "/material-dashboard-react-master/static/css/main.8e9f8467.chunk.css",
-    "main.js": "/material-dashboard-react-master/static/js/main.41d50fb2.chunk.js",
-    "main.js.map": "/material-dashboard-react-master/static/js/main.41d50fb2.chunk.js.map",
-    "runtime-main.js": "/material-dashboard-react-master/static/js/runtime-main.714a018c.js",
-    "runtime-main.js.map": "/material-dashboard-react-master/static/js/runtime-main.714a018c.js.map",
-    "static/css/2.d0176e96.chunk.css": "/material-dashboard-react-master/static/css/2.d0176e96.chunk.css",
-    "static/js/2.dafa32a6.chunk.js": "/material-dashboard-react-master/static/js/2.dafa32a6.chunk.js",
-    "static/js/2.dafa32a6.chunk.js.map": "/material-dashboard-react-master/static/js/2.dafa32a6.chunk.js.map",
-    "index.html": "/material-dashboard-react-master/index.html",
-    "precache-manifest.fca12dd2105e91eaebd5213126db7ced.js": "/material-dashboard-react-master/precache-manifest.fca12dd2105e91eaebd5213126db7ced.js",
-    "service-worker.js": "/material-dashboard-react-master/service-worker.js",
-    "static/css/2.d0176e96.chunk.css.map": "/material-dashboard-react-master/static/css/2.d0176e96.chunk.css.map",
-    "static/css/main.8e9f8467.chunk.css.map": "/material-dashboard-react-master/static/css/main.8e9f8467.chunk.css.map",
-    "static/js/2.dafa32a6.chunk.js.LICENSE.txt": "/material-dashboard-react-master/static/js/2.dafa32a6.chunk.js.LICENSE.txt",
-    "static/js/main.41d50fb2.chunk.js.LICENSE.txt": "/material-dashboard-react-master/static/js/main.41d50fb2.chunk.js.LICENSE.txt",
-    "static/media/marc.jpg": "/material-dashboard-react-master/static/media/marc.8880a65c.jpg",
-    "static/media/sidebar-1.jpg": "/material-dashboard-react-master/static/media/sidebar-1.8e9f0a3c.jpg",
-    "static/media/sidebar-2.jpg": "/material-dashboard-react-master/static/media/sidebar-2.310509c9.jpg",
-    "static/media/sidebar-3.jpg": "/material-dashboard-react-master/static/media/sidebar-3.25031690.jpg",
-    "static/media/sidebar-4.jpg": "/material-dashboard-react-master/static/media/sidebar-4.fc9cb053.jpg"
+    "main.css": "/static/css/main.8e9f8467.chunk.css",
+    "main.js": "/static/js/main.5813076d.chunk.js",
+    "main.js.map": "/static/js/main.5813076d.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.f9fa5b6e.js",
+    "runtime-main.js.map": "/static/js/runtime-main.f9fa5b6e.js.map",
+    "static/css/2.d0176e96.chunk.css": "/static/css/2.d0176e96.chunk.css",
+    "static/js/2.dafa32a6.chunk.js": "/static/js/2.dafa32a6.chunk.js",
+    "static/js/2.dafa32a6.chunk.js.map": "/static/js/2.dafa32a6.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.7b4717f6c8d2786bdd9d471e3d4c1890.js": "/precache-manifest.7b4717f6c8d2786bdd9d471e3d4c1890.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/2.d0176e96.chunk.css.map": "/static/css/2.d0176e96.chunk.css.map",
+    "static/css/main.8e9f8467.chunk.css.map": "/static/css/main.8e9f8467.chunk.css.map",
+    "static/js/2.dafa32a6.chunk.js.LICENSE.txt": "/static/js/2.dafa32a6.chunk.js.LICENSE.txt",
+    "static/js/main.5813076d.chunk.js.LICENSE.txt": "/static/js/main.5813076d.chunk.js.LICENSE.txt",
+    "static/media/marc.jpg": "/static/media/marc.8880a65c.jpg",
+    "static/media/sidebar-1.jpg": "/static/media/sidebar-1.8e9f0a3c.jpg",
+    "static/media/sidebar-2.jpg": "/static/media/sidebar-2.310509c9.jpg",
+    "static/media/sidebar-3.jpg": "/static/media/sidebar-3.25031690.jpg",
+    "static/media/sidebar-4.jpg": "/static/media/sidebar-4.fc9cb053.jpg"
   },
   "entrypoints": [
-    "static/js/runtime-main.714a018c.js",
+    "static/js/runtime-main.f9fa5b6e.js",
     "static/css/2.d0176e96.chunk.css",
     "static/js/2.dafa32a6.chunk.js",
     "static/css/main.8e9f8467.chunk.css",
-    "static/js/main.41d50fb2.chunk.js"
+    "static/js/main.5813076d.chunk.js"
   ]
 }
