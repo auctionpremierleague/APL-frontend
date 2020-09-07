@@ -56,6 +56,14 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
 
   console.log("Player available");
   var doc = await Auction.find({gid: igroup, uid: iuser});
+
+  // check if user has already purchased maximum allowed players. If yes then throw error
+  if (doc.length === defaultMaxPlayerCount) {
+    senderr(709, `Max player purchase count reached. Cannot buy additional player.`);
+    return;
+  }
+
+  // cgeck if user has sufficent balance points to purhcase the player at given bid amount
   var balance = GROUP1_MAXBALANCE - _.sumBy(doc, x => x.bidAmount);
   console.log(balance);
   if (balance < ibid ) {

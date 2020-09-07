@@ -244,11 +244,13 @@ router.get('/balance/:myuser', async function(req, res, next) {
     //console.log(gm);
     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
     //console.log(myAuction);
+    var myPlayerCount = myAuction.length;
     var mybal = 1000 - _.sumBy(myAuction, 'bidAmount'); 
     balanceDetails.push({ 
       uid: gm.uid,
       userName: gm.userName,
-      gid: gm.gid, 
+      gid: gm.gid,
+      playerCount: myPlayerCount,
       balance: mybal
     })
   })

@@ -206,6 +206,7 @@ MaxWicketMid = -2;
 defaultGroup = 1;
 defaultTournament = "IPL2020";
 forceGroupInfo = false;
+defaultMaxPlayerCount = 15;
 
 // Point scroring
 ViceCaptain_MultiplyingFactor = 1.5;
