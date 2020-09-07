@@ -114,7 +114,7 @@ export default function ImgMediaCard() {
         
         if (playersList[index]) {
             setPlayerName(playersList[index].fullName)
-            setPlayerImage(`../${playersList[index].pid}.jpg`);
+            setPlayerImage(`${process.env.PUBLIC_URL}/${playersList[index].pid}.jpg`);
             setTeam(playersList[index].Team);
             setRole(playersList[index].role);
             setBattingStyle(playersList[index].battingStyle);
