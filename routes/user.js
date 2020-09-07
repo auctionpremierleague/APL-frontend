@@ -369,11 +369,16 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
 async function publish_auctionedplayers(userid)
 {
   var myfilter;
-  if (userid == allUSER)
+  var userFilter;
+  if (userid == allUSER) { 
     myfilter = {gid: _group};
-  else
+    userFilter = {};
+  }else {
     myfilter = {gid: _group, uid: userid};
+    userFilter = {uid: userid}
+  }
 
+  var allUsers = await User.find(userFilter);
   var datalist = await Auction.find(myfilter);
   //console.log(datalist);
   if (!datalist) { senderr(DBFETCHERR,err); return; }
@@ -386,8 +391,10 @@ async function publish_auctionedplayers(userid)
 
   var grupdatalist = [];
   userlist.forEach( myuser => {
+    //var userRec = await User.findOne({uid: myuser.uid});
+    var userRecs = _.filter(allUsers, x => x.uid == myuser.uid);
     var myplrs = _.filter(datalist, x => x.uid === myuser.uid);
-    var tmp = {uid: myuser.uid, players: myplrs};
+    var tmp = {uid: myuser.uid, userName: userRecs[0].userName, players: myplrs};
     grupdatalist.push(tmp);
   })
   sendok(grupdatalist);
