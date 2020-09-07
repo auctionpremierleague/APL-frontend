@@ -7,6 +7,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
+import Collapse from '@material-ui/core/Collapse';
 // core components
 import styles from "assets/jss/material-dashboard-react/components/tableStyle.js";
 
@@ -37,8 +38,9 @@ export default function CustomTable(props) {
         <TableBody>
           {tableData.map((prop, key) => {
             return (
-              <TableRow key={key} className={classes.tableBodyRow}>
-                {prop.map((prop, key) => {
+              <React.Fragment>
+              <TableRow key={key} className={classes.TableBodyRow}>
+                {prop.data.map((prop, key) => {
                   return (
                     <TableCell className={classes.tableCell} key={key}>
                       {prop}
@@ -46,6 +48,18 @@ export default function CustomTable(props) {
                   );
                 })}
               </TableRow>
+              <TableRow key={key}  selected={true}>
+                {prop.collapse.map((prop, key) => {
+                  return (
+                    <TableCell key={key} style={{ paddingBottom: 0, paddingTop: 0 }}>
+                   <Collapse in={true} timeout="auto" unmountOnExit>
+                     {prop}
+                   </Collapse>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+              </React.Fragment>
             );
           })}
         </TableBody>
