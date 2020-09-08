@@ -63,8 +63,8 @@ export default function Dashboard() {
 
   const tableData=(rankDetails)=>{
   const arr=  rankDetails.map(element =>{
-
-      const {rank,displayName,userName,grandScore}=element;
+    const {displayName,userName,grandScore,rank}=element;
+    //const {rank,displayName,userName,grandScore}=element;
     return {data:Object.values({rank,displayName,userName,displayName,grandScore}),collapse:[]}
     });
 
@@ -188,7 +188,7 @@ export default function Dashboard() {
             <CardBody>
               <Table
                 tableHeaderColor="warning"
-                tableHead={["Rank", "Fanchise", "Owner", "Score"]}
+                tableHead={["Franchise", "Owner", "Score", "Rank"]}
                 tableData={rankArray}
               />
             </CardBody>
