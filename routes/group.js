@@ -203,6 +203,45 @@ router.get('/admin', function(req, res, next) {
 });
 
 
+router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function(req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var {groupName,ownerid,maxbid, mytournament}=req.params;
+  
+  var tmp = await IPLGroup.find({});
+  var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
+  if (tmp.length > 0) { senderr(629, `Duplicate Group name ${groupName}`); return; }
+
+  var iowner = 0;
+  if (!isNaN(iowner)) {
+    iowner = parseInt(ownerid);
+    var tmp = await User.find({uid: iowner});
+    if (tmp.length === 0) iowner = 0;
+  }
+  if (iowner === 0)  { senderr(622, `Invalid owner ${ownerid}`); return;}
+
+  if (isNaN(maxbid)) { senderr(627, `Invalid max bid amount ${maxbid}`); return; }
+  var imaxbid = parseInt(maxbid);
+
+  var tmp = await Tournament.find({name: mytournament.toUpperCase() })
+  if (tmp.length === 0) { senderr(628, `Invalid tournament ${mytournament}`); return; }
+
+  //Goods.find({}).sort({ price: 1 }).limit(1).then(goods => goods[0].price);
+  var maxGid = await IPLGroup.find({}).sort({gid: -1}).limit(1);
+  var myRec = new IPLGroup();
+  //console.log(maxGid);
+  myRec.gid = maxGid[0].gid + 1;
+  myRec.name = groupName;
+  myRec.owner = iowner;
+  myRec.maxBidAmount = imaxbid;
+  myRec.tournament = mytournament;
+  myRec.auctionStatus = "PENDING";
+  myRec.auctionPlayer = 0;
+  myRec.save();
+  sendok(myRec);
+}); // end of get
+
 // who is the owner of the group. Returns user record of the owner
 function owneradmin()
 {
