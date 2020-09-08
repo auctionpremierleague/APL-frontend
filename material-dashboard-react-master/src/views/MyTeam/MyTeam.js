@@ -41,7 +41,7 @@ export default function App() {
 <Table
                 tableHeaderColor="warning"
                 tableHead={["Player Name", "Bid Amount"]}
-                tableData={teamArray.map(team=>{const arr=[team.uid,team.bidAmount]
+                tableData={teamArray.map(team=>{const arr=[team.playerName, team.bidAmount]
                 
                 return {data:arr,collapse:[]}})}
               />

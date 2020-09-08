@@ -33,6 +33,112 @@ router.get('/close/:groupid/:ownerid', function(req, res, next) {
   });
 });
 
+router.get('/getauctionstatus/:groupid', function(req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var {groupid}=req.params;
+  // groupAction = groupAction.toLowerCase();
+  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+
+  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+    else {
+      console.log(gdoc);
+      sendok(gdoc.auctionStatus);
+    }
+  });
+});
+
+router.get('/setauctionstatus/:groupid/:newstate', function(req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var {groupid, newstate}=req.params;
+  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+  newstate = newstate.toUpperCase();
+
+  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+    else {
+      console.log(gdoc);
+      var aplayer = gdoc.auctionPlayer;
+      switch (gdoc.auctionStatus) {
+        case "PENDING":
+          if (newstate.substring(0,3) != "RUN") {
+            senderr(625, `Invalid auction state ${newstate}`);
+            return;
+          }
+          newstate = "RUNNING";
+          aplayer = 0;
+          break;
+        case "RUNNING":
+          if (newstate.substring(0,3) != "OVE") {
+            senderr(625, `Invalid auction state ${newstate}`);
+            return;
+          }
+          newstate = "OVER";
+          break;
+        case "OVER":
+          if (newstate.substring(0,3) != "OVE") {
+            senderr(625, `Invalid auction state ${newstate}`);
+            return;
+          }
+          newstate = "OVER";
+          break;
+      } 
+      gdoc.auctionStatus = newstate;
+      gdoc.auctionPlayer = aplayer;
+      gdoc.save();
+      sendok("Auction Status Updated");
+    }
+  });
+});
+
+
+router.get('/getauctionplayer/:groupid', function(req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var {groupid}=req.params;
+  // groupAction = groupAction.toLowerCase();
+  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+
+  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+    else {
+      console.log(gdoc);
+      sendok(gdoc.auctionPlayer.toString());
+    }
+  });
+});
+
+
+router.get('/setauctionplayer/:groupid/:playerId', function(req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var {groupid, playerId}=req.params;
+  // groupAction = groupAction.toLowerCase();
+  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+  if (isNaN(playerId)){ senderr(626, `Invalid Player ${playerId}`); return; }
+  iplayer = parseInt(playerId);
+
+  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+    else {
+      console.log(gdoc);
+      if (gdoc.auctionStatus != "RUNNING") {
+        senderr(626, "Cannot update auction Player. Auction is not running");
+      } else {
+        gdoc.auctionPlayer = iplayer;
+        gdoc.save();
+        sendok(gdoc.auctionPlayer.toString());
+      }
+    }
+  });
+});
+
 router.get('/add/:groupid/:ownerid/:userid', function(req, res, next) {
   GroupRes = res;
   setHeader();

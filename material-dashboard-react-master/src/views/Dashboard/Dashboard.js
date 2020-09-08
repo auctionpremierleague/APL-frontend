@@ -190,7 +190,7 @@ export default function Dashboard() {
             <CardBody>
               <Table
                 tableHeaderColor="warning"
-                tableHead={["Franchise", "Owner", "Score", "Rank"]}
+                tableHead={[ "Rank", "Franchise", "Owner", "Score"]}
                 tableData={rankArray}
               />
             </CardBody>

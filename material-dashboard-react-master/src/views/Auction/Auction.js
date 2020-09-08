@@ -266,8 +266,8 @@ export default function ImgMediaCard() {
             </Grid>
             <Table
                 tableHeaderColor="warning"
-                tableHead={["Owner", "Balance"]}
-                tableData={AuctionTableData.map(element =>{const arr=[element.userName,element.balance]
+                tableHead={["Owner", "Player Count", "Balance"]}
+                tableData={AuctionTableData.map(element =>{const arr=[element.userName, element.playerCount, element.balance]
                 return {data:arr,collapse:[]}
                 })}
               />
