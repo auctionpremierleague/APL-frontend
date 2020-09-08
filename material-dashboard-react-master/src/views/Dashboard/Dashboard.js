@@ -59,7 +59,9 @@ export default function Dashboard() {
   const [mvp, SetMvp] = useState();
   const { user,setUser } = useContext(UserContext);
 
-  const date=new Date();
+  //const tmpDate = new
+  //const date=new Date();
+  const date=new Date().toDateString() + " " + new Date().toLocaleTimeString();
 
   const tableData=(rankDetails)=>{
   const arr=  rankDetails.map(element =>{
