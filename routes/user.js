@@ -26,7 +26,7 @@ router.get('/group', async function(req, res, next) {
   CricRes = res;
   setHeader();  
   //_group = defaultGroup;
-  showGroupMembers();
+  showGroupMembers(1);
 });
 
 // get users belonging to group "mygroup"
@@ -35,21 +35,8 @@ router.get('/group/:mygroup', async function(req, res, next) {
   setHeader();
 
   var {mygroup} = req.params;
-  //_group = 0;
-  var tmpRec = null;
-  var _group = parseInt(mygroup);
-  if (!isNaN(_group)) {
-    var tmpRec = await IPLGroup.findOne({gid: _group});
-  }
-  if (!tmpRec) {
-    senderr(601, "Invalid group number"); 
-    return;
-  }
-
-  // currently only Group 1 supported.
-  //if (mygroup != "1") {senderr(601, "Invalid group number"); return;}
-  showGroupMembers();
-
+  if (isNaN(mygroup)) { senderr(601, `Invalid group number ${mygroup}`); return; }
+  showGroupMembers(parseInt(mygroup));
 });
 
 //=============== SIGNUP
@@ -212,11 +199,11 @@ router.get('/getcaptain/:myuser', function(req,  res, next) {
 
   var myfilter;
   if (myuser.toUpperCase() === "ALL")
-    myfilter = {gid: defaultGroup};
+    myfilter = {gid: igroup};
   else {
     var iuser = parseInt(myuser);
     if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
-    myfilter = {gid: _group, uid: iuser};
+    myfilter = {gid: igroup, uid: iuser};
   }
   publishCaptain(myfilter);
 });
@@ -412,7 +399,7 @@ async function publish_users(filter_users)
 
 async function publishCaptain(filter_users)
 {
-  //console.log(filter_users);
+  console.log(filter_users);
   var ulist = await Captain.find(filter_users);
   ulist = _.map(ulist, o => _.pick(o, ['gid', 'uid', 
       'captain', 'captainName', 
@@ -438,10 +425,10 @@ function setHeader() {
 }
 module.exports = router;
 
-async function showGroupMembers()
+async function showGroupMembers(groupno)
 {
-  console.log(_group);
-  gmlist = await GroupMember.find({gid: _group});
+  //console.log(_ggroupnoroup);
+  gmlist = await GroupMember.find({gid: groupno});
   var userlist = _.map(gmlist, 'uid'); 
   publish_users({ uid: { $in: userlist } });
 }

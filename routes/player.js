@@ -1,9 +1,9 @@
-const { template } = require("lodash");
+//const { template } = require("lodash");
 
 router = express.Router();
 var PlayerRes;
 var _group = 1;
-var _tournament = "IPL2020";
+var _tournament = ""; //defaultTournament;
 
 /* GET users listing. */
 router.use('/', async function(req, res, next) {
@@ -40,8 +40,8 @@ router.get('/unsold', async function(req, res, next) {
   var teamname = _.map(myteam, 'name');
   //console.log(teamname);
 
-  var soldplayers = await Auction.find({gid: _group});
-  var mypid = _.map(soldplayers, 'pid');
+  var unsoldplayers = await Auction.find({gid: _group});
+  var mypid = _.map(unsoldplayers, 'pid');
 
   publish_players({tournament: _tournament, Team: {$in: teamname},  pid: { $nin: mypid } } );
 });
@@ -52,8 +52,8 @@ router.get('/available/:playerid', async function(req, res, next) {
   setHeader();
 
   var {playerid}=req.params;
+  if (isNaN(playerid)) { senderr(681, `Invalid player id ${playerid}`); return; }
   var iplayer = parseInt(playerid);
-  if (isNaN(iplayer)) { senderr(681, `Invalid player id ${playerid}`); return; }
   
   //  first confirm player id is correct
   var playerRec = await Auction.findOne({gid: _group, pid: iplayer});
@@ -74,6 +74,7 @@ function senderr(errocode, errmsg) { PlayerRes.status(errocode).send(errmsg); }
 function setHeader() {
   PlayerRes.header("Access-Control-Allow-Origin", "*");
   PlayerRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-
+  _group = 1;
+  _tournament = defaultTournament;
 }
 module.exports = router;

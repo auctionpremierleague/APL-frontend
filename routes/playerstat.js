@@ -39,7 +39,7 @@ router.use('/', async function(req, res, next) {
     //console.log(tmp.length);
     if (!myrec) {
       senderr(722, `Invalid gourp number specified`);
-      return;
+      return; 
     }
     console.log(myrec);
     _group = myrec.gid;
@@ -449,7 +449,7 @@ router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
 });
 */
 
-async function statBrief(iwhichuser)
+async function statBrief_orig(iwhichuser)
 {
   // get list of users in group
   var igroup = _group;
@@ -510,7 +510,74 @@ async function statBrief(iwhichuser)
   sendok(userScoreList);
 }
 
-async function statScore(iwhichUser) {
+async function statBrief(iwhichuser)
+{
+  // Set collection name 
+  var tournamentStat = mongoose.model(_tournament, StatSchema);
+  var igroup = _group;
+  // get list of users in group
+  var PstatList = tournamentStat.find({});
+  var PauctionList = Auction.find({gid: igroup});
+  var Pallusers = User.find({});
+  var Pgmembers = GroupMember.find({gid: igroup});
+  var Pcaptainlist = Captain.find({gid: igroup});
+
+  //var userlist = _.map(gmembers, 'uid');
+  var captainlist = await Pcaptainlist;
+  var gmembers = await Pgmembers;
+  var allusers = await Pallusers;
+  var statList = await PstatList;
+  var auctionList = await PauctionList;
+
+  // get all players auctioned by this group 
+  //var allplayerList = _.map(auctionList, 'pid');
+
+  var userScoreList = [];    
+  // now calculate score for each user
+  gmembers.forEach( gm  => {
+    var userPid = gm.uid;
+    var urec = _.find(allusers, x => x.uid == userPid);
+    // find out captain and vice captain selected by user
+    var capinfo = _.find(captainlist, x => x.uid == userPid);
+    if (capinfo === undefined)
+      capinfo = new Captain ({ gid: _group, uid: userPid, captain: 0, viceCaptain: 0});
+
+    // find out players of this user
+    var myplayers = _.filter(auctionList, a => a.uid === userPid); 
+    myplayers.forEach( p => {
+      var MF = 1;
+      if (p.pid === capinfo.viceCaptain)
+        MF = ViceCaptain_MultiplyingFactor;
+      else if (p.pid === capinfo.captain)
+        MF = Captain_MultiplyingFactor;
+
+      // now get the statistics of this player in various maches
+      var myplayerstats = _.filter(statList, x => x.pid === p.pid);
+      //ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
+      var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['mid', 'pid', 'score']));
+      //console.log(myplayerstats);
+      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      var tmp = { 
+        uid: userPid, 
+        userName: urec.userName,
+        displayName: urec.displayName,
+        pid: p.pid, 
+        playerName: p.playerName,
+        playerScrore: myScore, 
+        stat: myplayerstats
+      };
+      //console.log(tmp);
+      userScoreList.push(tmp);
+    });
+  })
+  if (iwhichuser != 0) {
+    userScoreList = _.filter(userScoreList, x => x.uid == iwhichuser);
+  }
+  //console.log(userScoreList);
+  sendok(userScoreList); 
+}
+
+async function statScore_orig(iwhichUser) {
   // get list of users in group
   var igroup = _group;
   var allusers = await User.find({});
@@ -577,7 +644,80 @@ async function statScore(iwhichUser) {
   sendok(userScoreList);
 }
 
-async function statRank (iwhichUser) {
+async function statScore(iwhichUser) {
+  // get list of users in group
+  var tournamentStat = mongoose.model(_tournament, StatSchema);
+  var igroup = _group;
+
+  var PstatList =  tournamentStat.find({});
+  var PauctionList =  Auction.find({gid: igroup});
+  var Pallusers =  User.find({});
+  var Pgmembers =  GroupMember.find({gid: igroup});
+  var Pcaptainlist =  Captain.find({gid: igroup});
+
+  // wait for data fetch to be over
+  captainlist = await Pcaptainlist;
+  gmembers = await Pgmembers;
+  allusers = await Pallusers;
+  auctionList = await PauctionList;
+  statList = await PstatList;
+
+  // now calculate score for each user
+  var userScoreList = [];    
+  gmembers.forEach( u  => {
+    var userPid = u.uid;
+    var urec = _.find(allusers, u => u.uid === userPid);
+    var curruserName = urec.userName;
+    var currdisplayName = urec.displayName;
+
+    // find out captain and vice captain selected by user
+    var capinfo = _.find(captainlist, x => x.gid == igroup && x.uid == userPid);
+    if (capinfo === undefined)
+      capinfo = new Captain ({ gid: _group, uid: userPid, captain: 0, viceCaptain: 0});
+
+    // find out players of this user
+    var myplayers = _.filter(auctionList, a => a.gid === igroup && a.uid === userPid); 
+    //console.log(myplayers);
+    //console.log("Just shown my players")
+    //var playerScoreList = [];
+    myplayers.forEach( p => {
+      var MF = 1;
+      if (p.pid === capinfo.viceCaptain)
+        MF = ViceCaptain_MultiplyingFactor;
+      else if (p.pid === capinfo.captain)
+        MF = Captain_MultiplyingFactor;
+      //console.log(`Mul factor: ${MF}`);
+
+      // now get the statistics of this player in various maches
+      var myplayerstats = _.filter(statList, x => x.pid === p.pid);
+      //console.log(myplayerstats)
+
+      // update score of each match played by user
+      // myplayerstats.forEach(s => {
+      //   s.score = calculateScore(s)*MF;
+      // })
+      //var myScore = _.sumBy(myplayerstats, x => x.score);
+      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      //console.log(`Player name: ${p}`)
+      var tmp = { 
+        uid: userPid, 
+        userName: curruserName,
+        displayName: currdisplayName,
+        pid: p.pid, 
+        playerName: p.playerName, 
+        playerScrore: myScore, 
+        stat: myplayerstats};
+      //console.log(tmp);
+      userScoreList.push(tmp);
+    });
+  })
+  if (iwhichUser != 0)
+    userScoreList = _.filter(userScoreList, x => x.uid === iwhichUser);
+  sendok(userScoreList);
+}
+
+
+async function statRank_orig (iwhichUser) {
   // find out users belnging to Group 1 (this is default). and set in igroup
   var igroup = _group;
   var allusers = await User.find({});
@@ -665,12 +805,118 @@ async function statRank (iwhichUser) {
   sendok(userRank);
 }
 
-async function statMax(iwhichuser, doWhat)
+
+async function statRank (iwhichUser) {
+  // find out users belnging to Group 1 (this is default). and set in igroup
+  // Set collection name 
+  var tournamentStat = mongoose.model(_tournament, StatSchema);
+  var igroup = _group;
+  // make async mongose calls
+  const PstatList = tournamentStat.find({});
+  const PauctionList = Auction.find({gid: igroup });
+  const Pallusers = User.find({});
+  const Pgmembers = GroupMember.find({gid: igroup});
+  const Pcaptainlist = Captain.find({gid: igroup});
+
+  //const [someResult, anotherResult] = await Promise.all([someCall(), anotherCall()]);
+  //const finalResult = [await someResult, await anotherResult];
+  // const  finalResult = [await allusers, await gmembers, await captainlist,
+  //                       await auctionList, await statList];
+  
+  captainlist = await Pcaptainlist;
+  gmembers = await Pgmembers;
+  allusers = await Pallusers
+  auctionList = await PauctionList
+  statList = await PstatList;
+
+  //console.log(Pcaptainlist);
+  //console.log(captainlist);
+  //console.log(igroup);
+  //var userlist = _.map(gmembers, 'uid');      
+
+  // var tourmanetStatus = await tournamentOver(iroup);
+  // console.log(`Group 1 tournamemnet status: ${tourmanetStatus}`);
+  
+  // get all players auctioned by this group members and also fetch the stats of those players
+  // var allplayer = _.map(auctionList, 'pid')
+  // var statList = await tournamentStat.find({pid: {$in: allplayer}});
+
+  // now calculate score for each user
+  var userRank = [];
+  gmembers.forEach( gm => {
+    userPid = gm.uid; 
+    var urec = _.filter(allusers, u => u.uid === userPid);
+    var curruserName = (urec) ? urec[0].userName : "";
+    var currdisplayName = (urec) ? urec[0].displayName : "";
+    // find out captain and vice captain selected by user
+    var capinfo = _.find(captainlist, x => x.uid == userPid);
+    if (capinfo === undefined)
+      capinfo = new Captain ({ gid: _group, uid: userPid, captain: 0, viceCaptain: 0});
+    //console.log(capinfo);
+    // find out players of this user
+    var myplayers = _.filter(auctionList, a => a.uid === userPid); 
+    //console.log(myplayers);
+    //console.log("Just shown my players")
+    //var playerScoreList = [];
+    var userScoreList = [];    
+    myplayers.forEach( p => {
+      var MF = 1;
+      //console.log(capinfo);
+      if (p.pid === capinfo.viceCaptain) {
+        //console.log(`Vice Captain is ${capinfo.viceCaptain}`)
+        MF = ViceCaptain_MultiplyingFactor;
+      } else if (p.pid === capinfo.captain) {
+        //console.log(`Captain is ${capinfo.captain}`)
+        MF = Captain_MultiplyingFactor;
+      } else {
+        //console.log(`None of the above: ${p.pid}`);
+      }
+      //console.log(`Mul factor: ${MF}`);
+
+      // now get the statistics of this player in various maches
+      var myplayerstats = _.filter(statList, x => x.pid === p.pid);
+      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      //console.log(`Player: ${p.pid}   Score: ${myScore}  MF used: ${MF}`);
+      userScoreList.push({ uid: userPid, pid: p.pid, playerScore: myScore});
+    });
+    var totscore = _.sumBy(userScoreList, x => x.playerScore);
+    //if (userPid === 9) totscore = 873;  // for testing
+    // do not assign rank. Just now. Will be assigned when info of all user grad score is available
+    userRank.push({ 
+      uid: userPid, 
+      userName: curruserName, 
+      displayName: currdisplayName,
+      grandScore: totscore, 
+      rank: 0});
+  })
+  // assign ranking
+  var lastRank = 0;
+  var nextRank = 0;
+  var lastScore = 99999999999999999999999999999;  // OMG such a big number!!!! Can any player score this many points
+  userRank = _.sortBy(userRank, 'grandScore').reverse();
+
+  userRank.forEach( x => {
+    ++nextRank;
+    if (x.grandScore < lastScore) {
+      lastRank = nextRank;
+      lastScore = x.grandScore;
+    }
+    x.rank = lastRank;
+  });
+  
+  if (iwhichUser != 0)
+  userRank = _.filter(userRank, x => x.uid == iwhichUser);
+  //console.log(userRank);
+  sendok(userRank);
+}
+
+async function statMax_orig(iwhichuser, doWhat)
 {
-  // get list of users in group
-  var gmembers = await GroupMember.find({gid: _group}); 
   var tournamentStat = mongoose.model(_tournament, StatSchema);
 
+  // get list of users in group
+  var gmembers = await GroupMember.find({gid: _group}); 
+  
   // get all players auctioned by this group 
   var allusers = await User.find({});
   var auctionList = await Auction.find({gid: _group});
@@ -753,6 +999,113 @@ async function statMax(iwhichuser, doWhat)
       maxWicket.forEach( wktrec => {
         maxarray.push({ 
           uid: gm.pid, 
+          userName: wktrec.userName,
+          displayName: wktrec.displayName,
+          maxWicketPlayerId: wktrec.pid,
+          maxWicketPlayerName: wktrec.playerName,
+          maxWicket: wktrec.totalWicket
+        });
+      });
+    }
+  });
+  //console.log(maxarray);
+  sendok(maxarray);
+}
+
+async function statMax(iwhichuser, doWhat)
+{
+  var tournamentStat = mongoose.model(_tournament, StatSchema);
+
+  // get list of users in group
+  var PstatList = tournamentStat.find({});
+  var PauctionList = Auction.find({gid: _group});
+  var Pallusers = User.find({});
+  var Pgmembers = GroupMember.find({gid: _group}); 
+  var Pcaptainlist = Captain.find({gid: _group});
+  
+  var captainlist = await Pcaptainlist;
+  var gmembers = await Pgmembers;
+  var allusers= await Pallusers;
+  var auctionList = await PauctionList;
+  var statList = await PstatList;
+
+  // get all players auctioned by this group 
+  //var allplayerList = _.map(auctionList, 'pid');
+  // now calculate score for each user
+  var userScoreList = [];    
+  gmembers.forEach( gm  => {
+    userPid = gm.uid;
+
+    // find out captain and vice captain selected by user
+    var capinfo = _.find(captainlist, x => x.uid == userPid);
+    if (capinfo === undefined)
+      capinfo = new Captain ({ gid: _group, uid: userPid, captain: 0, viceCaptain: 0});
+  
+    var urec = _.find(allusers, x => x.uid == userPid);
+    // find out players of this user
+    var myplayers = _.filter(auctionList, a => a.uid == userPid); 
+    myplayers.forEach( p => {
+      var MF = 1;
+      if (p.pid === capinfo.viceCaptain)
+        MF = ViceCaptain_MultiplyingFactor;
+      else if (p.pid === capinfo.captain)
+        MF = Captain_MultiplyingFactor;
+
+      // now get the statistics of this player in various maches
+      var myplayerstats = _.filter(statList, x => x.pid === p.pid);
+      //ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
+      //var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['mid', 'pid', 'score']));
+      //console.log(myplayerstats);
+      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      var totRun = _.sumBy(myplayerstats, x => x.run);
+      // console.log(myplayerstats);
+      // console.log(totRun);
+      var totWicket = _.sumBy(myplayerstats, x => x.wicket);
+      var tmp = { 
+        uid: userPid, 
+        userName: urec.userName,
+        displayName: urec.displayName,
+        pid: p.pid, 
+        playerName: p.playerName,
+        playerScrore: myScore, 
+        totalRun: totRun,
+        totalWicket: totWicket
+      };
+      //console.log(tmp);
+      userScoreList.push(tmp);
+    });
+  })
+
+  if (iwhichuser != 0)
+    userScoreList = _.filter(userScoreList, x => x.uid == iwhichuser);
+
+  var maxarray = [];
+  gmembers.forEach( gm => {
+    var tmp = _.filter(userScoreList, x => x.uid == gm.uid);
+    if (tmp.length == 0) return;
+
+    var tmpRun = _.maxBy(tmp, x => x.totalRun);
+    var tmpWicket = _.maxBy(tmp, x => x.totalWicket);
+    //console.log(tmpRun);
+    if ((doWhat === doMaxRun) && (tmpRun.totalRun > 0)) {
+      console.log("In total run");
+      var maxRun = _.filter(tmp, x => x.totalRun == tmpRun.totalRun );
+      maxRun.forEach( runrec => {
+        maxarray.push({ 
+          uid: gm.uid, 
+          userName: runrec.userName,
+          displayName: runrec.displayName,
+          maxRunPlayerId: runrec.pid,
+          maxRunPlayerName: runrec.playerName,
+          maxRun: runrec.totalRun,
+        });
+      });
+    } else if ((doWhat === doMaxWicket) && (tmpWicket.totalWicket > 0)) {
+      //console.log(`in else  ${tmpWicket.totalWicket}`);
+      var maxWicket = _.filter(tmp, x => x.totalWicket === tmpWicket.totalWicket );
+      maxWicket.forEach( wktrec => {
+        maxarray.push({ 
+          uid: gm.uid, 
           userName: wktrec.userName,
           displayName: wktrec.displayName,
           maxWicketPlayerId: wktrec.pid,
@@ -1131,7 +1484,7 @@ async function fetchMatchesFromCricapi() {
 }
 
 // schedule task
-cron.schedule('*/1 * * * *', () => {
+cron.schedule('*/30 * * * *', () => {
   console.log('==========running every N minute');
   if (db_connection)
     update_cricapi_data_r1(false);

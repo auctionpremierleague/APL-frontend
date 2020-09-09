@@ -13,24 +13,29 @@ router.use('/', function(req, res, next) {
     next('route');
 });
 
-router.use('/add/:tournamentName', async function(req, res, next) {
+router.use('/add/:tournamentName/:tournamentDesc/:tournamentType', async function(req, res, next) {
     TournamentRes = res;
     setHeader();
     if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
 
-    var {tournamentName} = req.params;
+    var {tournamentName, tournamentDesc, tournamentType} = req.params;
+    tournamentType = tournamentType.toUpperCase();
+    if (!["TEST", "ODI", "T20"].includes(tournamentType)) {
+      senderr(743, `Invalid tournament type ${tournamentType}. Has be be either TEST, ODI or T20`);
+      return;
+    }
     tournamentName = tournamentName.toUpperCase();
     var myrec = await Tournament.findOne({name: tournamentName});
     if (!myrec) {
         myrec = new Tournament();
         myrec.name = tournamentName;
-        myrec.desc = tournamentName;
+        myrec.desc = tournamentDesc;
+        myrec.type = tournamentType;
         myrec.over = false;
         myrec.save();
-        sendok(`New tournament ${tournamentName} created`);
+        sendok(`Successfully created tournament ${tournamentName}`);
     } else
-        senderr(742,`Tournamet ${tournamentName} already created`);
-    //updateTournamentStatus(tournamentName, true);
+        senderr(742,`Tournament ${tournamentName} already exists`);
 });
 
 router.use('/start/:tournamentName', function(req, res, next) {
@@ -73,15 +78,15 @@ async function updateTournamentStatus(tname, started)
     mytournament.over = started;
     mytournament.save();
     var retsts;
-    if (!started)   retsts = `Tournement ${tname} has not ended`;
-    else            retsts = `Tournement ${tname} has ended`;
+    if (!started)   retsts = `Tournament ${tname} is going on`;
+    else            retsts = `Tournament ${tname} has ended`;
     sendok(retsts);
 }
 
 async function publishTournament(filter_tournament)
 {
   var tlist = await Tournament.find(filter_tournament);
-  tlist = _.map(tlist, o => _.pick(o, ['name', 'desc', 'over']));
+  tlist = _.map(tlist, o => _.pick(o, ['name', 'desc', 'type', 'over']));
   sendok(tlist);
 }
 

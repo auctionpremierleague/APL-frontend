@@ -8,15 +8,9 @@ router.use('/', function(req, res, next) {
   MatchRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR,  ERR_NODB); return; }
-  _group = defaultGroup;
-  _tournament = defaultTournament;
   
   var tmp = req.url.split('/');
-  if ((tmp[1].toUpperCase() != "DATE") &&
-      (tmp[1].toUpperCase() != "TODAY") &&
-      (tmp[1].toUpperCase() != "YESTERDAY") &&
-      (tmp[1].toUpperCase() != "TOMORROW")
-  )
+  if (!["DATE"].includes(tmp[1].toUpperCase()))
   {
     // take care of /list/csk  ,   /list/csk/rr,  /list
     switch (tmp.length)
@@ -36,7 +30,7 @@ router.use('/', function(req, res, next) {
         break;
     }
   }
-  console.log("Modified: " + req.url);
+  //console.log("Modified: " + req.url);
   next('route');
 });
 
@@ -120,10 +114,8 @@ router.use('/date/:mydate', function(req, res, next) {
   endDate.setMinutes(0);
   endDate.setSeconds(0);
   
-  var currdate = new Date();
-  console.log(`Curr Date: ${currdate} Start Date: ${startDate}   End Date: ${endDate}`);
-
-  //Income.find({owner: userId, date: { $gte: start, $lt: end }}, callback);
+  //var currdate = new Date();
+  //console.log(`Curr Date: ${currdate} Start Date: ${startDate}   End Date: ${endDate}`);
   let myfilter = { tournament: _tournament, matchStartTime: { $gte: startDate, $lt: endDate } };
   publish_matches(myfilter);
 });
@@ -147,6 +139,7 @@ function senderr(errcode, errmsg) { MatchRes.status(errcode).send(errmsg); }
 function setHeader() {
   MatchRes.header("Access-Control-Allow-Origin", "*");
   MatchRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-
+  _group = defaultGroup;
+  _tournament = defaultTournament;
 }
 module.exports = router;
