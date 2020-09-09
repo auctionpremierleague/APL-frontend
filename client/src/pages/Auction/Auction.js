@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState ,useContext} from 'react';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
@@ -256,7 +256,7 @@ export default function ImgMediaCard() {
                 <IconButton onClick={handleDrawerClose}>
                     {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
-                {drawerContent === "Info" ? <PlayerInfo /> : <div> <FormControl className={classes.formControl}>
+                {drawerContent === "Info"  ? <PlayerInfo /> : <div> <FormControl className={classes.formControl}>
 
                     <Select
                         labelId="demo-simple-select-label"

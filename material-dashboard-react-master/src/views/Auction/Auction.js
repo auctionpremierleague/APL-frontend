@@ -1,31 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from "axios";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
-import Backdrop from "@material-ui/core/Backdrop";
-//import Card from '@material-ui/core/Card';
-//import CardActionArea from '@material-ui/core/CardActionArea';
-//import CardActions from '@material-ui/core/CardActions';
-//import CardContent from '@material-ui/core/CardContent';
-import InputLabel from '@material-ui/core/InputLabel';
+
+
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
+
 import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import Slide from '@material-ui/core/Slide';
-import Button from '@material-ui/core/Button';
+
+
 import DoneIcon from '@material-ui/icons/Done';
-//import CardMedia from '@material-ui/core/CardMedia';
-//import Button from '@material-ui/core/Button';
+
 import Typography from '@material-ui/core/Typography';
-//import Paper from '@material-ui/core/Paper';
+
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 //import Container from "@material-ui/core/Container";
-
+import Button from "@material-ui/core/Button";
+import Select from "@material-ui/core/Select";
 import Table from "components/Table/Table.js";
 import Grid from "@material-ui/core/Grid";
+import avatar from "assets/img/faces/marc.jpg";
+import GridItem from "components/Grid/GridItem.js";
+
 import Drawer from '@material-ui/core/Drawer';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
@@ -33,9 +31,21 @@ import IconButton from '@material-ui/core/IconButton';
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined';
 import CheckSharpIcon from '@material-ui/icons/CheckSharp';
 import ClearSharpIcon from '@material-ui/icons/ClearSharp';
-import TextField from '@material-ui/core/TextField';
+import Avatar from "@material-ui/core/Avatar"
+
+
+import Card from "components/Card/Card.js";
+import CardAvatar from "components/Card/CardAvatar.js";
+import CardBody from "components/Card/CardBody.js";
+
+import cron from "node-cron";
+
 import Input from '@material-ui/core/Input';
-import { element } from 'prop-types';
+
+
+import { UserContext } from "../../UserContext";
+import GridContainer from 'components/Grid/GridContainer';
+
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -64,16 +74,43 @@ const useStyles = makeStyles((theme) => ({
     },
     sold: {
         color: "green"
-    }
+    }, cardCategoryWhite: {
+        color: "rgba(255,255,255,.62)",
+        margin: "0",
+        fontSize: "14px",
+        marginTop: "0",
+        marginBottom: "0"
+    },
+    cardTitleWhite: {
+        color: "#FFFFFF",
+        marginTop: "0px",
+        minHeight: "auto",
+        fontWeight: "300",
+        fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+        marginBottom: "3px",
+        textDecoration: "none"
+    }, large: {
+        width: theme.spacing(12),
+        height: theme.spacing(12),
+    },
 }));
 
 
 
+
 export default function ImgMediaCard() {
+
+    window.onbeforeunload = () => setUser(null)
+
+    const { user, setUser } = useContext(UserContext);
+
+
+
     const classes = useStyles();
     const theme = useTheme();
 
-    const [next, setNext] = useState(false)
+    const [auctionStatus, setAuctionStatus] = useState("");
+
     const [playersList, setPlayersList] = useState([]);
     const [playerName, setPlayerName] = useState("");
     const [index, setIndex] = useState(0);
@@ -84,71 +121,167 @@ export default function ImgMediaCard() {
     const [bowlingStyle, setBowlingStyle] = useState("");
     const [open, setOpen] = useState(false);
     const [drawerContent, setDrawerContent] = useState("Info");
-    const [ownerArr, setOwnerArr] = useState([]);
-    const [selectedOwner, setSelectedOwner] = useState(8);
-    const [bidAmount, setBidAmount] = useState(0);
+
+    const [selectedOwner, setSelectedOwner] = useState(null);
+
     const [backDropOpen, setBackDropOpen] = useState(false);
     const [playerStatus, setPlayerStatus] = useState();
-    const [AuctionTableData,setAuctionTableData]=useState([]);
+    const [AuctionTableData, setAuctionTableData] = useState([]);
+
+
+    const auctionPlayerTask = cron.schedule('*/15 * * * * *', async () => {
+        const pidData = await axios.get("/group/getauctionplayer/1");
+
+        const playerListResponse = await axios.get('/player')
+        console.log(playerName, pidData.data);
+        const i = playerListResponse.data.findIndex(player => player.pid === pidData.data);
+
+        setPlayerImage(`${process.env.PUBLIC_URL}/${pidData.data}.JPG`);
+      
+        setRole(playerListResponse.data[i].role)
+        setTeam(playerListResponse.data[i].Team)
+        setBattingStyle(playerListResponse.data[i].battingStyle)
+        setBowlingStyle(playerListResponse.data[i].bowlingStyle)
+        setPlayerName(playerListResponse.data[i].fullName)
+        setIndex(i)
+
+          
+    }
+        , {
+            scheduled: false
+        });
+    const auctionStartTask = cron.schedule('*/1 * * * * *', async () => {
+        const response = await axios.get("/group/getauctionstatus/1");
+        setAuctionStatus(response.data);
+        if (response.data === "RUNNING") {
+            killTask();
+            await startAuction();
+            auctionPlayerTask.start();
+        }
+    }, {
+        scheduled: false
+    });
+    const killTask = () => auctionStartTask.stop();
+
+    
+
     const handleDrawerClose = (event) => {
         setOpen(false);
     };
 
-
-    
-    
-  
     useEffect(() => {
+
+
+
+        const a = async () => {
+            const response = await axios.get("/group/getauctionstatus/1");
+            console.log(response.data)
+            setAuctionStatus(response.data);
+            if (response.data === "RUNNING") {
+
+                await startAuction();
+                auctionPlayerTask.start();
+
+            } else {
+                if (user && !user.admin) {
+
+                    auctionStartTask.start();
+                }
+            }
+
+
+        }
+
+        a();
 
         const fetchBalance = async () => {
             try {
-                const response = await axios.get("/user/balance/all");
+                const response = await axios.get(user && user.admin ? "/user/balance/all" : `/user/balance/${user && user.uid ? user.uid : "all"}`);
                 console.log(response.data);
-                setAuctionTableData(response.data)
+                setAuctionTableData(response.data);
+                if (response.data === "RUNNING") {
+
+                }
             } catch (e) {
                 console.log(e)
             }
 
 
         }
-        
-        if (playersList[index]) {
-            setPlayerName(playersList[index].fullName)
-            setPlayerImage(`${process.env.PUBLIC_URL}/${playersList[index].pid}.JPG`);
-            setTeam(playersList[index].Team);
-            setRole(playersList[index].role);
-            setBattingStyle(playersList[index].battingStyle);
-            setBowlingStyle(playersList[index].bowlingStyle)
-            setNext(true);
-            fetchBalance();
-        }
 
-    }, [index, playersList, next])
+    }, [])
 
 
-    if (playersList.length === 0) {
-        Promise.all([axios.get('/player'
-        ), axios.get("/user")]).then(res => {
-            console.log(res)
-            
-                setPlayersList(res[0].data);
-                setIndex(0)
-            
-            setOwnerArr(res[1].data)
-        });
+
+
+    const sendAuctionPlayer = async ({ pid, role, battingStyle, bowlingStyle, fullName, Team }) => {
+        const res = await axios.get(`/group/setauctionplayer/1/${pid}`);
+
+        setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+        setRole(role)
+        setTeam(Team)
+        setBattingStyle(battingStyle)
+        setBowlingStyle(bowlingStyle)
+        setPlayerName(fullName)
+
+
     }
 
+    const startAuction = async () => {
+
+        console.log(index)
+
+        if (auctionStatus === "PENDING") {
+            const response = await axios.get("/group/setauctionstatus/1/RUNNING");
+            if (response.data) {
+                setAuctionStatus("RUNNING");
+            }
+        } else if (auctionStatus === "RUNNING") {
+            auctionStartTask.stop();
+        }
+
+
+
+        const playerListResponse = await axios.get('/player')
+        setPlayersList(playerListResponse.data);
+
+        const balanceData = await axios.get(user && user.admin ? "/user/balance/all" : `/user/balance/${user&&user.uid?user.uid:"all"}`);
+        setAuctionTableData(balanceData.data);
+
+        if (auctionStatus === "PENDING") {
+            setIndex(0)
+            await sendAuctionPlayer(playerListResponse.data[0]);
+        } else {
+            const pid = await axios.get("/group/getauctionplayer/1");
+
+            const i = playerListResponse.data.findIndex(player => player.pid === pid.data);
+
+            await sendAuctionPlayer(playerListResponse.data[i]);
+            setRole(playerListResponse.data[i].role)
+            setTeam(playerListResponse.data[i].Team)
+            setBattingStyle(playerListResponse.data[i].battingStyle)
+            setBowlingStyle(playerListResponse.data[i].bowlingStyle)
+            setPlayerName(playerListResponse.data[i].fullName)
+            setIndex(i)
+
+
+
+
+        }
+
+
+
+    }
     const handleOwnerChange = (event) => {
         setSelectedOwner(event.target.value);
     };
-    const handleBidAmountChange = (event) => {
-        //event.preventDefault();
-        setBidAmount(event.target.value);
-    };
+
 
     async function sellPlayer() {
 
-        let response = await fetch(`/auction/add/1/${selectedOwner}/${playersList[index].pid}/${bidAmount}`);
+
+        const amount = document.getElementById("standard-required").value;
+        let response = await fetch(`/auction/add/1/${selectedOwner}/${playersList[index].pid}/${amount}`);
         if (response.status === 707) {
             setPlayerStatus("Already Purchased")
         }
@@ -161,11 +294,11 @@ export default function ImgMediaCard() {
         if (response.status === 708) {
             setPlayerStatus("Insufficient Balance")
         }
-        if (response.status ===200) {
+        if (response.status === 200) {
             setPlayerStatus("SOLD");
 
-    
-      
+            const balance = await axios.get("/user/balance/all")
+            setAuctionTableData(balance.data);
         }
 
         setBackDropOpen(true)
@@ -199,43 +332,49 @@ export default function ImgMediaCard() {
             </Typography>
         </React.Fragment>
     }
-    return (
-        <div className={classes.root}>
+
+    function AdminAuction() {
+        return <div className={classes.root}>
+
+
             <Grid container alignContent="center" alignItems="center"
             >
-
-                <Grid item xs={3} >
+                {user && user.admin ? <Grid item xs={3} >
                     <Button
                         variant="contained"
                         color="secondary"
                         size="small"
                         className={classes.button}
                         startIcon={<NavigateBeforeIcon />}
-                        onClick={() => setIndex(index - 1)}>
+                        onClick={() => {
+                            sendAuctionPlayer(playersList[index - 1]);
+
+                            setIndex(index - 1)
+                        }}>
 
                     </Button>
-                </Grid>
+                </Grid> : ""}
+
 
                 <Grid item xs={6}>
-                    <Slide direction="left" in={next} mountOnEnter unmountOnExit>
-                        <div  >
+
+                    <div  >
 
 
-                            <Image />
-                            <InfoOutlinedIcon onClick={() => { setOpen(true) }} />
-                            <Typography >
-                                {playerName}
-                            </Typography>
-
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                size="small"
-                                className={classes.button}
-                                startIcon={<CheckSharpIcon />}
-                                onClick={() => { setOpen(true); setDrawerContent("franchiseInfo"); }}>
-                                SOLD
-                    </Button>
+                        <Image />
+                        <InfoOutlinedIcon onClick={() => { setOpen(true) }} />
+                        <Typography >
+                            {playerName}
+                        </Typography>
+                        {user && user.admin ? <div> <Button
+                            variant="contained"
+                            color="secondary"
+                            size="small"
+                            className={classes.button}
+                            startIcon={<CheckSharpIcon />}
+                            onClick={() => { setOpen(true); setDrawerContent("franchiseInfo"); }}>
+                            SOLD
+    </Button>
                             <Button
                                 variant="contained"
                                 color="secondary"
@@ -244,33 +383,44 @@ export default function ImgMediaCard() {
                                 startIcon={<ClearSharpIcon />}
                                 onClick={() => setIndex(index - 1)}>
                                 UNSOLD
-                    </Button>
+    </Button></div> : ""}
 
 
-                            {/* <TextField id="outlined-basic" label="Outlined" variant="outlined" /> */}
 
-                        </div>
-                    </Slide >
+                        {/* <TextField id="outlined-basic" label="Outlined" variant="outlined" /> */}
+
+                    </div>
+
                 </Grid>
-                <Grid item xs={3} >
+
+                {user && user.admin ? <Grid item xs={3} >
                     <Button
                         variant="contained"
                         color="secondary"
                         size="small"
                         className={classes.button}
                         endIcon={<NavigateNextIcon />}
-                        onClick={() => setIndex(index + 1)}>
+                        onClick={() => {
+
+
+                            sendAuctionPlayer(playersList[index + 1]);
+
+                            setIndex(index + 1)
+
+                        }}>
 
                     </Button>
-                </Grid>
+                </Grid> : ""}
+
             </Grid>
             <Table
                 tableHeaderColor="warning"
                 tableHead={["Owner", "Player Count", "Balance"]}
-                tableData={AuctionTableData.map(element =>{const arr=[element.userName, element.playerCount, element.balance]
-                return {data:arr,collapse:[]}
+                tableData={AuctionTableData.map(element => {
+                    const arr = [element.userName, element.playerCount, element.balance]
+                    return { data: arr, collapse: [] }
                 })}
-              />
+            />
 
             <Dialog aria-labelledby="simple-dialog-title" open={backDropOpen}
                 onClose={() => setBackDropOpen(false)} >
@@ -299,12 +449,12 @@ export default function ImgMediaCard() {
                         displayEmpty
                         onChange={handleOwnerChange}
                     >
-                        {ownerArr.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
+                        {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
 
                     </Select>
 
                 </FormControl>
-                    <Input key="hi" id="standard-required" label="Bid Amount" type="number" value={bidAmount} onChange={handleBidAmountChange} />
+                    <Input key="hi" id="standard-required" label="Bid Amount" type="number" />
                     <Button
                         variant="contained"
                         color="secondary"
@@ -313,12 +463,68 @@ export default function ImgMediaCard() {
                         startIcon={<DoneIcon />}
                         onClick={() => sellPlayer()}>
                         Confirm
-              </Button></div>}
+</Button></div>}
 
             </Drawer>
 
 
         </div>
+    }
+
+    function AdminPending() {
+        return <Button variant="contained"
+            color="secondary"
+            size="small"
+            className={classes.button}
+            startIcon={<NavigateBeforeIcon />}
+            onClick={() => startAuction()}>Start Auction</Button>
+    }
+
+    function UserAuctionPending() {
+        return <Typography>Auction has not been started by Admin! <br /> Auction is Coming !!</Typography>
+    }
+
+    function UserAuction() {
+        return <Grid container justify="center"
+            alignItems="center" >
+            <GridItem xs={12} sm={12} md={4} >
+                <Card profile>
+                    <CardAvatar profile>
+
+                        <img src={playerImage} alt="..." />
+
+                    </CardAvatar>
+                    <CardBody profile>
+
+                        <h3 className={classes.cardTitle}>{playerName}</h3>
+                        <Grid container justify="center" alignItems="center">
+                            <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${team}.JPG`} className={classes.large} />
+                        </Grid>
+                        <h4 className={classes.cardCategory}> {role}</h4>
+                        <h6 className={classes.description}>
+                            {battingStyle}<br />
+                            {bowlingStyle}
+
+                        </h6>
+
+                    </CardBody>
+                </Card>
+            </GridItem>
+            <Table
+                tableHeaderColor="warning"
+                tableHead={["Owner", "Player Count", "Balance"]}
+                tableData={AuctionTableData.map(element => {
+                    const arr = [element.userName, element.playerCount, element.balance]
+                    return { data: arr, collapse: [] }
+                })}
+            />
+        </Grid>
+    }
+    return (
+
+        auctionStatus === "PENDING" ? user && user.admin ? <AdminPending /> : <UserAuctionPending /> : user && user.admin ? <AdminAuction /> : <UserAuction />
+
+
     );
 
 }

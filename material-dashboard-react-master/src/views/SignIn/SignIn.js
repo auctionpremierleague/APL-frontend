@@ -67,8 +67,13 @@ export default function SignIn() {
     const response = await axios.get(`/user/login/${userName}/${password}`);
    
     if(response.status===200){
-      setUser(response.data);
-      history.push("/admin/dashboard")
+
+      const admin=await axios.get(`/group/admin`);
+      if(admin.data.uid===response.data){
+        setUser({uid:response.data,admin:true});
+      }else
+    {  setUser({uid:response.data,admin:false});}
+      history.push("/admin")
    
     }
  
