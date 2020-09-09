@@ -136,7 +136,7 @@ export default function ImgMediaCard() {
 
     useEffect(() => {
 
-        if (user && !user.admin) {
+       
             const socket = socketIOClient(ENDPOINT);
             socket.on("connect", () => {
 
@@ -173,10 +173,7 @@ export default function ImgMediaCard() {
                 })
             })
 
-        }
-
-
-        const a = async () => {
+                const a = async () => {
             const response = await axios.get("/group/getauctionstatus/1");
 
             setAuctionStatus(response.data);
