@@ -156,6 +156,7 @@ export default function ImgMediaCard() {
         if (response.data === "RUNNING") {
             killTask();
             await startAuction();
+            if(user && !user.admin)
             auctionPlayerTask.start();
         }
     }, {
