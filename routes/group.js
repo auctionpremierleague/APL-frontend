@@ -69,7 +69,12 @@ router.get('/setauctionstatus/:groupid/:newstate', function(req, res, next) {
             senderr(625, `Invalid auction state ${newstate}`);
             return;
           }
+          
           newstate = "RUNNING";
+          const socket=app.get("socket");
+          socket.emit("auctionStart", newstate)
+    
+          socket.broadcast.emit('auctionStart',newstate);
           aplayer = 0;
           break;
         case "RUNNING":
@@ -131,6 +136,10 @@ router.get('/setauctionplayer/:groupid/:playerId', function(req, res, next) {
       if (gdoc.auctionStatus != "RUNNING") {
         senderr(626, "Cannot update auction Player. Auction is not running");
       } else {
+        const socket=app.get("socket");
+        socket.emit("playerChange", iplayer)
+  
+        socket.broadcast.emit('playerChange',iplayer);
         gdoc.auctionPlayer = iplayer;
         gdoc.save();
         sendok(gdoc.auctionPlayer.toString());

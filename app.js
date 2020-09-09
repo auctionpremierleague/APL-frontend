@@ -2,16 +2,28 @@ express = require('express');
 path = require('path');
 cookieParser = require('cookie-parser');
 logger = require('morgan');
-const bodyParser = require("body-parser");
-const { Mongoose } = require('mongoose');
 mongoose = require("mongoose");
 cors = require('cors');
 fetch = require('node-fetch');
 _ = require("lodash");
 cron = require('node-cron');
-app = express(),
-  PORT = process.env.PORT || 4000;
+app = express();
 
+PORT = process.env.PORT || 4000;
+http = require('http');
+httpServer = http.createServer(app);
+io = require('socket.io')(httpServer, {
+  handlePreflightRequest: (req, res) => {
+    const headers = {
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Origin": req.headers.origin, //or the specific origin you want to give access to,
+      "Access-Control-Allow-Credentials": true
+    };
+    res.writeHead(200, headers);
+    res.end();
+  }
+
+});
 
 // Routers
 router = express.Router();
@@ -24,6 +36,15 @@ teamRouter = require('./routes/team');
 statRouter = require('./routes/playerstat');
 matchRouter = require('./routes/match');
 tournamentRouter = require('./routes/tournament');
+
+
+io.on('connect', socket => {
+
+  app.set("socket",socket);
+ 
+
+});
+
 app.set('view engine', 'html');
 app.use(logger('dev'));
 app.use(express.json());
@@ -45,6 +66,7 @@ app.use((req, res, next) => {
   }
 
 });
+
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
 app.use('/player', playersRouter);
@@ -293,7 +315,7 @@ cron.schedule('*/15 * * * * *', () => {
 
 
 // start app to listen on specified port
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log("Server is running on Port: " + PORT);
 });
 // module.exports = app;

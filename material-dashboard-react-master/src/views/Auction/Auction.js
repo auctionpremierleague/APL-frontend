@@ -38,14 +38,15 @@ import Card from "components/Card/Card.js";
 import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
 
-import cron from "node-cron";
+
 
 import Input from '@material-ui/core/Input';
 
 
 import { UserContext } from "../../UserContext";
 import GridContainer from 'components/Grid/GridContainer';
-
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -129,86 +130,65 @@ export default function ImgMediaCard() {
     const [AuctionTableData, setAuctionTableData] = useState([]);
 
 
-    const auctionPlayerTask = cron.schedule('*/15 * * * * *', async () => {
-        const pidData = await axios.get("/group/getauctionplayer/1");
-
-        const playerListResponse = await axios.get('/player')
-        console.log(playerName, pidData.data);
-        const i = playerListResponse.data.findIndex(player => player.pid === pidData.data);
-
-        setPlayerImage(`${process.env.PUBLIC_URL}/${pidData.data}.JPG`);
-      
-        setRole(playerListResponse.data[i].role)
-        setTeam(playerListResponse.data[i].Team)
-        setBattingStyle(playerListResponse.data[i].battingStyle)
-        setBowlingStyle(playerListResponse.data[i].bowlingStyle)
-        setPlayerName(playerListResponse.data[i].fullName)
-        setIndex(i)
-
-          
-    }
-        , {
-            scheduled: false
-        });
-    const auctionStartTask = cron.schedule('*/1 * * * * *', async () => {
-        const response = await axios.get("/group/getauctionstatus/1");
-        setAuctionStatus(response.data);
-        if (response.data === "RUNNING") {
-            killTask();
-            await startAuction();
-            if(user && !user.admin)
-            auctionPlayerTask.start();
-        }
-    }, {
-        scheduled: false
-    });
-    const killTask = () => auctionStartTask.stop();
-
-    
-
-    const handleDrawerClose = (event) => {
+    const handleDrawerClose = () => {
         setOpen(false);
     };
 
     useEffect(() => {
 
+        if (user && !user.admin) {
+            const socket = socketIOClient(ENDPOINT);
+            socket.on("connect", () => {
+
+                // socket.emit("client","msg from client")
+                console.log("client connected");
+                socket.on("playerChange", async (pid) => {
+
+                    console.log(pid);
+                    const playerListResponse = await axios.get('/player');
+                    const i = playerListResponse.data.findIndex(player => player.pid === pid);
+                    const { role, Team, battingStyle, bowlingStyle, fullName } = playerListResponse.data[i]
+                    setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+                    setRole(role)
+                    setTeam(Team)
+                    setBattingStyle(battingStyle)
+                    setBowlingStyle(bowlingStyle)
+                    setPlayerName(fullName)
+                    setIndex(i)
+                });
+                socket.on("auctionStart",async(status)=>{
+                    console.log(status)
+                    setAuctionStatus(status);
+                 
+                    const playerListResponse = await axios.get('/player');
+                   
+                    const { role, Team, battingStyle, bowlingStyle, fullName,pid } = playerListResponse.data[0]
+                    setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+                    setRole(role)
+                    setTeam(Team)
+                    setBattingStyle(battingStyle)
+                    setBowlingStyle(bowlingStyle)
+                    setPlayerName(fullName)
+                    setIndex(0)
+                })
+            })
+
+        }
 
 
         const a = async () => {
             const response = await axios.get("/group/getauctionstatus/1");
-            console.log(response.data)
+
             setAuctionStatus(response.data);
             if (response.data === "RUNNING") {
 
                 await startAuction();
-                auctionPlayerTask.start();
 
-            } else {
-                if (user && !user.admin) {
-
-                    auctionStartTask.start();
-                }
             }
-
-
         }
 
         a();
 
-        const fetchBalance = async () => {
-            try {
-                const response = await axios.get(user && user.admin ? "/user/balance/all" : `/user/balance/${user && user.uid ? user.uid : "all"}`);
-                console.log(response.data);
-                setAuctionTableData(response.data);
-                if (response.data === "RUNNING") {
-
-                }
-            } catch (e) {
-                console.log(e)
-            }
-
-
-        }
 
     }, [])
 
@@ -216,7 +196,7 @@ export default function ImgMediaCard() {
 
 
     const sendAuctionPlayer = async ({ pid, role, battingStyle, bowlingStyle, fullName, Team }) => {
-        const res = await axios.get(`/group/setauctionplayer/1/${pid}`);
+        await axios.get(`/group/setauctionplayer/1/${pid}`);
 
         setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
         setRole(role)
@@ -230,23 +210,19 @@ export default function ImgMediaCard() {
 
     const startAuction = async () => {
 
-        console.log(index)
 
+ 
         if (auctionStatus === "PENDING") {
             const response = await axios.get("/group/setauctionstatus/1/RUNNING");
             if (response.data) {
                 setAuctionStatus("RUNNING");
             }
-        } else if (auctionStatus === "RUNNING") {
-            auctionStartTask.stop();
         }
-
-
 
         const playerListResponse = await axios.get('/player')
         setPlayersList(playerListResponse.data);
 
-        const balanceData = await axios.get(user && user.admin ? "/user/balance/all" : `/user/balance/${user&&user.uid?user.uid:"all"}`);
+        const balanceData = await axios.get(user && user.admin ? "/user/balance/all" : `/user/balance/${user && user.uid ? user.uid : "all"}`);
         setAuctionTableData(balanceData.data);
 
         if (auctionStatus === "PENDING") {
@@ -264,13 +240,7 @@ export default function ImgMediaCard() {
             setBowlingStyle(playerListResponse.data[i].bowlingStyle)
             setPlayerName(playerListResponse.data[i].fullName)
             setIndex(i)
-
-
-
-
         }
-
-
 
     }
     const handleOwnerChange = (event) => {
