@@ -195,7 +195,7 @@ router.get('/owner', function (req, res, next) {
   owneradmin();
 });
 
-router.get('/admin', function(req, res, next) {
+router.get('/owner', function(req, res, next) {
   GroupRes = res;
   setHeader();
 

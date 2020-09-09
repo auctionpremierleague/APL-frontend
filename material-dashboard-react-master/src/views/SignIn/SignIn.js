@@ -68,7 +68,7 @@ export default function SignIn() {
    
     if(response.status===200){
 
-      const admin=await axios.get(`/group/admin`);
+      const admin=await axios.get(`/group/owner`);
       if(admin.data.uid===response.data){
         setUser({uid:response.data,admin:true});
       }else
