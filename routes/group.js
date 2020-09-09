@@ -311,7 +311,7 @@ function publish_groups(filter_groups)
 }
 
 function senderr(errcode, msg)  { GroupRes.status(errcode).send(msg); }
-function sendok(msg)   { GroupRes.send(msg); }
+function sendok(msg)   { GroupRes.send(msg);GroupRes.end() ;}
 function setHeader() {
   GroupRes.header("Access-Control-Allow-Origin", "*");
   GroupRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");

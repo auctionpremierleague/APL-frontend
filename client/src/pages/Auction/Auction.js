@@ -68,6 +68,7 @@ export default function ImgMediaCard() {
     const classes = useStyles();
     const theme = useTheme();
 
+   
     const [next, setNext] = useState(false)
     const [playersList, setPlayersList] = useState([]);
     const [playerName, setPlayerName] = useState("");
