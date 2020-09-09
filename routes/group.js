@@ -1,6 +1,7 @@
 var router = express.Router();
 var GroupRes;
-
+var _group = 1;
+var _tournament = ""; 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
   GroupRes = res;
@@ -108,7 +109,7 @@ router.get('/getauctionplayer/:groupid', function(req, res, next) {
   var {groupid}=req.params;
   // groupAction = groupAction.toLowerCase();
   if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-
+  
   IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
@@ -128,18 +129,25 @@ router.get('/setauctionplayer/:groupid/:playerId', function(req, res, next) {
   if (groupid != "1") { senderr(621, "Invalid Group"); return; }
   if (isNaN(playerId)){ senderr(626, `Invalid Player ${playerId}`); return; }
   iplayer = parseInt(playerId);
-
-  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+  
+  IPLGroup.findOne({gid: 1}, async(err, gdoc) =>  {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
       console.log(gdoc);
       if (gdoc.auctionStatus != "RUNNING") {
         senderr(626, "Cannot update auction Player. Auction is not running");
       } else {
+
+     const playerList=  await Player.find({});
+
+     const playerDetails=await Player.findOne({pid:playerId});
+
+     const index=playerList.findIndex(x => x.pid==playerId);
+   
         const socket=app.get("socket");
-        socket.emit("playerChange", iplayer)
+        socket.emit("playerChange", playerDetails,index)
   
-        socket.broadcast.emit('playerChange',iplayer);
+        socket.broadcast.emit('playerChange',playerDetails,index);
         gdoc.auctionPlayer = iplayer;
         gdoc.save();
         sendok(gdoc.auctionPlayer.toString());

@@ -142,19 +142,17 @@ export default function ImgMediaCard() {
 
                 // socket.emit("client","msg from client")
                 console.log("client connected");
-                socket.on("playerChange", async (pid) => {
+                socket.on("playerChange", async (newPlayerDetails,index) => {
 
-                    console.log(pid);
-                    const playerListResponse = await axios.get('/player');
-                    const i = playerListResponse.data.findIndex(player => player.pid === pid);
-                    const { role, Team, battingStyle, bowlingStyle, fullName } = playerListResponse.data[i]
+                    const { role, Team, battingStyle, bowlingStyle,pid, fullName } = newPlayerDetails
                     setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
                     setRole(role)
                     setTeam(Team)
                     setBattingStyle(battingStyle)
                     setBowlingStyle(bowlingStyle)
                     setPlayerName(fullName)
-                    setIndex(i)
+                    setIndex(index)
+                    
                 });
                 socket.on("auctionStart",async(status)=>{
                     console.log(status)
