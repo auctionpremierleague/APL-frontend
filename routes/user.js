@@ -10,65 +10,65 @@ var _tournament;
 
 
 /* GET all users listing. */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
   CricRes = res;
   setHeader();
-  if (!db_connection) { senderr(DBERROR, ERR_NODB);  return; }
+  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
   if (req.url == "/")
     publish_users({});
   else
     next('route');
-  });
+});
 
 
 // get all user of group
-router.get('/group', async function(req, res, next) {
+router.get('/group', async function (req, res, next) {
   CricRes = res;
-  setHeader();  
+  setHeader();
   //_group = defaultGroup;
   showGroupMembers(1);
 });
 
 // get users belonging to group "mygroup"
-router.get('/group/:mygroup', async function(req, res, next) {
+router.get('/group/:mygroup', async function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var {mygroup} = req.params;
+  var { mygroup } = req.params;
   if (isNaN(mygroup)) { senderr(601, `Invalid group number ${mygroup}`); return; }
   showGroupMembers(parseInt(mygroup));
 });
 
 //=============== SIGNUP
-router.get('/signup/:userName/:userParam', function(req, res, next) {
+router.get('/signup/:userName/:userParam', function (req, res, next) {
   req.url = "/internal" + req.url;
   next('route');
 });
 
 //=============== RESET
-router.get('/reset/:userName/:userParam', function(req, res, next) {
+router.get('/reset/:userName/:userParam', function (req, res, next) {
   req.url = "/internal" + req.url;
   next('route');
 });
 
 //=============== LOGIN
-router.get('/login/:userName/:userParam', function(req, res, next) {
+router.get('/login/:userName/:userParam', function (req, res, next) {
   req.url = "/internal" + req.url;
   next('route');
 });
 
 
 //==================== internally called for signup, login and reset
-router.get('/internal/:userAction/:userName/:userParam', function(req, res, next) {
+router.get('/internal/:userAction/:userName/:userParam', function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var {userAction,userName,userParam}=req.params;
+  var { userAction, userName, userParam } = req.params;
   userAction = userAction.toLowerCase();
   userName = userName.toLowerCase().replace(/\s/g, "");
   //if (!db_connection) return;
 
-  User.findOne({userName}, function(err, urec) {
+  User.findOne({ userName }, function (err, urec) {
     if (err)
       senderr(DBFETCHERR, err);
     else {
@@ -82,10 +82,10 @@ router.get('/internal/:userAction/:userName/:userParam', function(req, res, next
         case "reset":
           if (urec) {
             urec.password = userParam;
-            urec.save(function(err) {
+            urec.save(function (err) {
               //console.log(err);
-              if (err)  senderr(DBFETCHERR,"Could not reset password");
-              else      sendok(urec.uid.toString());
+              if (err) senderr(DBFETCHERR, "Could not reset password");
+              else sendok(urec.uid.toString());
             });
           } else
             senderr(602, "Invalid User name or password");
@@ -94,31 +94,30 @@ router.get('/internal/:userAction/:userName/:userParam', function(req, res, next
           if (urec) {
             console.log(urec);
             urec.displayName = userParam;
-            urec.save(function(err) {
+            urec.save(function (err) {
               //console.log(err);
-              if (err)  senderr(DBFETCHERR,"Could not update display name");
-              else      sendok(urec.uid.toString());
+              if (err) senderr(DBFETCHERR, "Could not update display name");
+              else sendok(urec.uid.toString());
             });
           } else
             senderr(602, "Invalid User name or password");
           break;
         case "signup":
-          if (!urec)
-          {
-            User.find().limit(1).sort({"uid":-1}).exec(function (err, doc) {
+          if (!urec) {
+            User.find().limit(1).sort({ "uid": -1 }).exec(function (err, doc) {
               if (err) senderr(DBFETCHERR, err);
-              else
-              {
-                var user1 = new User({ 
-                uid: doc[0].uid + 1,
-                userName: userName,
-                displayName: userName,
-                password: userParam,
-                status: true });
-                user1.save(function(err) {
+              else {
+                var user1 = new User({
+                  uid: doc[0].uid + 1,
+                  userName: userName,
+                  displayName: userName,
+                  password: userParam,
+                  status: true
+                });
+                user1.save(function (err) {
                   if (err)
                     senderr(DBFETCHERR, "Unable to add new User record");
-                  else 
+                  else
                     sendok(user1.uid.toString());
                 });
               }
@@ -132,16 +131,15 @@ router.get('/internal/:userAction/:userName/:userParam', function(req, res, next
 });
 
 // select caption for the user (currently only group 1 supported by default)
-router.get('/captain/:myuser/:myplayer', function(req,  res, next) {
+router.get('/captain/:myuser/:myplayer', function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  if (ipl_started())
-  {
+  if (ipl_started()) {
     senderr(604, "IPL has started!!!! Cannot set Captain");
     return;
   }
-  var {myuser, myplayer} = req.params;
+  var { myuser, myplayer } = req.params;
   var iuser = parseInt(myuser);
   var iplayer = parseInt(myplayer);
   //var igroup = _group;
@@ -149,11 +147,11 @@ router.get('/captain/:myuser/:myplayer', function(req,  res, next) {
   if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
   if (isNaN(iplayer)) { senderr(606, "Invalid player"); return; }
 
-  Auction.find({gid: _group, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
+  Auction.find({ gid: _group, uid: iuser, pid: iplayer }).countDocuments(function (err, count) {
     if (err)
       senderr(DBFETCHERR, err);
     else if (count == 0)
-      senderr(607,"Player " + iplayer + " not purchased by user " + iuser);
+      senderr(607, "Player " + iplayer + " not purchased by user " + iuser);
     else {
       updateCaptainOrVicecaptain(iuser, iplayer, is_Captain);
     }
@@ -161,23 +159,22 @@ router.get('/captain/:myuser/:myplayer', function(req,  res, next) {
 });
 
 // select vice caption for the user (currently only group 1 supported by default)
-router.get('/vicecaptain/:myuser/:myplayer', function(req,  res, next) {
+router.get('/vicecaptain/:myuser/:myplayer', function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  if (ipl_started())
-  {
+  if (ipl_started()) {
     senderr(604, "IPL has started!!!! Cannot set Vice Captain");
     return;
   }
-  var {myuser, myplayer} = req.params;
+  var { myuser, myplayer } = req.params;
   var iuser = parseInt(myuser);
   var iplayer = parseInt(myplayer);
 
-  if (isNaN(iuser)) { senderr(605,"Invalid user"); return; }
+  if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
   if (isNaN(iplayer)) { senderr(606, "Invalid player"); return; }
-  
-  Auction.find({gid: _group, uid: iuser, pid: iplayer}).countDocuments(function(err, count) {
+
+  Auction.find({ gid: _group, uid: iuser, pid: iplayer }).countDocuments(function (err, count) {
     if (err)
       senderr(DBFETCHERR, err);
     else if (count == 0)
@@ -190,50 +187,50 @@ router.get('/vicecaptain/:myuser/:myplayer', function(req,  res, next) {
 });
 
 // select caption for the user (currently only group 1 supported by default)
-router.get('/getcaptain/:myuser', function(req,  res, next) {
+router.get('/getcaptain/:myuser', function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var {myuser} = req.params;
+  var { myuser } = req.params;
   var igroup = defaultGroup;
 
   var myfilter;
   if (myuser.toUpperCase() === "ALL")
-    myfilter = {gid: igroup};
+    myfilter = { gid: igroup };
   else {
     var iuser = parseInt(myuser);
     if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
-    myfilter = {gid: igroup, uid: iuser};
+    myfilter = { gid: igroup, uid: iuser };
   }
   publishCaptain(myfilter);
 });
 
 // get users balance
 // only group 1 supported which is default group
-router.get('/balance/:myuser', async function(req, res, next) {
+router.get('/balance/:myuser', async function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var {myuser} = req.params;
-  var userFilter = {gid: _group };
+  var { myuser } = req.params;
+  var userFilter = { gid: _group };
   if (myuser.toUpperCase() != "ALL") {
-    if (isNaN(myuser)) { senderr(605,"Invalid user " + myuser); return; }
-    userFilter = {gid: _group, uid: parseInt(myuser)};
+    if (isNaN(myuser)) { senderr(605, "Invalid user " + myuser); return; }
+    userFilter = { gid: _group, uid: parseInt(myuser) };
   }
   //console.log(`hello ${iuser}`);
   gmRec = await GroupMember.find(userFilter);
   gmRec = _.sortBy(gmRec, 'uid');
 
-  var auctionList = await Auction.find({gid: _group});
+  var auctionList = await Auction.find({ gid: _group });
   var balanceDetails = [];
-  
-  gmRec.forEach( gm => {
+
+  gmRec.forEach(gm => {
     //console.log(gm);
     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
     //console.log(myAuction);
     var myPlayerCount = myAuction.length;
-    var mybal = 1000 - _.sumBy(myAuction, 'bidAmount'); 
-    balanceDetails.push({ 
+    var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
+    balanceDetails.push({
       uid: gm.uid,
       userName: gm.userName,
       gid: gm.gid,
@@ -247,11 +244,11 @@ router.get('/balance/:myuser', async function(req, res, next) {
 
 // get players purchased by me.
 // currently only group 1 supported
-router.get('/myteam/:userid', function(req, res, next) {
+router.get('/myteam/:userid', function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var {userid} = req.params;
+  var { userid } = req.params;
   let igroup = _group;   // default group 1
   let iuser = (userid.toUpperCase() != "ALL") ? parseInt(userid) : allUSER;
   if (isNaN(iuser))
@@ -264,38 +261,39 @@ router.get('/myteam/:userid', function(req, res, next) {
 
 // Which group I am the member
 // each group will have have the tournament name
-router.get('/mygroup/:userid', async function(req, res, next) {
+router.get('/mygroup/:userid', async function (req, res, next) {
   CricRes = res;
   setHeader();
-  var {userid} = req.params;
+  var { userid } = req.params;
 
   var userFilter = {};
   if (userid.toUpperCase() != "ALL") {
     if (isNaN(userid)) { senderr(605, `Invalid user ${userid}`); return; }
-    userFilter = {uid: parseInt(userid)};
+    userFilter = { uid: parseInt(userid) };
   }
   var userRec = await User.find(userFilter);
   if (userRec.length === 0) { senderr(605, `Invalid user ${userid}`); return; }
   userRec = _.sortBy(userRec, 'uid');
-  
+
   // now we have sorted User(s). Sorting is done on UID. get group member list of these users
   var userList = _.map(userRec, 'uid');
-  var gmRec = await GroupMember.find({uid: {$in: userList}});
+  var gmRec = await GroupMember.find({ uid: { $in: userList } });
   gmRec = _.sortBy(gmRec, 'gid');
 
   var result = [];
   if (gmRec.length > 0) {
     groupList = _.map(gmRec, 'gid');
-    var groupRec = await IPLGroup.find({gid: {$in: groupList}});
+    var groupRec = await IPLGroup.find({ gid: { $in: groupList } });
     //console.log(groupRec);
-    userRec.forEach( u => {
+    userRec.forEach(u => {
       var memberof = _.filter(gmRec, x => x.uid == u.uid);
-      memberof.forEach( gm => {
+      memberof.forEach(gm => {
         //console.log(gm);
         var mygroup = _.filter(groupRec, x => x.gid == gm.gid);
-        result.push({ uid: u.uid, 
+        result.push({
+          uid: u.uid,
           userName: u.userName, displayName: u.displayName,
-          gid: mygroup[0].gid, groupName: mygroup[0].name, 
+          gid: mygroup[0].gid, groupName: mygroup[0].name,
           tournament: mygroup[0].tournament
         });
       })
@@ -303,34 +301,33 @@ router.get('/mygroup/:userid', async function(req, res, next) {
   }
   //console.log(result);
   sendok(result);
- // sendok(gmRec);
+  // sendok(gmRec);
 })
 
-async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
-{
-  var myplayer = await Player.findOne({pid: iplayer});
+async function updateCaptainOrVicecaptain(iuser, iplayer, mytype) {
+  var myplayer = await Player.findOne({ pid: iplayer });
   var caporvice = (mytype == is_Captain) ? "Captain" : "ViceCaptain";
-  Captain.findOne({gid: _group, uid: iuser}, function(err, caprec) {
+  Captain.findOne({ gid: _group, uid: iuser }, function (err, caprec) {
     if (err)
       senderr(DBFETCHERR, err);
     else {
       // if record found then check if captain already selected once (i.e. captain != 0)
       // if record not found create brand new cpatain record since user has made selection 1st time
       if (!caprec)
-        caprec = new Captain({ 
-          gid: _group, 
-          uid: iuser, 
-          captain: 0,  
+        caprec = new Captain({
+          gid: _group,
+          uid: iuser,
+          captain: 0,
           captainName: "",
           viceCaptain: 0,
           viceCaptainName: ""
         });
 
       alreadySet = (mytype == is_Captain) ? (caprec.viceCaptain == iplayer)
-                                          : (caprec.captain == iplayer);
+        : (caprec.captain == iplayer);
       if (alreadySet) {
-        senderr(609,`Same player cannot be Captain as well as Vice Captain.`); 
-        return; 
+        senderr(609, `Same player cannot be Captain as well as Vice Captain.`);
+        return;
       }
 
       // Update captain and write it back to database
@@ -339,36 +336,35 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
       if (mytype == is_Captain) {
         caprec.captain = iplayer;
         caprec.captainName = myplayer.name;
-      }else {
+      } else {
         caprec.viceCaptain = iplayer;
         caprec.viceCaptainName = myplayer.name;
       }
       //console.log(caprec);
-      caprec.save(function(err) {
-        if (err) senderr(DBFETCHERR,`Could not update ${caporvice}`);
-        else  sendok(`${caporvice} updated for user ${iuser}`);
+      caprec.save(function (err) {
+        if (err) senderr(DBFETCHERR, `Could not update ${caporvice}`);
+        else sendok(`${caporvice} updated for user ${iuser}`);
       });
     }
   });
 }
 
 
-async function publish_auctionedplayers(userid)
-{
+async function publish_auctionedplayers(userid) {
   var myfilter;
   var userFilter;
-  if (userid == allUSER) { 
-    myfilter = {gid: _group};
+  if (userid == allUSER) {
+    myfilter = { gid: _group };
     userFilter = {};
-  }else {
-    myfilter = {gid: _group, uid: userid};
-    userFilter = {uid: userid}
+  } else {
+    myfilter = { gid: _group, uid: userid };
+    userFilter = { uid: userid }
   }
 
   var allUsers = await User.find(userFilter);
   var datalist = await Auction.find(myfilter);
   //console.log(datalist);
-  if (!datalist) { senderr(DBFETCHERR,err); return; }
+  if (!datalist) { senderr(DBFETCHERR, err); return; }
   datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'bidAmount']));
 
   // make grouping of players per user
@@ -377,19 +373,20 @@ async function publish_auctionedplayers(userid)
   userlist = _.uniqBy(userlist, 'uid');
 
   var grupdatalist = [];
-  userlist.forEach( myuser => {
+  userlist.forEach(myuser => {
     //var userRec = await User.findOne({uid: myuser.uid});
     var userRecs = _.filter(allUsers, x => x.uid == myuser.uid);
     var myplrs = _.filter(datalist, x => x.uid === myuser.uid);
-    var tmp = {uid: myuser.uid, userName: userRecs[0].userName, players: myplrs};
+ 
+    var tmp = { uid: myuser.uid, displayName: userRecs[0].displayName, userName: userRecs[0].userName, players: myplrs };
+
     grupdatalist.push(tmp);
   })
   sendok(grupdatalist);
 }
 
 
-async function publish_users(filter_users)
-{
+async function publish_users(filter_users) {
   //console.log(filter_users);
   var ulist = await User.find(filter_users);
   ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
@@ -397,26 +394,24 @@ async function publish_users(filter_users)
   sendok(ulist);
 }
 
-async function publishCaptain(filter_users)
-{
+async function publishCaptain(filter_users) {
   console.log(filter_users);
   var ulist = await Captain.find(filter_users);
-  ulist = _.map(ulist, o => _.pick(o, ['gid', 'uid', 
-      'captain', 'captainName', 
-      'viceCaptain', 'viceCaptainName']));
+  ulist = _.map(ulist, o => _.pick(o, ['gid', 'uid',
+    'captain', 'captainName',
+    'viceCaptain', 'viceCaptainName']));
   sendok(ulist);
 }
 
 // return true if IPL has started
-function ipl_started()
-{
+function ipl_started() {
   var justnow = new Date();
   var difference = IPL_Start_Date - justnow;
   return (difference <= 0)
 }
 
-function sendok(usrmgs) { CricRes.send(usrmgs);}
-function senderr(errcode, errmsg) { CricRes.status(errcode).send(errmsg);}
+function sendok(usrmgs) { CricRes.send(usrmgs); }
+function senderr(errcode, errmsg) { CricRes.status(errcode).send(errmsg); }
 function setHeader() {
   CricRes.header("Access-Control-Allow-Origin", "*");
   CricRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -425,17 +420,16 @@ function setHeader() {
 }
 module.exports = router;
 
-async function showGroupMembers(groupno)
-{
+async function showGroupMembers(groupno) {
   //console.log(_ggroupnoroup);
-  gmlist = await GroupMember.find({gid: groupno});
-  var userlist = _.map(gmlist, 'uid'); 
+  gmlist = await GroupMember.find({ gid: groupno });
+  var userlist = _.map(gmlist, 'uid');
   publish_users({ uid: { $in: userlist } });
 }
 
 
 /** codes used for testing
-let words = ['sky', 'wood', 'forest', 'falcon', 
+let words = ['sky', 'wood', 'forest', 'falcon',
     'pear', 'ocean', 'universe'];
 let fel = _.first(words);
 let lel = _.last(words);
@@ -455,9 +449,9 @@ let users = [
 // });
 // console.log(u2);
 let grouped = _.reduce(users, (result, user) => {
-    (result["AGE"+user.age] || (result["AGE"+user.age] = [])).push(user);  
+    (result["AGE"+user.age] || (result["AGE"+user.age] = [])).push(user);
     return result;
 }, {});
 var g25 = grouped.AGE25;
- 
+
  */
