@@ -143,19 +143,22 @@ export default function ImgMediaCard() {
 
 
             console.log("client connected");
-            socket.on("playerChange", async (newPlayerDetails, index) => {
 
-                const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails
-                setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
-                setRole(role)
-                setTeam(Team)
-                setBattingStyle(battingStyle)
-                setBowlingStyle(bowlingStyle)
-                setPlayerName(fullName)
-                setIndex(index)
+            if (user && !user.admin) {
+                socket.on("playerChange", async (newPlayerDetails, index, balanceDetails) => {
 
-            });
-            socket.on("auctionStart", async ({ state, playerDetails }) => {
+                    const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails
+                    setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+                    setRole(role)
+                    setTeam(Team)
+                    setBattingStyle(battingStyle)
+                    setBowlingStyle(bowlingStyle)
+                    setPlayerName(fullName)
+                    setIndex(index)
+                    setAuctionTableData(balanceDetails);
+                });
+            }
+            socket.on("auctionStart", async ({ state, playerDetails ,balanceDetails}) => {
                 console.log(state)
 
                 const { role, Team, battingStyle, bowlingStyle, fullName, pid } = playerDetails;
@@ -168,6 +171,7 @@ export default function ImgMediaCard() {
                 setBowlingStyle(bowlingStyle)
                 setPlayerName(fullName)
                 setIndex(0)
+                setAuctionTableData(balanceDetails)
             })
         })
 
