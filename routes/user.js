@@ -353,7 +353,7 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype)
 }
 
 
-async function publish_auctionedplayers(userid)
+async function publish_auctionedplayers_orig(userid)
 {
   var myfilter;
   var userFilter;
@@ -387,6 +387,56 @@ async function publish_auctionedplayers(userid)
   sendok(grupdatalist);
 }
 
+async function publish_auctionedplayers(userid)
+{
+  var myfilter;
+  var userFilter;
+  if (userid == allUSER) { 
+    myfilter = {gid: _group};
+    userFilter = {};
+  }else {
+    myfilter = {gid: _group, uid: userid};
+    userFilter = {uid: userid}
+  }
+
+  var PallCaptains = Captain.find(myfilter); 
+  var Pgmembers = GroupMember.find({gid: _group});
+  var PallUsers = User.find(userFilter);
+  var Pdatalist = Auction.find(myfilter);
+  //console.log(datalist);
+
+  var allCaptains = await PallCaptains;
+  var allUsers = await PallUsers;
+  var datalist = await Pdatalist;
+  var gmembers = await Pgmembers;
+
+  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'bidAmount']));
+  var userlist = _.map(gmembers, d => _.pick(d, ['uid']));
+  if (userid != allUSER)
+    userlist = _.filter(userlist, x => x.uid == userid);
+
+  var grupdatalist = [];
+  userlist.forEach( myuser => {
+    var userRec = _.filter(allUsers, x => x.uid == myuser.uid);
+    //console.log(`${userRec}`);
+    var myplrs = _.filter(datalist, x => x.uid === myuser.uid);
+    // set captain and vice captain
+    var caprec = _.find(allCaptains, x => x.uid == myuser.uid);
+    if (caprec) {
+      var myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.captain;}, 0);
+      if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (C)"
+      myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.viceCaptain;}, 0);
+      if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (VC)"  
+    } 
+
+    var tmp = {uid: myuser.uid, 
+      userName: userRec[0].userName, displayName: userRec[0].displayName, 
+      players: myplrs};
+    grupdatalist.push(tmp);
+  })
+  console.log(grupdatalist.length);
+  sendok(grupdatalist);
+}
 
 async function publish_users(filter_users)
 {
