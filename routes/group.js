@@ -59,7 +59,7 @@ router.get('/setauctionstatus/:groupid/:newstate', function(req, res, next) {
   if (groupid != "1") { senderr(621, "Invalid Group"); return; }
   newstate = newstate.toUpperCase();
 
-  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+  IPLGroup.findOne({gid: 1}, async (err, gdoc) =>  {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
       console.log(gdoc);
@@ -72,10 +72,12 @@ router.get('/setauctionstatus/:groupid/:newstate', function(req, res, next) {
           }
           
           newstate = "RUNNING";
+
+          const playerList=  await Player.find({});
           const socket=app.get("socket");
-          socket.emit("auctionStart", newstate)
+          socket.emit("auctionStart", {state:newstate,playerDetails:playerList[0]})
     
-          socket.broadcast.emit('auctionStart',newstate);
+          socket.broadcast.emit('auctionStart', {state:newstate,playerDetails:playerList[0]});
           aplayer = 0;
           break;
         case "RUNNING":

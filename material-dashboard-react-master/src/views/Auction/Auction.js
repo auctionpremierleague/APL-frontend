@@ -47,6 +47,7 @@ import { UserContext } from "../../UserContext";
 import GridContainer from 'components/Grid/GridContainer';
 import socketIOClient from "socket.io-client";
 const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// const ENDPOINT = "http://localhost:4000";
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -136,42 +137,41 @@ export default function ImgMediaCard() {
 
     useEffect(() => {
 
-       
-            const socket = socketIOClient(ENDPOINT);
-            socket.on("connect", () => {
 
-                // socket.emit("client","msg from client")
-                console.log("client connected");
-                socket.on("playerChange", async (newPlayerDetails,index) => {
+        const socket = socketIOClient(ENDPOINT);
+        socket.on("connect", () => {
 
-                    const { role, Team, battingStyle, bowlingStyle,pid, fullName } = newPlayerDetails
-                    setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
-                    setRole(role)
-                    setTeam(Team)
-                    setBattingStyle(battingStyle)
-                    setBowlingStyle(bowlingStyle)
-                    setPlayerName(fullName)
-                    setIndex(index)
-                    
-                });
-                socket.on("auctionStart",async(status)=>{
-                    console.log(status)
-                    setAuctionStatus(status);
-                 
-                    const playerListResponse = await axios.get('/player');
-                   
-                    const { role, Team, battingStyle, bowlingStyle, fullName,pid } = playerListResponse.data[0]
-                    setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
-                    setRole(role)
-                    setTeam(Team)
-                    setBattingStyle(battingStyle)
-                    setBowlingStyle(bowlingStyle)
-                    setPlayerName(fullName)
-                    setIndex(0)
-                })
+
+            console.log("client connected");
+            socket.on("playerChange", async (newPlayerDetails, index) => {
+
+                const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails
+                setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+                setRole(role)
+                setTeam(Team)
+                setBattingStyle(battingStyle)
+                setBowlingStyle(bowlingStyle)
+                setPlayerName(fullName)
+                setIndex(index)
+
+            });
+            socket.on("auctionStart", async ({ state, playerDetails }) => {
+                console.log(state)
+
+                const { role, Team, battingStyle, bowlingStyle, fullName, pid } = playerDetails;
+
+                setAuctionStatus(state);
+                setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+                setRole(role)
+                setTeam(Team)
+                setBattingStyle(battingStyle)
+                setBowlingStyle(bowlingStyle)
+                setPlayerName(fullName)
+                setIndex(0)
             })
+        })
 
-                const a = async () => {
+        const a = async () => {
             const response = await axios.get("/group/getauctionstatus/1");
 
             setAuctionStatus(response.data);
@@ -206,7 +206,7 @@ export default function ImgMediaCard() {
     const startAuction = async () => {
 
 
- 
+
         if (auctionStatus === "PENDING") {
             const response = await axios.get("/group/setauctionstatus/1/RUNNING");
             if (response.data) {
