@@ -12,15 +12,17 @@ function AppRouter() {
   const [user, setUser] = useState(null);
 
   const value = useMemo(() => ({ user, setUser }), [user, setUser]);
-console.log(value);
+  window.onbeforeunload=()=>Router.refresh();
   return (
     <Router history={hist}>
       
        
         <UserContext.Provider value={value}>
-        <Route path="/admin" component={Admin} />
-      <Route path="/rtl" component={RTL} />
+
+       
+    {!user &&  <Redirect from="/" to="/signIn" />}
       <Route path="/signIn" component={SignIn} />
+      <Route path="/admin" component={value ?Admin:SignIn} />
       <Redirect from="/" to="/signIn" />
      
         </UserContext.Provider>

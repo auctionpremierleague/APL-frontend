@@ -10,6 +10,13 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { UserContext } from "../../UserContext";
 
 
+const populateTable=({isAdmin,data})=>{
+
+    if(isAdmin){
+        return []
+    }
+}
+
 export default function App() {
     const { user} = useContext(UserContext);
 
@@ -19,7 +26,9 @@ export default function App() {
     useEffect(() => {
         const fetchTeam = async () => {
             try {
-                const response = await axios.get(`/user/myteam/${user}`);
+                const response = await axios.get(user.admin ?"/user/myteam/all":`/user/myteam/${user.uid}`);
+
+                const data=populateTable({isAdmin:user.admin,data:response.data})
                 console.log(response.data);
                 setTeamArray(response.data[0].players)
             } catch (e) {
@@ -41,7 +50,7 @@ export default function App() {
 <Table
                 tableHeaderColor="warning"
                 tableHead={["Player Name", "Bid Amount"]}
-                tableData={teamArray.map(team=>{const arr=[team.playerName, team.bidAmount]
+                tableData={teamArray.map(team=>{const arr=[team.playerName,team.bidAmount]
                 
                 return {data:arr,collapse:[]}})}
               />

@@ -1,6 +1,6 @@
 import React from "react";
 // react plugin for creating charts
-import ChartistGraph from "react-chartist";
+
 // @material-ui/core
 import { useEffect, useState,useContext } from 'react';
 import axios from "axios";
@@ -14,18 +14,15 @@ import Warning from "@material-ui/icons/Warning";
 import DateRange from "@material-ui/icons/DateRange";
 import LocalOffer from "@material-ui/icons/LocalOffer";
 import Update from "@material-ui/icons/Update";
-import ArrowUpward from "@material-ui/icons/ArrowUpward";
-import AccessTime from "@material-ui/icons/AccessTime";
+
 import Accessibility from "@material-ui/icons/Accessibility";
-import BugReport from "@material-ui/icons/BugReport";
-import Code from "@material-ui/icons/Code";
-import Cloud from "@material-ui/icons/Cloud";
+
+
 // core components
 import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
 import Table from "components/Table/Table.js";
-import Tasks from "components/Tasks/Tasks.js";
-import CustomTabs from "components/CustomTabs/CustomTabs.js";
+
 import Danger from "components/Typography/Danger.js";
 import Card from "components/Card/Card.js";
 import CardHeader from "components/Card/CardHeader.js";
@@ -57,10 +54,7 @@ export default function Dashboard() {
   const [mostRuns, setMostRuns] = useState();
   const [mostWickets, setMostwickets] = useState();
   const [mvp, SetMvp] = useState();
-  const { user,setUser } = useContext(UserContext);
-
-  //const tmpDate = new
-  //const date=new Date();
+  const { user } = useContext(UserContext);
   const date=new Date().toDateString() + " " + new Date().toLocaleTimeString();
 
   const tableData=(rankDetails)=>{
@@ -76,10 +70,10 @@ export default function Dashboard() {
 
     const fetchRank = async () => {
       try {
-        const rank = await axios.get(`/stat/rank/${user}`);
+        const rank = await axios.get(`/stat/rank/${user.uid}`);
         const rankDetails = await axios.get(`/stat/rank/all`);
-        const maxRuns = await axios.get(`/stat/maxrun/${user}`);
-        const maxWickets = await axios.get(`/stat/maxwicket/${user}`);
+        const maxRuns = await axios.get(`/stat/maxrun/${user.uid}`);
+        const maxWickets = await axios.get(`/stat/maxwicket/${user.uid}`);
       
      
        setRankArray(tableData(rankDetails.data));
@@ -98,7 +92,7 @@ export default function Dashboard() {
   const classes = useStyles();
   return (
     <div>
-      <GridContainer>
+      { user && !user.admin?<GridContainer>
         <GridItem xs={12} sm={6} md={3}>
           <Card>
             <CardHeader color="warning" stats icon>
@@ -175,7 +169,8 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
-      </GridContainer>
+      </GridContainer>:""}
+      
      
       <GridContainer>
        

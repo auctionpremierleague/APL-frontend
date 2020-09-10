@@ -1,6 +1,7 @@
 var router = express.Router();
 var GroupRes;
-
+var _group = 1;
+var _tournament = ""; 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
   GroupRes = res;
@@ -58,7 +59,7 @@ router.get('/setauctionstatus/:groupid/:newstate', function(req, res, next) {
   if (groupid != "1") { senderr(621, "Invalid Group"); return; }
   newstate = newstate.toUpperCase();
 
-  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+  IPLGroup.findOne({gid: 1}, async (err, gdoc) =>  {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
       console.log(gdoc);
@@ -69,7 +70,14 @@ router.get('/setauctionstatus/:groupid/:newstate', function(req, res, next) {
             senderr(625, `Invalid auction state ${newstate}`);
             return;
           }
+          
           newstate = "RUNNING";
+
+          const playerList=  await Player.find({});
+          const socket=app.get("socket");
+          socket.emit("auctionStart", {state:newstate,playerDetails:playerList[0]})
+    
+          socket.broadcast.emit('auctionStart', {state:newstate,playerDetails:playerList[0]});
           aplayer = 0;
           break;
         case "RUNNING":
@@ -103,7 +111,7 @@ router.get('/getauctionplayer/:groupid', function(req, res, next) {
   var {groupid}=req.params;
   // groupAction = groupAction.toLowerCase();
   if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-
+  
   IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
@@ -123,14 +131,25 @@ router.get('/setauctionplayer/:groupid/:playerId', function(req, res, next) {
   if (groupid != "1") { senderr(621, "Invalid Group"); return; }
   if (isNaN(playerId)){ senderr(626, `Invalid Player ${playerId}`); return; }
   iplayer = parseInt(playerId);
-
-  IPLGroup.findOne({gid: 1}, (err, gdoc) =>  {
+  
+  IPLGroup.findOne({gid: 1}, async(err, gdoc) =>  {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
       console.log(gdoc);
       if (gdoc.auctionStatus != "RUNNING") {
         senderr(626, "Cannot update auction Player. Auction is not running");
       } else {
+
+     const playerList=  await Player.find({});
+
+     const playerDetails=await Player.findOne({pid:playerId});
+
+     const index=playerList.findIndex(x => x.pid==playerId);
+   
+        const socket=app.get("socket");
+        socket.emit("playerChange", playerDetails,index)
+  
+        socket.broadcast.emit('playerChange',playerDetails,index);
         gdoc.auctionPlayer = iplayer;
         gdoc.save();
         sendok(gdoc.auctionPlayer.toString());
@@ -195,7 +214,7 @@ router.get('/owner', function (req, res, next) {
   owneradmin();
 });
 
-router.get('/admin', function(req, res, next) {
+router.get('/owner', function(req, res, next) {
   GroupRes = res;
   setHeader();
 
@@ -311,7 +330,7 @@ function publish_groups(filter_groups)
 }
 
 function senderr(errcode, msg)  { GroupRes.status(errcode).send(msg); }
-function sendok(msg)   { GroupRes.send(msg); }
+function sendok(msg)   { GroupRes.send(msg);GroupRes.end() ;}
 function setHeader() {
   GroupRes.header("Access-Control-Allow-Origin", "*");
   GroupRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
