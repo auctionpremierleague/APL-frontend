@@ -170,6 +170,11 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
   ++myindex;
   if (myindex === allPlayers.length) myindex = 0;
 
+    // update new player in Group auction player field and save
+    myGroup[0].auctionPlayer = allPlayers[myindex].pid;
+    myGroup[0].save();
+  
+  
   // calculate fresh balance for all users
   gmembers = _.sortBy(gmembers, 'uid');
   var balanceDetails = [];
@@ -262,6 +267,10 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
     ++myindex;
   }
 
+  // update new player in Group auction player field and save
+  myGroup[0].auctionPlayer = allPlayers[myindex].pid;
+  myGroup[0].save();
+
   // calculate fresh balance for all users
   var gmembers = await Pgmembers;
   gmembers = _.sortBy(gmembers, 'uid');
@@ -282,8 +291,6 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
   const socket = app.get("socket");
   socket.emit("playerChange", allPlayers[myindex], balanceDetails)
   socket.broadcast.emit('playerChange', allPlayers[myindex], balanceDetails);
-  sendok(allPlayers[myindex]);
-
   sendok(allPlayers[myindex]);
 });
 

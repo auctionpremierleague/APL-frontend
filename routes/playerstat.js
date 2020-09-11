@@ -14,7 +14,7 @@ const keylist = [
 "AM690XluFdZJ85PYvOP7IxgcxUI2","85L3mbm1GiXSfYmQWZJSeayoG2s1","LrNnasvQp0e2p5JfpAI5Q642o512",
 "UsE0jiSe6ZbLSQlO6k9W8ePWT043","ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93",
 "fvxbB9BLVNfxatmOaiseF7Jzz6B2","Klr0NkJuG3YpZ1KburbMBNpfO1q1"
-];
+]; 
 
 // to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
@@ -41,7 +41,7 @@ router.use('/', async function(req, res, next) {
       senderr(722, `Invalid gourp number specified`);
       return; 
     }
-    console.log(myrec);
+    //console.log(myrec);
     _group = myrec.gid;
     _tournament = myrec.tournament;
     tmp.splice(1, 2);
@@ -102,7 +102,6 @@ router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   })
   // swap Auction
   var allRecs = await Auction.find({gid: {$in: [igid1, igid2]} })
-  //console.log(allRecs);
   allRecs.forEach( x => {
     if      (x.gid == igid1)  x.gid = igid2;
     else if (x.gid == igid2)  x.gid = igid1;
@@ -110,7 +109,7 @@ router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   })
   // swap Captain
   var allRecs = await Captain.find({gid: {$in: [igid1, igid2]} })
-  //console.log(allRecs);
+
   allRecs.forEach( x => {
     if      (x.gid == igid1)  x.gid = igid2;
     else if (x.gid == igid2)  x.gid = igid1;
@@ -320,7 +319,7 @@ router.use('/updatemax', async function(req, res, next) {
 
   // now get list of players who have score max runs (note there can be more than 1)
   var tmp = _.maxBy(sumList, x => x.totalRun);
-  console.log(tmp);
+  //console.log(tmp);
   var maxList = _.filter(sumList, x => x.totalRun == tmp.totalRun);
   var bonusAmount  = BonusMaxRun / maxList.length;
   maxList.forEach( mmm => {
@@ -335,7 +334,7 @@ router.use('/updatemax', async function(req, res, next) {
 
   // now get list of players who have taken max wickets (note there can be more than 1)
   var tmp = _.maxBy(sumList, x => x.totalWicket);
-  console.log(tmp);
+  //console.log(tmp);
   var maxList = _.filter(sumList, x => x.totalWicket == tmp.totalWicket);
   bonusAmount  = BonusMaxWicket / maxList.length;
   maxList.forEach( mmm => {
@@ -1125,7 +1124,7 @@ async function update_cricapi_data_r1(logToResponse)
 
     // 1st if time is up then get match details from cricapi
     if (timeToFetchMatches()) {
-      //console.log("time to fetch match details");
+      console.log("time to fetch match details");
       var existingmatches = await CricapiMatch.find({});
         
       // now fetch fresh match details from cricapi
@@ -1148,6 +1147,7 @@ async function update_cricapi_data_r1(logToResponse)
         // if (x.unique_id == 1198246) console.log(`Match found has id: ${x.unique_id}`);
         var myTeam1 = x['team-1'].toUpperCase();
         var myTeam2 = x['team-2'].toUpperCase();
+        console.log(`${myTeam1} ${myTeam2}`);
         if ((myTeam1 === "TBA") || (myTeam2 === "TBA")) return;
         // find out if these 2 teams belong to any tournament.
         // ALSO match the tournament type viz. TEST, ODI, 20-2
@@ -1174,7 +1174,7 @@ async function update_cricapi_data_r1(logToResponse)
           // find team 1  is part of this tournament
           var myindex = -1;
           for(var i=0; i < myteams.length; ++i) {
-            if (myteams[i].name == myTeam1) {
+            if (myteams[i].name.toUpperCase() == myTeam1) {
               myindex = i;
               break;
             }
@@ -1190,7 +1190,7 @@ async function update_cricapi_data_r1(logToResponse)
           if (myindex < 0) return;
           myindex = -1;
           for(var i=0; i < myteams.length; ++i) {
-            if (myteams[i].name == myTeam2) {
+            if (myteams[i].name.toUpperCase() == myTeam2) {
               myindex = i;
               break;
             }
@@ -1484,7 +1484,7 @@ async function fetchMatchesFromCricapi() {
 }
 
 // schedule task
-cron.schedule('*/30 * * * *', () => {
+cron.schedule('*/2 * * * *', () => {
   console.log('==========running every N minute');
   if (db_connection)
     update_cricapi_data_r1(false);
