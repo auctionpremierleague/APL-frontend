@@ -105,11 +105,10 @@ router.get('/setauctionstatus/:groupid/:newstate', function (req, res, next) {
 
           const balanceDetails = await fetchBalance();
 
-          console.log(balanceDetails)
-          socket.emit("auctionStart", { state: newstate, playerDetails: playerList[0], balanceDetails })
+          socket.emit("playerChange",   playerList[0], balanceDetails )
 
-          socket.broadcast.emit('auctionStart', { state: newstate, playerDetails: playerList[0], balanceDetails });
-          aplayer = 0;
+          socket.broadcast.emit('playerChange', playerList[0], balanceDetails );
+          aplayer = playerList[0].pid;
           break;
         case "RUNNING":
           if (newstate.substring(0, 3) != "OVE") {
@@ -143,10 +142,22 @@ router.get('/getauctionplayer/:groupid', function (req, res, next) {
   // groupAction = groupAction.toLowerCase();
   if (groupid != "1") { senderr(621, "Invalid Group"); return; }
 
-  IPLGroup.findOne({ gid: 1 }, (err, gdoc) => {
+  IPLGroup.findOne({ gid: 1 }, async (err, gdoc) => {
+  
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
-      console.log(gdoc);
+      if (gdoc.auctionStatus === "RUNNING") {
+        const playerDetails = await Player.find({pid:gdoc.auctionPlayer});
+        const socket = app.get("socket");
+
+        const balanceDetails = await fetchBalance();
+
+        console.log(balanceDetails);
+        socket.emit("playerChange", playerDetails[0], balanceDetails )
+
+        socket.broadcast.emit('playerChange', playerDetails[0], balanceDetails );
+      }
+  
       sendok(gdoc.auctionPlayer.toString());
     }
   });
@@ -166,25 +177,12 @@ router.get('/setauctionplayer/:groupid/:playerId', function (req, res, next) {
   IPLGroup.findOne({ gid: 1 }, async (err, gdoc) => {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
-      
+
       if (gdoc.auctionStatus != "RUNNING") {
         senderr(626, "Cannot update auction Player. Auction is not running");
       } else {
 
-        const playerList = await Player.find({});
-
-        const playerDetails = await Player.findOne({ pid: playerId });
-
-        const index = playerList.findIndex(x => x.pid == playerId);
-
-        const balanceDetails = await fetchBalance();
-
-        console.log(balanceDetails);
-
-        const socket = app.get("socket");
-        socket.emit("playerChange", playerDetails, index, balanceDetails)
-
-        socket.broadcast.emit('playerChange', playerDetails, index, balanceDetails);
+       
 
 
         gdoc.auctionPlayer = iplayer;
