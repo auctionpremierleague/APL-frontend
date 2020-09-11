@@ -17,10 +17,16 @@ import Typography from '@material-ui/core/Typography';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 //import Container from "@material-ui/core/Container";
-import Button from "@material-ui/core/Button";
+
 import Select from "@material-ui/core/Select";
 import Table from "components/Table/Table.js";
 import Grid from "@material-ui/core/Grid";
+import Button from '@material-ui/core/Button';
+
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+
 
 import GridItem from "components/Grid/GridItem.js";
 
@@ -45,8 +51,9 @@ import Input from '@material-ui/core/Input';
 import { UserContext } from "../../UserContext";
 
 import socketIOClient from "socket.io-client";
-const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// const ENDPOINT = "http://localhost:4000";
+import { func } from 'prop-types';
+// const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+const ENDPOINT = "http://localhost:4000";
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -111,18 +118,16 @@ export default function ImgMediaCard() {
     const theme = useTheme();
 
     const [auctionStatus, setAuctionStatus] = useState("");
-
-    const [playersList, setPlayersList] = useState([]);
     const [playerName, setPlayerName] = useState("");
-    const [index, setIndex] = useState(0);
     const [playerImage, setPlayerImage] = useState("");
     const [team, setTeam] = useState("");
     const [role, setRole] = useState("");
     const [battingStyle, setBattingStyle] = useState("");
     const [bowlingStyle, setBowlingStyle] = useState("");
     const [open, setOpen] = useState(false);
-    const [drawerContent, setDrawerContent] = useState("Info");
 
+    const [confirmDialogOpen,setConfirmDialogOpen]=useState(false)
+    const [pid, setPid] = useState();
     const [selectedOwner, setSelectedOwner] = useState(null);
 
     const [backDropOpen, setBackDropOpen] = useState(false);
@@ -134,59 +139,65 @@ export default function ImgMediaCard() {
         setOpen(false);
     };
 
+   
+    
+      const handleModalClose = () => {
+        setConfirmDialogOpen(false);
+      };
+
     useEffect(() => {
 
 
         const socket = socketIOClient(ENDPOINT);
         socket.on("connect", () => {
 
-
             console.log("client connected");
 
-            if (user && !user.admin) {
-                socket.on("playerChange", async (newPlayerDetails, index, balanceDetails) => {
 
-                    const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
+            socket.on("playerChange", async (newPlayerDetails, balanceDetails) => {
 
-                    const userBalance = [balanceDetails.find(balance => balance.uid === user.uid)]
-                    setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
-                    setRole(role)
-                    setTeam(Team)
-                    setBattingStyle(battingStyle)
-                    setBowlingStyle(bowlingStyle)
-                    setPlayerName(fullName)
-                    setIndex(index)
+                setAuctionStatus("RUNNING");
+                console.log("player change")
+
+                let userBalance = [];
+                const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
+
+                console.log(balanceDetails);
+                // console.log(user.uid)
+
+                if (user && !user.admin) {
+                    userBalance = balanceDetails.filter(balance => balance.uid === user.uid)
+                }
+                else {
+                    userBalance = balanceDetails
+                }
+                // const userBalance = user && user.admin ? balanceDetails:[balanceDetails.filter(balance => balance.uid === user.uid)]
 
 
-                    setAuctionTableData(userBalance);
-                });
-            }
-            socket.on("auctionStart", async ({ state, playerDetails, balanceDetails }) => {
-                console.log(state)
 
-                const { role, Team, battingStyle, bowlingStyle, fullName, pid } = playerDetails;
-
-                setAuctionStatus(state);
+                console.log(userBalance);
                 setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
                 setRole(role)
                 setTeam(Team)
                 setBattingStyle(battingStyle)
                 setBowlingStyle(bowlingStyle)
                 setPlayerName(fullName)
-                setIndex(0)
-                setAuctionTableData(balanceDetails)
-            })
+                setPid(pid)
+                setAuctionTableData(userBalance);
+            });
+
+
         })
 
         const a = async () => {
             const response = await axios.get("/group/getauctionstatus/1");
-
+            console.log(response.data)
             setAuctionStatus(response.data);
-            if (response.data === "RUNNING") {
 
-                await startAuction();
 
-            }
+            await startAuction(response.data);
+
+
         }
 
         a();
@@ -195,56 +206,21 @@ export default function ImgMediaCard() {
     }, [])
 
 
+    const startAuction = async (status) => {
 
-
-    const sendAuctionPlayer = async ({ pid, role, battingStyle, bowlingStyle, fullName, Team }) => {
-        await axios.get(`/group/setauctionplayer/1/${pid}`);
-
-        setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
-        setRole(role)
-        setTeam(Team)
-        setBattingStyle(battingStyle)
-        setBowlingStyle(bowlingStyle)
-        setPlayerName(fullName)
-
-
-    }
-
-    const startAuction = async () => {
-
-
-
-        if (auctionStatus === "PENDING") {
+        if (status === "PENDING") {
             const response = await axios.get("/group/setauctionstatus/1/RUNNING");
             if (response.data) {
                 setAuctionStatus("RUNNING");
             }
         }
-
-        const playerListResponse = await axios.get('/player')
-        setPlayersList(playerListResponse.data);
-
-        const balanceData = await axios.get(user && user.admin ? "/user/balance/all" : `/user/balance/${user && user.uid ? user.uid : "all"}`);
-        setAuctionTableData(balanceData.data);
-
-        if (auctionStatus === "PENDING") {
-            setIndex(0)
-            await sendAuctionPlayer(playerListResponse.data[0]);
-        } else {
-            const pid = await axios.get("/group/getauctionplayer/1");
-
-            const i = playerListResponse.data.findIndex(player => player.pid === pid.data);
-
-            await sendAuctionPlayer(playerListResponse.data[i]);
-            setRole(playerListResponse.data[i].role)
-            setTeam(playerListResponse.data[i].Team)
-            setBattingStyle(playerListResponse.data[i].battingStyle)
-            setBowlingStyle(playerListResponse.data[i].bowlingStyle)
-            setPlayerName(playerListResponse.data[i].fullName)
-            setIndex(i)
+        if (status === "RUNNING") {
+            const response = await axios.get("/group/getauctionplayer/1");
+            console.log(response);
         }
 
     }
+
     const handleOwnerChange = (event) => {
         setSelectedOwner(event.target.value);
     };
@@ -254,7 +230,8 @@ export default function ImgMediaCard() {
 
 
         const amount = document.getElementById("standard-required").value;
-        let response = await fetch(`/auction/add/1/${selectedOwner}/${playersList[index].pid}/${amount}`);
+        console.log(amount);
+        let response = await fetch(`/auction/add/1/${selectedOwner}/${pid}/${amount}`);
         if (response.status === 707) {
             setPlayerStatus("Already Purchased")
         }
@@ -273,10 +250,16 @@ export default function ImgMediaCard() {
             const balance = await axios.get("/user/balance/all")
             setAuctionTableData(balance.data);
         }
+        setConfirmDialogOpen(false);
 
         setBackDropOpen(true)
     }
 
+
+    async function unsellPlayer() {
+        await fetch(`/auction/skip/1/${pid}`);
+
+    }
 
 
 
@@ -285,33 +268,12 @@ export default function ImgMediaCard() {
         return <div className={classes.root}>
 
 
-            <Grid container justify="center"
-                alignItems="center"
-            >
-                {/* <Grid item xs={1} >
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        size="small"
-                        className={classes.button}
-                        startIcon={<NavigateBeforeIcon />}
-                        onClick={() => {
-                            sendAuctionPlayer(playersList[index - 1]);
-
-                            setIndex(index - 1)
-                        }}>
-
-                    </Button>
-                </Grid> */}
-
+            <Grid container justify="center" alignItems="center">
 
                 <Grid item xs={12}>
 
-                    <div  >
-
-
-                        <Grid container justify="center"
-                            alignItems="center" >
+                    <div>
+                        <Grid container justify="center" alignItems="center" >
                             <GridItem xs={12} sm={12} md={12} lg={12} >
                                 <Card profile>
                                     <CardAvatar profile>
@@ -332,18 +294,18 @@ export default function ImgMediaCard() {
                                             size="small"
                                             className={classes.button}
                                             startIcon={<CheckSharpIcon />}
-                                            onClick={() => { setOpen(true); setDrawerContent("franchiseInfo"); }}>
+                                            onClick={() => { setOpen(true); }}>
                                             SOLD
-    </Button>
+                                        </Button>
                                         <Button
                                             variant="contained"
                                             color="secondary"
                                             size="small"
                                             className={classes.button}
                                             startIcon={<ClearSharpIcon />}
-                                            onClick={() => setIndex(index - 1)}>
+                                            onClick={() => unsellPlayer()}>
                                             UNSOLD
-    </Button>
+                                        </Button>
 
                                     </CardBody>
                                 </Card>
@@ -354,26 +316,6 @@ export default function ImgMediaCard() {
                     </div>
 
                 </Grid>
-{/* 
-                <Grid item xs={1} >
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        size="small"
-                        className={classes.button}
-                        endIcon={<NavigateNextIcon />}
-                        onClick={() => {
-
-
-                            sendAuctionPlayer(playersList[index + 1]);
-
-                            setIndex(index + 1)
-
-                        }}>
-
-                    </Button>
-                </Grid> */}
-
             </Grid>
             <Table
                 tableHeaderColor="warning"
@@ -403,7 +345,7 @@ export default function ImgMediaCard() {
                     {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
                 <div>
-                        <FormControl className={classes.formControl}>
+                    <FormControl className={classes.formControl}>
 
                         <Select
                             labelId="demo-simple-select-label"
@@ -424,14 +366,31 @@ export default function ImgMediaCard() {
                         size="small"
                         className={classes.button}
                         startIcon={<DoneIcon />}
-                        onClick={() => sellPlayer()}>
+                        onClick={() =>setConfirmDialogOpen(true) }>
                         Confirm
 </Button>
                 </div>
 
             </Drawer>
 
-
+            <Dialog
+        open={confirmDialogOpen}
+        onClose={handleModalClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{`Are you sure you want to sell ${playerName} to ${selectedOwner}`}</DialogTitle>
+        
+        <DialogActions>
+          
+          <Button onClick={handleModalClose} color="primary" autoFocus>
+            Cancel
+          </Button>
+          <Button onClick={sellPlayer} color="primary">
+            Sell
+          </Button>
+        </DialogActions>
+      </Dialog>
         </div>
     }
 
@@ -441,7 +400,7 @@ export default function ImgMediaCard() {
             size="small"
             className={classes.button}
             startIcon={<NavigateBeforeIcon />}
-            onClick={() => startAuction()}>Start Auction</Button>
+            onClick={() => startAuction("PENDING")}>Start Auction</Button>
     }
 
     function UserAuctionPending() {

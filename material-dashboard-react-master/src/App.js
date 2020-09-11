@@ -12,6 +12,8 @@ function AppRouter() {
   const [user, setUser] = useState(null);
 
   const value = useMemo(() => ({ user, setUser }), [user, setUser]);
+ 
+  // localStorage.clear()
   window.onbeforeunload=()=>Router.refresh();
   return (
     <Router history={hist}>

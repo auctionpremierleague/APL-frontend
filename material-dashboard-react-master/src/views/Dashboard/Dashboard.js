@@ -70,6 +70,7 @@ export default function Dashboard() {
 
     const fetchRank = async () => {
       try {
+        
         const rank = await axios.get(`/stat/rank/${user.uid}`);
         const rankDetails = await axios.get(`/stat/rank/all`);
         const maxRuns = await axios.get(`/stat/maxrun/${user.uid}`);

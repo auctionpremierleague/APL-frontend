@@ -1,4 +1,4 @@
-import React,{useState,useContext} from 'react';
+import React, { useState, useContext ,useEffect} from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -23,7 +23,7 @@ function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
+      <Link color="inherit" >
         Your Website
       </Link>{' '}
       {new Date().getFullYear()}
@@ -53,32 +53,46 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const handleSubmit = e => {
-    e.preventDefault();
-  };
+  e.preventDefault();
+};
 export default function SignIn() {
   const classes = useStyles();
   const history = useHistory();
   const [userName, setUserName] = useState();
   const [password, setPassword] = useState();
+const [showPage,setShowPage]=useState(false);
+  const { setUser } = useContext(UserContext);
 
-  const { user,setUser } = useContext(UserContext);
-
-  const handleClick = async() => {
-    const response = await axios.get(`/user/login/${userName}/${password}`);
-   
-    if(response.status===200){
-
-      const admin=await axios.get(`/group/owner`);
-      if(admin.data.uid===response.data){
-        setUser({uid:response.data,admin:true});
-      }else
-    {  setUser({uid:response.data,admin:false});}
+  useEffect(()=>{
+    if(localStorage.getItem("uid")){
+      setUser({uid:localStorage.getItem("uid"),admin:localStorage.getItem("admin")})
       history.push("/admin")
-   
+    }else{
+      setShowPage(true)
     }
- 
+  })
+  const handleClick = async () => {
+    const response = await axios.get(`/user/login/${userName}/${password}`);
+
+    if (response.status === 200) {
+
+      localStorage.setItem("uid", response.data)
+
+      const admin = await axios.get(`/group/owner`);
+      if (admin.data.uid === response.data) {
+        localStorage.setItem("admin", true)
+        setUser({ uid: response.data, admin: true });
+      } else {
+        setUser({ uid: response.data, admin: false });
+        localStorage.setItem("admin", false)
+      }
+      history.push("/admin")
+
+    }
+
   }
   return (
+    showPage?
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
@@ -89,32 +103,32 @@ export default function SignIn() {
           Sign in
         </Typography>
         <form className={classes.form} onSubmit={handleSubmit} noValidate>
-        <TextField
-                autoComplete="fname"
-                name="userName"
-                variant="outlined"
-                required
-                fullWidth
-                id="userName"
-                label="First Name"
-                autoFocus
-                onChange={(event) => setUserName(event.target.value)}
-
-              />
           <TextField
-                variant="outlined"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="current-password"
-                onChange={(event) => setPassword(event.target.value)}
-              />
-          
+            autoComplete="fname"
+            name="userName"
+            variant="outlined"
+            required
+            fullWidth
+            id="userName"
+            label="User Name"
+            autoFocus
+            onChange={(event) => setUserName(event.target.value)}
 
-         
+          />
+          <TextField
+            variant="outlined"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            onChange={(event) => setPassword(event.target.value)}
+          />
+
+
+
           <Button
             type="submit"
             fullWidth
@@ -125,12 +139,10 @@ export default function SignIn() {
           >
             Sign In
           </Button>
-         
+
         </form>
       </div>
-      <Box mt={8}>
-        <Copyright />
-      </Box>
-    </Container>
+
+    </Container>:""
   );
 }
