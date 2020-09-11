@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from "axios";
 
 
@@ -8,29 +8,34 @@ import Table from "components/Table/Table.js";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 
 import { UserContext } from "../../UserContext";
+import { Typography } from '@material-ui/core';
 
 
-const populateTable=({isAdmin,data})=>{
+const populateTable = (data) => {
+    const tableData = [];
+    data.forEach(element => {
+        tableData.push({ displayName: element.displayName, players: element.players })
+    });
+    return tableData;
 
-    if(isAdmin){
-        return []
-    }
 }
 
 export default function App() {
-    const { user} = useContext(UserContext);
+    const { user } = useContext(UserContext);
 
-   // const classes = useStyles();
+    // const classes = useStyles();
     const theme = useTheme();
-    const [teamArray, setTeamArray] = useState([])
+    const [teamArray, setTeamArray] = useState([]);
+
     useEffect(() => {
         const fetchTeam = async () => {
             try {
-                const response = await axios.get(user.admin ?"/user/myteam/all":`/user/myteam/${user.uid}`);
+                const response = await axios.get(user.admin ? "/user/myteam/all" : `/user/myteam/${user.uid}`);
 
-                const data=populateTable({isAdmin:user.admin,data:response.data})
-                console.log(response.data);
-                setTeamArray(response.data[0].players)
+
+                const data = populateTable(response.data);
+                // console.log(response.data);
+                setTeamArray(data);
             } catch (e) {
                 console.log(e)
             }
@@ -38,24 +43,38 @@ export default function App() {
 
         }
         fetchTeam();
-    }, [])
+    }, []);
+
+
+
 
     return (
-<Grid
-  container
-  direction="row"
-  justify="center"
-  alignItems="center"
->
-<Table
-                tableHeaderColor="warning"
-                tableHead={["Player Name", "Bid Amount"]}
-                tableData={teamArray.map(team=>{const arr=[team.playerName,team.bidAmount]
-                
-                return {data:arr,collapse:[]}})}
-              />
-        </Grid>
+
+        teamArray.map(team => 
+        <Grid
+                container
+                direction="row"
+                justify="center"
+                alignItems="center"
+            >
+                <Typography>{team.displayName}</Typography>
+
+                <Table
+                    tableHeaderColor="warning"
+                    tableHead={["Player Name", "Bid Amount"]}
+                    tableData={team.players.map(team => {
+                        const arr = [team.playerName, team.bidAmount]
+
+                        return { data: arr, collapse: [] }
+                    })}
+                />
+
+            </Grid>
+            
+            )
+
     )
+
 };
 
 

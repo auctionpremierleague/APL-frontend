@@ -21,14 +21,13 @@ import Button from "@material-ui/core/Button";
 import Select from "@material-ui/core/Select";
 import Table from "components/Table/Table.js";
 import Grid from "@material-ui/core/Grid";
-import avatar from "assets/img/faces/marc.jpg";
+
 import GridItem from "components/Grid/GridItem.js";
 
 import Drawer from '@material-ui/core/Drawer';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import IconButton from '@material-ui/core/IconButton';
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined';
 import CheckSharpIcon from '@material-ui/icons/CheckSharp';
 import ClearSharpIcon from '@material-ui/icons/ClearSharp';
 import Avatar from "@material-ui/core/Avatar"
@@ -44,7 +43,7 @@ import Input from '@material-ui/core/Input';
 
 
 import { UserContext } from "../../UserContext";
-import GridContainer from 'components/Grid/GridContainer';
+
 import socketIOClient from "socket.io-client";
 const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 // const ENDPOINT = "http://localhost:4000";
@@ -143,19 +142,26 @@ export default function ImgMediaCard() {
 
 
             console.log("client connected");
-            socket.on("playerChange", async (newPlayerDetails, index) => {
 
-                const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails
-                setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
-                setRole(role)
-                setTeam(Team)
-                setBattingStyle(battingStyle)
-                setBowlingStyle(bowlingStyle)
-                setPlayerName(fullName)
-                setIndex(index)
+            if (user && !user.admin) {
+                socket.on("playerChange", async (newPlayerDetails, index, balanceDetails) => {
 
-            });
-            socket.on("auctionStart", async ({ state, playerDetails }) => {
+                    const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
+
+                    const userBalance = [balanceDetails.find(balance => balance.uid === user.uid)]
+                    setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+                    setRole(role)
+                    setTeam(Team)
+                    setBattingStyle(battingStyle)
+                    setBowlingStyle(bowlingStyle)
+                    setPlayerName(fullName)
+                    setIndex(index)
+
+
+                    setAuctionTableData(userBalance);
+                });
+            }
+            socket.on("auctionStart", async ({ state, playerDetails, balanceDetails }) => {
                 console.log(state)
 
                 const { role, Team, battingStyle, bowlingStyle, fullName, pid } = playerDetails;
@@ -168,6 +174,7 @@ export default function ImgMediaCard() {
                 setBowlingStyle(bowlingStyle)
                 setPlayerName(fullName)
                 setIndex(0)
+                setAuctionTableData(balanceDetails)
             })
         })
 
@@ -270,42 +277,18 @@ export default function ImgMediaCard() {
         setBackDropOpen(true)
     }
 
-    function Image() {
-        return <React.Fragment>
-            <img className={classes.image}
 
-                alt="Contemplative Reptile"
 
-                src={playerImage}
-                title="Contemplative Reptile"
-            />
-        </React.Fragment>
-    }
 
-    function PlayerInfo() {
-        return <React.Fragment>
-            <Typography >
-                Team : {team}
-            </Typography>
-            <Typography >
-                Role : {role}
-            </Typography>
-            <Typography >
-                Bat : {battingStyle}
-            </Typography>
-            <Typography >
-                Bowl : {bowlingStyle}
-            </Typography>
-        </React.Fragment>
-    }
 
     function AdminAuction() {
         return <div className={classes.root}>
 
 
-            <Grid container alignContent="center" alignItems="center"
+            <Grid container justify="center"
+                alignItems="center"
             >
-                {user && user.admin ? <Grid item xs={3} >
+                {/* <Grid item xs={1} >
                     <Button
                         variant="contained"
                         color="secondary"
@@ -319,47 +302,60 @@ export default function ImgMediaCard() {
                         }}>
 
                     </Button>
-                </Grid> : ""}
+                </Grid> */}
 
 
-                <Grid item xs={6}>
+                <Grid item xs={12}>
 
                     <div  >
 
 
-                        <Image />
-                        <InfoOutlinedIcon onClick={() => { setOpen(true) }} />
-                        <Typography >
-                            {playerName}
-                        </Typography>
-                        {user && user.admin ? <div> <Button
-                            variant="contained"
-                            color="secondary"
-                            size="small"
-                            className={classes.button}
-                            startIcon={<CheckSharpIcon />}
-                            onClick={() => { setOpen(true); setDrawerContent("franchiseInfo"); }}>
-                            SOLD
+                        <Grid container justify="center"
+                            alignItems="center" >
+                            <GridItem xs={12} sm={12} md={12} lg={12} >
+                                <Card profile>
+                                    <CardAvatar profile>
+
+                                        <img src={playerImage} alt="..." />
+
+                                    </CardAvatar>
+                                    <CardBody profile>
+
+                                        <h3 className={classes.cardTitle}>{playerName}</h3>
+                                        <Grid container justify="center" alignItems="center">
+                                            <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${team}.JPG`} className={classes.large} />
+                                        </Grid>
+
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            size="small"
+                                            className={classes.button}
+                                            startIcon={<CheckSharpIcon />}
+                                            onClick={() => { setOpen(true); setDrawerContent("franchiseInfo"); }}>
+                                            SOLD
     </Button>
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                size="small"
-                                className={classes.button}
-                                startIcon={<ClearSharpIcon />}
-                                onClick={() => setIndex(index - 1)}>
-                                UNSOLD
-    </Button></div> : ""}
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            size="small"
+                                            className={classes.button}
+                                            startIcon={<ClearSharpIcon />}
+                                            onClick={() => setIndex(index - 1)}>
+                                            UNSOLD
+    </Button>
 
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
 
-
-                        {/* <TextField id="outlined-basic" label="Outlined" variant="outlined" /> */}
+                        </Grid>
 
                     </div>
 
                 </Grid>
-
-                {user && user.admin ? <Grid item xs={3} >
+{/* 
+                <Grid item xs={1} >
                     <Button
                         variant="contained"
                         color="secondary"
@@ -376,7 +372,7 @@ export default function ImgMediaCard() {
                         }}>
 
                     </Button>
-                </Grid> : ""}
+                </Grid> */}
 
             </Grid>
             <Table
@@ -406,20 +402,21 @@ export default function ImgMediaCard() {
                 <IconButton onClick={handleDrawerClose}>
                     {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
-                {drawerContent === "Info" ? <PlayerInfo /> : <div> <FormControl className={classes.formControl}>
+                <div>
+                        <FormControl className={classes.formControl}>
 
-                    <Select
-                        labelId="demo-simple-select-label"
-                        id="demo-simple-select"
-                        value={selectedOwner}
-                        displayEmpty
-                        onChange={handleOwnerChange}
-                    >
-                        {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={selectedOwner}
+                            displayEmpty
+                            onChange={handleOwnerChange}
+                        >
+                            {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
 
-                    </Select>
+                        </Select>
 
-                </FormControl>
+                    </FormControl>
                     <Input key="hi" id="standard-required" label="Bid Amount" type="number" />
                     <Button
                         variant="contained"
@@ -429,7 +426,8 @@ export default function ImgMediaCard() {
                         startIcon={<DoneIcon />}
                         onClick={() => sellPlayer()}>
                         Confirm
-</Button></div>}
+</Button>
+                </div>
 
             </Drawer>
 
