@@ -122,14 +122,6 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
     return;
   }
 
-  // Player is not purhased. Check if palyer id correct
-  var allPlayers = await PallPlayers;
-  var myplayer = _.find(allPlayers, {tournament: myGroup[0].tournament, pid: iplayer});
-  if (!myplayer) {
-    senderr(704, `Invalid player ${iplayer}`);
-    return
-  }
-
   // make list of players purchsed by the user
   myAuctionList = _.filter(auctionList, x => x.uid == iuser);
   // check if user has already purchased maximum allowed players. If yes then throw error
@@ -137,11 +129,20 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
     senderr(709, `Max player purchase count reached. Cannot buy additional player.`);
     return;
   }
+
   // check if user has sufficent balance points to purhcase the player at given bid amount
   var balance = myGroup[0].maxBidAmount - _.sumBy(myAuctionList, x => x.bidAmount);
   if (balance < ibid ) {
     senderr(708, `Insufficient balance. Bid balance available is ${balance}`);
     return;
+  }
+  
+  // Player is not purhased. Check if player id provided during call correct
+  var allPlayers = await PallPlayers;
+  var myplayer = _.find(allPlayers, {tournament: myGroup[0].tournament, pid: iplayer});
+  if (!myplayer) {
+    senderr(704, `Invalid player ${iplayer}`);
+    return
   }
 
   var bidrec = new Auction({ 
@@ -170,10 +171,9 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
   ++myindex;
   if (myindex === allPlayers.length) myindex = 0;
 
-    // update new player in Group auction player field and save
-    myGroup[0].auctionPlayer = allPlayers[myindex].pid;
-    myGroup[0].save();
-  
+  // update new player in Group auction player field and save
+  myGroup[0].auctionPlayer = allPlayers[myindex].pid;
+  myGroup[0].save();
   
   // calculate fresh balance for all users
   gmembers = _.sortBy(gmembers, 'uid');
@@ -182,7 +182,12 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
     var myPlayerCount = myAuction.length;
     var mybal = myGroup[0].maxBidAmount - _.sumBy(myAuction, 'bidAmount');
-    if (gm.uid === iuser) mybal = mybal - ibid;
+    if (gm.uid === iuser) {
+      // this user has purchased just now new player with amount "ibit"
+      // take care of if
+      ++myPlayerCount;
+      mybal = mybal - ibid;
+    }
     balanceDetails.push({
       uid: gm.uid,
       userName: gm.userName,
@@ -231,32 +236,6 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
     return
   }
 
-  // make list of players purchsed by the user
-  // myAuctionList = _.filter(auctionList, x => x.uid == iuser);
-  // // check if user has already purchased maximum allowed players. If yes then throw error
-  // if (myAuctionList.length === defaultMaxPlayerCount) {
-  //   senderr(709, `Max player purchase count reached. Cannot buy additional player.`);
-  //   return;
-  // }
-
-  // check if user has sufficent balance points to purhcase the player at given bid amount
-  // var balance = myGroup[0].maxBidAmount - _.sumBy(myAuctionList, x => x.bidAmount);
-  // if (balance < ibid ) {
-  //   senderr(708, `Insufficient balance. Bid balance available is ${balance}`);
-  //   return;
-  // }
-
-  // var bidrec = new Auction({ 
-  //   uid: iuser,
-  //   pid: iplayer,
-  //   playerName: myplayer.name,
-  //   gid: igroup,
-  //   bidAmount: ibid 
-  // });
-  // console.log(bidrec);
-  // //bidrec.save();
-
-
   // identify players who are still not sold
   allPlayers = _.filter(allPlayers, x => x.tournament == myGroup[0].tournament);
   var myindex = _.findIndex(allPlayers, (x) => { return x.pid == iplayer});
@@ -303,20 +282,19 @@ async function publish_auctions(auction_filter)
   sendok(auctionList);
 }
 
-const fetchBalance = async () => {
-  var grpFilter = { gid: _group };
-
-  let gmRec = await GroupMember.find(grpFilter);
-  var auctionList = await Auction.find(grpFilter);
-  gmRec = _.sortBy(gmRec, 'uid');
-
+function fetchBalance(gmembers, auctionList, maxBidAmount, iuser, ibid) {
+  gmembers = _.sortBy(gmembers, 'uid');
   var balanceDetails = [];
-
-  gmRec.forEach(gm => {
-
+  gmembers.forEach(gm => {
     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
     var myPlayerCount = myAuction.length;
-    var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
+    var mybal = maxBidAmount - _.sumBy(myAuction, 'bidAmount');
+    if (gm.uid === iuser) {
+      // this user has purchased just now new player with amount "ibit"
+      // take care of if
+      ++myPlayerCount;
+      mybal = mybal - ibid;
+    }
     balanceDetails.push({
       uid: gm.uid,
       userName: gm.userName,
@@ -325,6 +303,7 @@ const fetchBalance = async () => {
       balance: mybal
     });
   });
+
   return balanceDetails;
 }
 
