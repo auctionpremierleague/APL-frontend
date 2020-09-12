@@ -22,18 +22,17 @@ import BubbleChart from "@material-ui/icons/BubbleChart";
 import GroupIcon from '@material-ui/icons/Group';
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import TimelineIcon from '@material-ui/icons/Timeline';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 
 // core components/views for Admin layout
 import DashboardPage from "views/Dashboard/Dashboard.js";
 import Statistics from "views/Statistics/Statistics.js"
+import Logout from "views/Logout/Logout.js"
 
 
 import Auction from "views/Auction/Auction.js";
 import MyTeam from "views/MyTeam/MyTeam.js"
-import Icons from "views/Icons/Icons.js";
 
-// core components/views for RTL layout
-import RTLPage from "views/RTLPage/RTLPage.js";
 
 const dashboardRoutes = [
   {
@@ -66,6 +65,14 @@ const dashboardRoutes = [
     rtlName: "طباعة",
     icon: TimelineIcon,
     component: Statistics,
+    layout: "/admin"
+  },
+  {
+    path: "/Logout",
+    name: "Logout",
+    rtlName: "طباعة",
+    icon: ExitToAppIcon,
+    component: Logout,
     layout: "/admin"
   }
  
