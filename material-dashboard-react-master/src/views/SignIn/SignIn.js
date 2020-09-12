@@ -1,4 +1,4 @@
-import React, { useState, useContext ,useEffect} from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -60,15 +60,19 @@ export default function SignIn() {
   const history = useHistory();
   const [userName, setUserName] = useState();
   const [password, setPassword] = useState();
-const [showPage,setShowPage]=useState(false);
+  const [showPage, setShowPage] = useState(false);
   const { setUser } = useContext(UserContext);
 
-  useEffect(()=>{
-    
-    if(localStorage.getItem("uid")){
-      setUser({uid:localStorage.getItem("uid"),admin:localStorage.getItem("admin")})
+  useEffect(() => {
+    console.log(window.localStorage.getItem("uid"))
+
+    if (window.localStorage.getItem("logout")) {
+      localStorage.clear();
+    }
+    if (window.localStorage.getItem("uid")) {
+      setUser({uid:window.localStorage.getItem("uid"),admin:window.localStorage.getItem("admin")})
       history.push("/admin")
-    }else{
+    } else {
       setShowPage(true)
     }
   })
@@ -77,15 +81,15 @@ const [showPage,setShowPage]=useState(false);
 
     if (response.status === 200) {
 
-      localStorage.setItem("uid", response.data)
+      window.localStorage.setItem("uid", response.data)
 
       const admin = await axios.get(`/group/owner`);
       if (admin.data.uid === response.data) {
-        localStorage.setItem("admin", true)
+        window.localStorage.setItem("admin", true)
         setUser({ uid: response.data, admin: true });
       } else {
         setUser({ uid: response.data, admin: false });
-        localStorage.setItem("admin", false)
+        window.localStorage.setItem("admin", false)
       }
       history.push("/admin")
 
@@ -93,57 +97,57 @@ const [showPage,setShowPage]=useState(false);
 
   }
   return (
-    showPage?
-    <Container component="main" maxWidth="xs">
-      <CssBaseline />
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Sign in
+    showPage ?
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <div className={classes.paper}>
+          <Avatar className={classes.avatar}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component="h1" variant="h5">
+            Sign in
         </Typography>
-        <form className={classes.form} onSubmit={handleSubmit} noValidate>
-          <TextField
-            autoComplete="fname"
-            name="userName"
-            variant="outlined"
-            required
-            fullWidth
-            id="userName"
-            label="User Name"
-            autoFocus
-            onChange={(event) => setUserName(event.target.value)}
+          <form className={classes.form} onSubmit={handleSubmit} noValidate>
+            <TextField
+              autoComplete="fname"
+              name="userName"
+              variant="outlined"
+              required
+              fullWidth
+              id="userName"
+              label="User Name"
+              autoFocus
+              onChange={(event) => setUserName(event.target.value)}
 
-          />
-          <TextField
-            variant="outlined"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            onChange={(event) => setPassword(event.target.value)}
-          />
+            />
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              onChange={(event) => setPassword(event.target.value)}
+            />
 
 
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-            onClick={handleClick}
-          >
-            Sign In
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              onClick={handleClick}
+            >
+              Sign In
           </Button>
 
-        </form>
-      </div>
+          </form>
+        </div>
 
-    </Container>:""
+      </Container> : ""
   );
 }
