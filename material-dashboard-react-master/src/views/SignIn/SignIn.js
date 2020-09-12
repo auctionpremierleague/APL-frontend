@@ -64,6 +64,7 @@ const [showPage,setShowPage]=useState(false);
   const { setUser } = useContext(UserContext);
 
   useEffect(()=>{
+    
     if(localStorage.getItem("uid")){
       setUser({uid:localStorage.getItem("uid"),admin:localStorage.getItem("admin")})
       history.push("/admin")

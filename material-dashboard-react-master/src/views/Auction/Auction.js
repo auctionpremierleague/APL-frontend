@@ -126,6 +126,8 @@ export default function ImgMediaCard() {
     const [bowlingStyle, setBowlingStyle] = useState("");
     const [open, setOpen] = useState(false);
 
+    const[bidAmount,setBidAmount]=useState();
+
     const [confirmDialogOpen,setConfirmDialogOpen]=useState(false)
     const [pid, setPid] = useState();
     const [selectedOwner, setSelectedOwner] = useState(null);
@@ -231,7 +233,7 @@ export default function ImgMediaCard() {
 
         const amount = document.getElementById("standard-required").value;
         console.log(amount);
-        let response = await fetch(`/auction/add/1/${selectedOwner}/${pid}/${amount}`);
+        let response = await fetch(`/auction/add/1/${selectedOwner}/${pid}/${bidAmount}`);
         if (response.status === 707) {
             setPlayerStatus("Already Purchased")
         }
@@ -366,7 +368,7 @@ export default function ImgMediaCard() {
                         size="small"
                         className={classes.button}
                         startIcon={<DoneIcon />}
-                        onClick={() =>setConfirmDialogOpen(true) }>
+                        onClick={() =>{setBidAmount(document.getElementById("standard-required").value); setConfirmDialogOpen(true)} }>
                         Confirm
 </Button>
                 </div>
@@ -379,7 +381,7 @@ export default function ImgMediaCard() {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{`Are you sure you want to sell ${playerName} to ${selectedOwner}`}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{`Are you sure you want to sell ${playerName} in ${bidAmount}`}</DialogTitle>
         
         <DialogActions>
           
