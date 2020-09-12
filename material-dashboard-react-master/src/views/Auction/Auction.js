@@ -126,9 +126,9 @@ export default function ImgMediaCard() {
     const [bowlingStyle, setBowlingStyle] = useState("");
     const [open, setOpen] = useState(false);
 
-    const[bidAmount,setBidAmount]=useState();
+    const [bidAmount, setBidAmount] = useState();
 
-    const [confirmDialogOpen,setConfirmDialogOpen]=useState(false)
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
     const [pid, setPid] = useState();
     const [selectedOwner, setSelectedOwner] = useState(null);
 
@@ -141,11 +141,11 @@ export default function ImgMediaCard() {
         setOpen(false);
     };
 
-   
-    
-      const handleModalClose = () => {
+
+
+    const handleModalClose = () => {
         setConfirmDialogOpen(false);
-      };
+    };
 
     useEffect(() => {
 
@@ -167,8 +167,8 @@ export default function ImgMediaCard() {
                 console.log(balanceDetails);
                 // console.log(user.uid)
 
-                if (user && !user.admin) {
-                    userBalance = balanceDetails.filter(balance => balance.uid === user.uid)
+                if (localStorage.getItem("admin") === "false") {
+                    userBalance = balanceDetails.filter(balance => balance.uid === parseInt(localStorage.getItem("uid"), 10))
                 }
                 else {
                     userBalance = balanceDetails
@@ -196,9 +196,9 @@ export default function ImgMediaCard() {
             console.log(response.data)
             setAuctionStatus(response.data);
 
-
-            await startAuction(response.data);
-
+            if (response.data === "RUNNING") {
+                await startAuction(response.data);
+            }
 
         }
 
@@ -368,7 +368,7 @@ export default function ImgMediaCard() {
                         size="small"
                         className={classes.button}
                         startIcon={<DoneIcon />}
-                        onClick={() =>{setBidAmount(document.getElementById("standard-required").value); setConfirmDialogOpen(true)} }>
+                        onClick={() => { setBidAmount(document.getElementById("standard-required").value); setConfirmDialogOpen(true) }}>
                         Confirm
 </Button>
                 </div>
@@ -376,23 +376,23 @@ export default function ImgMediaCard() {
             </Drawer>
 
             <Dialog
-        open={confirmDialogOpen}
-        onClose={handleModalClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{`Are you sure you want to sell ${playerName} in ${bidAmount}`}</DialogTitle>
-        
-        <DialogActions>
-          
-          <Button onClick={handleModalClose} color="primary" autoFocus>
-            Cancel
+                open={confirmDialogOpen}
+                onClose={handleModalClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{`Are you sure you want to sell ${playerName} in ${bidAmount}`}</DialogTitle>
+
+                <DialogActions>
+
+                    <Button onClick={handleModalClose} color="primary" autoFocus>
+                        Cancel
           </Button>
-          <Button onClick={sellPlayer} color="primary">
-            Sell
+                    <Button onClick={sellPlayer} color="primary">
+                        Sell
           </Button>
-        </DialogActions>
-      </Dialog>
+                </DialogActions>
+            </Dialog>
         </div>
     }
 
@@ -447,7 +447,7 @@ export default function ImgMediaCard() {
     }
     return (
 
-        auctionStatus === "PENDING" ? user && user.admin ? <AdminPending /> : <UserAuctionPending /> : user && user.admin ? <AdminAuction /> : <UserAuction />
+        auctionStatus === "PENDING" ? localStorage.getItem("admin") === "true" ? <AdminPending /> : <UserAuctionPending /> : localStorage.getItem("admin") === "true" ? <AdminAuction /> : <UserAuction />
 
 
     );

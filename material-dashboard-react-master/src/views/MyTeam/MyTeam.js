@@ -30,7 +30,7 @@ export default function App() {
     useEffect(() => {
         const fetchTeam = async () => {
             try {
-                const response = await axios.get(user.admin ? "/user/myteam/all" : `/user/myteam/${user.uid}`);
+                const response = await axios.get(localStorage.getItem("admin")==="true"? "/user/myteam/all" : `/user/myteam/${user.uid}`);
 
 
                 const data = populateTable(response.data);
