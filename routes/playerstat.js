@@ -1144,13 +1144,11 @@ async function update_cricapi_data_r1(logToResponse)
 
       // process each match found in cricapy
       matchesFromCricapi.matches.forEach(x => {
-        // if (x.unique_id == 1198246) console.log(`Match found has id: ${x.unique_id}`);
         var myTeam1 = x['team-1'].toUpperCase();
         var myTeam2 = x['team-2'].toUpperCase();
-        console.log(`${myTeam1} ${myTeam2}`);
+        //console.log(`${myTeam1} ${myTeam2}`);
         if ((myTeam1 === "TBA") || (myTeam2 === "TBA")) return;
-        // find out if these 2 teams belong to any tournament.
-        // ALSO match the tournament type viz. TEST, ODI, 20-2
+
         var matchTournament = '';
         var mytype = x.type.toUpperCase();
         allTournament.forEach(t => {
@@ -1170,34 +1168,20 @@ async function update_cricapi_data_r1(logToResponse)
               break;
           }
           if (!typeHasMatched) return;
+
+          //console.log(`Two teams are ${myTeam1} and ${myTeam2}`);
           var myteams = _.filter(allTeams, tm => tm.tournament == t.name);
+          //console.log(myteams);
           // find team 1  is part of this tournament
-          var myindex = -1;
-          for(var i=0; i < myteams.length; ++i) {
-            if (myteams[i].name.toUpperCase() == myTeam1) {
-              myindex = i;
-              break;
-            }
-          } 
-          // var myindex = _.indexOf(myteams, z => z.name == myTeam1);
-          if (x.unique_id == 1198246) {
-            // console.log("START---------------------------")
-            // console.log(myteams)
-            // console.log(`Team NAME is ${myTeam1}. Index 1 is ${myindex}`);
-            // console.log("END---------------------------")
-          }
-          //if (x.unique_id == 1198246) console.log(`index 1 is ${myindex}`);
+          var myindex = _.findIndex(myteams, (x) => { return x.name.toUpperCase() === myTeam1});
+          //console.log(`My Index for team 1 is ${myindex}`)
           if (myindex < 0) return;
-          myindex = -1;
-          for(var i=0; i < myteams.length; ++i) {
-            if (myteams[i].name.toUpperCase() == myTeam2) {
-              myindex = i;
-              break;
-            }
-          }
-          //var myindex = _.indexOf(myteams, xxx => xxx.name == myTeam2);
-          //if (x.unique_id == 1198246) console.log(`index 2 is ${myindex}`);
+
+          // find team 2  is part of this tournament
+          myindex = _.findIndex(myteams, (x) => { return x.name.toUpperCase() === myTeam2});
+          //console.log(`My Index for team 2 is ${myindex}`)
           if (myindex < 0) return;
+
           // both the teams belong to this tournament. 
           //console.log(`Team: ${myTeam1} and ${myTeam2} are part of tournament ${t.name}`);
           matchTournament = t.name;
@@ -1215,7 +1199,7 @@ async function update_cricapi_data_r1(logToResponse)
       // end of check if this match part of our tournament
 
       // set next fetch time
-      updateMatchFetchTime(matchesFromCricapi.provider);
+      updateMatchFetchTime(matchesFromCricapi.provider); 
     }
     else 
       console.log("Match details not to be fetched now");
