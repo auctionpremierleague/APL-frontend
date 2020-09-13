@@ -49,8 +49,8 @@ router.use('/', async function(req, res, next) {
     if (req.url.length === 0) req.url = '/';
   }
   else {
-    _group = 2;
-    _tournament = "ENGPAKT20";
+    _group = 1;
+    _tournament = "IPL2020";
   }
 
   if (req.url == "/")
