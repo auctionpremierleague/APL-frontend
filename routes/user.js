@@ -258,6 +258,33 @@ router.get('/myteam/:userid', function (req, res, next) {
 
 });
 
+router.get('/myteamwocvc/:userid', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+
+  var { userid } = req.params;
+  let igroup = 2;  //_group;   // default group 1
+  if (userid.toUpperCase() === "ALL") userid = allUSER.toString();
+  if (isNaN(userid)) { senderr(605, `Invalid user ${userid}`); return; }
+  //let iuser = parseInt(userid);
+  var PauctionPlayers = Auction.find({gid: igroup});
+  allCaptains = await Captain.find({gid: igroup});
+  var mycvc = [];
+  mycvc = mycvc.concat(_.map(allCaptains, 'captain'));
+  mycvc = mycvc.concat(_.map(allCaptains, 'viceCaptain'));
+  mycvc = _.uniqBy(mycvc);
+  //console.log(mycvc);
+
+  // my remove players who are captain and vice captain
+  var auctionPlayers = await PauctionPlayers;
+  auctionPlayers = _.filter(auctionPlayers, x => !mycvc.includes(x.pid))
+
+  // if required only for single user then filter
+  if (iuser != allUSER)
+    auctionPlayers = _.filter(auctionPlayers, x => x.uid == userid);
+  sendok(auctionPlayers);
+
+});
 
 // Which group I am the member
 // each group will have have the tournament name
