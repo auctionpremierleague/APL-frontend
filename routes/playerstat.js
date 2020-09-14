@@ -4,6 +4,8 @@ var _group = 0;
 var _tournament = "";
 const doMaxRun = 1;
 const doMaxWicket = 2;
+const SENDRES = 1;
+const SENDSOCKET = 2;
 
 // user these keys in rotation for fetch data from cricapi
 const keylist = [				
@@ -50,7 +52,7 @@ router.use('/', async function(req, res, next) {
   }
   else {
     _group = 1;
-    _tournament = "IPL2020";
+    _tournament = "ENGPAKT20";
   }
 
   if (req.url == "/")
@@ -204,7 +206,7 @@ router.use('/maxrun/:myuser', async function(req, res, next) {
     }
     iuser = parseInt(myuser);
   }
-  statMax(iuser, doMaxRun);
+  statMax(iuser, doMaxRun, SENDRES);
 });
 
 router.use('/maxwicket/:myuser', async function(req, res, next) {
@@ -222,7 +224,7 @@ router.use('/maxwicket/:myuser', async function(req, res, next) {
     }
     iuser = parseInt(myuser);
   }
-  statMax(iuser, doMaxWicket);
+  statMax(iuser, doMaxWicket, SENDRES);
 });
 
 
@@ -241,7 +243,7 @@ router.use('/brief/:myuser', async function(req, res, next) {
     }
     iuser = parseInt(myuser);
   }
-  statBrief(iuser);
+  statBrief(iuser, SENDRES);
 
 });
 
@@ -277,7 +279,7 @@ router.use('/rank/:myuser', async function(req, res, next) {
     }
     iuser = parseInt(myuser);
   }
-  statRank(iuser);
+  statRank(iuser, SENDRES);
 });
 
 router.use('/updatemax', async function(req, res, next) {
@@ -509,7 +511,7 @@ async function statBrief_orig(iwhichuser)
   sendok(userScoreList);
 }
 
-async function statBrief(iwhichuser)
+async function statBrief(iwhichuser, doWhatSend)
 {
   // Set collection name 
   var tournamentStat = mongoose.model(_tournament, StatSchema);
@@ -573,7 +575,13 @@ async function statBrief(iwhichuser)
     userScoreList = _.filter(userScoreList, x => x.uid == iwhichuser);
   }
   //console.log(userScoreList);
-  sendok(userScoreList); 
+  if (doWhatSend === SENDRES) {
+    sendok(userScoreList); 
+  } else {
+    const socket = app.get("socket");
+    socket.emit("brief", userScoreList)
+    socket.broadcast.emit('brief', userScoreList);    
+  }
 }
 
 async function statScore_orig(iwhichUser) {
@@ -716,7 +724,7 @@ async function statScore(iwhichUser) {
 }
 
 
-async function statRank_orig (iwhichUser) {
+async function statRank_orig (iwhichUser, doSendWhat) {
   // find out users belnging to Group 1 (this is default). and set in igroup
   var igroup = _group;
   var allusers = await User.find({});
@@ -805,7 +813,7 @@ async function statRank_orig (iwhichUser) {
 }
 
 
-async function statRank (iwhichUser) {
+async function statRank (iwhichUser, doSendWhat) {
   // find out users belnging to Group 1 (this is default). and set in igroup
   // Set collection name 
   var tournamentStat = mongoose.model(_tournament, StatSchema);
@@ -817,28 +825,11 @@ async function statRank (iwhichUser) {
   const Pgmembers = GroupMember.find({gid: igroup});
   const Pcaptainlist = Captain.find({gid: igroup});
 
-  //const [someResult, anotherResult] = await Promise.all([someCall(), anotherCall()]);
-  //const finalResult = [await someResult, await anotherResult];
-  // const  finalResult = [await allusers, await gmembers, await captainlist,
-  //                       await auctionList, await statList];
-  
   captainlist = await Pcaptainlist;
   gmembers = await Pgmembers;
   allusers = await Pallusers
   auctionList = await PauctionList
   statList = await PstatList;
-
-  //console.log(Pcaptainlist);
-  //console.log(captainlist);
-  //console.log(igroup);
-  //var userlist = _.map(gmembers, 'uid');      
-
-  // var tourmanetStatus = await tournamentOver(iroup);
-  // console.log(`Group 1 tournamemnet status: ${tourmanetStatus}`);
-  
-  // get all players auctioned by this group members and also fetch the stats of those players
-  // var allplayer = _.map(auctionList, 'pid')
-  // var statList = await tournamentStat.find({pid: {$in: allplayer}});
 
   // now calculate score for each user
   var userRank = [];
@@ -906,7 +897,13 @@ async function statRank (iwhichUser) {
   if (iwhichUser != 0)
   userRank = _.filter(userRank, x => x.uid == iwhichUser);
   //console.log(userRank);
-  sendok(userRank);
+  if (doSendWhat === SENDRES) {
+    sendok(userRank);
+  } else {
+    const socket = app.get("socket");
+    socket.emit("rank", userRank)
+    socket.broadcast.emit('rank', userRank);
+  }
 }
 
 async function statMax_orig(iwhichuser, doWhat)
@@ -1011,7 +1008,7 @@ async function statMax_orig(iwhichuser, doWhat)
   sendok(maxarray);
 }
 
-async function statMax(iwhichuser, doWhat)
+async function statMax(iwhichuser, doWhat, sendToWhom)
 {
   var tournamentStat = mongoose.model(_tournament, StatSchema);
 
@@ -1052,9 +1049,6 @@ async function statMax(iwhichuser, doWhat)
 
       // now get the statistics of this player in various maches
       var myplayerstats = _.filter(statList, x => x.pid === p.pid);
-      //ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
-      //var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['mid', 'pid', 'score']));
-      //console.log(myplayerstats);
       var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
       var totRun = _.sumBy(myplayerstats, x => x.run);
       // console.log(myplayerstats);
@@ -1081,41 +1075,62 @@ async function statMax(iwhichuser, doWhat)
   var maxarray = [];
   gmembers.forEach( gm => {
     var tmp = _.filter(userScoreList, x => x.uid == gm.uid);
-    if (tmp.length == 0) return;
+    //if (tmp.length == 0) return
 
     var tmpRun = _.maxBy(tmp, x => x.totalRun);
     var tmpWicket = _.maxBy(tmp, x => x.totalWicket);
     //console.log(tmpRun);
-    if ((doWhat === doMaxRun) && (tmpRun.totalRun > 0)) {
-      console.log("In total run");
-      var maxRun = _.filter(tmp, x => x.totalRun == tmpRun.totalRun );
-      maxRun.forEach( runrec => {
-        maxarray.push({ 
-          uid: gm.uid, 
-          userName: runrec.userName,
-          displayName: runrec.displayName,
-          maxRunPlayerId: runrec.pid,
-          maxRunPlayerName: runrec.playerName,
-          maxRun: runrec.totalRun,
+    if ((doWhat === doMaxRun)) { // && (tmpRun.totalRun > 0)) {
+      //console.log("In total run");
+      if (tmpRun.totalRun === 0) {
+        maxarray.push({ uid: gm.uid, userName: "", displayName: "",
+        maxRunPlayerId: 0,  maxRunPlayerName: "", maxRun: 0});
+      } else {
+        var maxRun = _.filter(tmp, x => x.totalRun == tmpRun.totalRun );
+        maxRun.forEach( runrec => {
+          maxarray.push({ 
+            uid: gm.uid, 
+            userName: runrec.userName,
+            displayName: runrec.displayName,
+            maxRunPlayerId: runrec.pid,
+            maxRunPlayerName: runrec.playerName,
+            maxRun: runrec.totalRun,
+          });
         });
-      });
-    } else if ((doWhat === doMaxWicket) && (tmpWicket.totalWicket > 0)) {
+      }
+    } else if ((doWhat === doMaxWicket)) {  //&& (tmpWicket.totalWicket > 0)) {
       //console.log(`in else  ${tmpWicket.totalWicket}`);
-      var maxWicket = _.filter(tmp, x => x.totalWicket === tmpWicket.totalWicket );
-      maxWicket.forEach( wktrec => {
-        maxarray.push({ 
-          uid: gm.uid, 
-          userName: wktrec.userName,
-          displayName: wktrec.displayName,
-          maxWicketPlayerId: wktrec.pid,
-          maxWicketPlayerName: wktrec.playerName,
-          maxWicket: wktrec.totalWicket
+      if (tmpWicket.totalWicket === 0) {
+        maxarray.push({ uid: gm.uid, userName: "", displayName: "", maxWicketPlayerId: 0,
+        maxWicketPlayerName: "", maxWicket: 0});
+      } else {
+        var maxWicket = _.filter(tmp, x => x.totalWicket === tmpWicket.totalWicket );
+        maxWicket.forEach( wktrec => {
+          maxarray.push({ 
+            uid: gm.uid, 
+            userName: wktrec.userName,
+            displayName: wktrec.displayName,
+            maxWicketPlayerId: wktrec.pid,
+            maxWicketPlayerName: wktrec.playerName,
+            maxWicket: wktrec.totalWicket
+          });
         });
-      });
+      }
     }
   });
   //console.log(maxarray);
-  sendok(maxarray);
+  if (sendToWhom === SENDRES)  {
+    sendok(maxarray);
+  } else {
+    const socket = app.get("socket");
+    if (doWhat === doMaxRun) {
+      socket.emit("maxRun", maxarray)
+      socket.broadcast.emit('maxRun', maxarray);
+    } else {
+      socket.emit("maxWicket", maxarray)
+      socket.broadcast.emit('maxWicket', maxarray);
+    }
+  }
 }
 
 async function update_cricapi_data_r1(logToResponse)
@@ -1470,9 +1485,14 @@ async function fetchMatchesFromCricapi() {
 // schedule task
 cron.schedule('*/2 * * * *', () => {
   console.log('==========running every N minute');
-  if (db_connection)
+  if (db_connection) {
     update_cricapi_data_r1(false);
-  else
+    // send update to client 0 -> all users
+    statMax(0, doMaxRun, SENDSOCKET);
+    statMax(0, doMaxWicket, SENDSOCKET);
+    statRank(0, SENDSOCKET);
+    statBrief(0, SENDSOCKET);
+  } else
     console.log("============= No mongoose connection");
 });
 
