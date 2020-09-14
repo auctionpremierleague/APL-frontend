@@ -52,7 +52,7 @@ router.use('/', async function(req, res, next) {
   }
   else {
     _group = 1;
-    _tournament = "ENGPAKT20";
+    _tournament = "IPL2020";
   }
 
   if (req.url == "/")
