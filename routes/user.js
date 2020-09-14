@@ -392,7 +392,7 @@ async function publish_auctionedplayers_orig(userid) {
   var datalist = await Auction.find(myfilter);
   //console.log(datalist);
   if (!datalist) { senderr(DBFETCHERR, err); return; }
-  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'bidAmount']));
+  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'team', 'bidAmount']));
 
   // make grouping of players per user
   // NEED TO CLEAN UP THIS PIECE OF CODE
