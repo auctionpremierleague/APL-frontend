@@ -113,6 +113,7 @@ AuctionSchema = mongoose.Schema({
   gid: Number,
   uid: Number,
   pid: Number,
+  team: String,
   playerName: String,
   bidAmount: Number
 });
@@ -139,7 +140,8 @@ TournamentSchema = mongoose.Schema({
   name: String,
   desc: String,
   type: String,
-  over: Boolean
+  over: Boolean,
+  enabled: Boolean
 })
 
 MatchSchema = mongoose.Schema({

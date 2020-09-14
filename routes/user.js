@@ -377,7 +377,7 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype) {
 }
 
 
-async function publish_auctionedplayers(userid) {
+async function publish_auctionedplayers_orig(userid) {
   var myfilter;
   var userFilter;
   if (userid == allUSER) {
@@ -416,8 +416,14 @@ async function publish_auctionedplayers(userid)
 {
   var myfilter;
   var userFilter;
+  var igroup = _group;
+
+  var myGroup = await IPLGroup({gid: igroup});
+  if (!myGroup) { senderr(601, `Invalid group number ${mygroup}`); return; }
+  if (isNaN(userid)) { senderr(605, "Invalid user"); return; }
+
   if (userid == allUSER) { 
-    myfilter = {gid: _group};
+    myfilter = {gid: igroup};
     userFilter = {};
   }else {
     myfilter = {gid: _group, uid: userid};
@@ -425,15 +431,15 @@ async function publish_auctionedplayers(userid)
   }
 
   var PallCaptains = Captain.find(myfilter); 
-  var Pgmembers = GroupMember.find({gid: _group});
+  var Pgmembers = GroupMember.find({gid: igroup});
   var PallUsers = User.find(userFilter);
   var Pdatalist = Auction.find(myfilter);
-  //console.log(datalist);
-
+  
   var allCaptains = await PallCaptains;
   var allUsers = await PallUsers;
   var datalist = await Pdatalist;
   var gmembers = await Pgmembers;
+  //console.log(datalist);
 
   datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'bidAmount']));
   var userlist = _.map(gmembers, d => _.pick(d, ['uid']));

@@ -149,6 +149,7 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
     uid: iuser,
     pid: iplayer,
     playerName: myplayer.name,
+    team: myplayer.Team,
     gid: igroup,
     bidAmount: ibid 
   });

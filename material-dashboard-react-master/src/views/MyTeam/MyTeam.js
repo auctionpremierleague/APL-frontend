@@ -61,9 +61,9 @@ export default function App() {
 
                 <Table
                     tableHeaderColor="warning"
-                    tableHead={["Player Name", "Bid Amount"]}
+                    tableHead={["Player Name", "Team", "Bid Amount"]}
                     tableData={team.players.map(team => {
-                        const arr = [team.playerName, team.bidAmount]
+                        const arr = [team.playerName, team.team, team.bidAmount]
 
                         return { data: arr, collapse: [] }
                     })}
