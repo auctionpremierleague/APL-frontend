@@ -61,15 +61,11 @@ router.use('/', async function(req, res, next) {
     next('route');
 });
 
-router.use('/test1/:mid', async function(req, res, next) {
+router.use('/test1', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
 
-  var {mid} = req.params;
-  var i = parseInt(mid);
-  var mydata = await CricapiMatch.find({mid: i});
-  console.log(`Starts at ${mydata[0].matchStartTime}  Ends at ${mydata[0].matchEndTime}`);  
-  sendok(mydata);
+  sendMatchInfoToClient(SENDRES);
 });
 
 router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
@@ -352,103 +348,6 @@ router.use('/updatemax', async function(req, res, next) {
   sendok("OK");
   // allocate bonus points to player with maximum run and maximum wicket
 });
-
-
-
-// provide scrore of users beloging to the group
-// currently only group 1 supported
-/*
-router.use('/internal/:infoType/:whichUser', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
-  var {infoType, whichUser} = req.params;
-  console.log(`${infoType}  && ${whichUser}`)
-  if (whichUser.toUpperCase() === "ALL") whichUser = '0';
-  if (isNaN(whichUser)) {
-    senderr(721, `Invalid user id ${whichUser}`);
-    return;
-  }
-  var iwhichUser = parseInt(whichUser);
-  // find out users belnging to Group 1 (this is default). and set in igroup
-  var igroup = _group;
-  var allusers = await User.find({});
-  var myGroup = await IPLGroup.findOne({gid: igroup});
-  var gmembers = await GroupMember.find({gid: igroup});
-  var userlist = _.map(gmembers, 'uid');      
-  var captainlist = await Captain.find({gid: igroup});
-  // Set collection name 
-  var tournamentStat = mongoose.model(myGroup.tournament, StatSchema);
-  // var tourmanetStatus = await tournamentOver(igroup);
-  // console.log(`Group 1 tournamemnet status: ${tourmanetStatus}`);
-  
-  // get all players auctioned by this group members and also fetch the stats of those players
-  var auctionList = await Auction.find({gid: igroup,  uid: { $in: userlist }});
-  var allplayer = _.map(auctionList, 'pid')
-  var statList = await tournamentStat.find({pid: {$in: allplayer}});
-  // now calculate score for each user
-  var userRank = [];
-  gmembers.forEach( gm => {
-    userPid = gm.uid;
-    var urec = _.filter(allusers, u => u.uid === userPid);
-    var curruserName = (urec) ? urec[0].userName : "";
-    var currdisplayName = (urec) ? urec[0].displayName : "";
-    // find out captain and vice captain selected by user
-    var capinfo = _.find(captainlist, x => x.gid == igroup && x.uid == userPid);
-    if (capinfo === undefined)
-      capinfo = new Captain ({ gid: _group, uid: userPid, captain: 0, viceCaptain: 0});
-    // find out players of this user
-    var myplayers = _.filter(auctionList, a => a.gid === igroup && a.uid === userPid); 
-    //console.log(myplayers);
-    //console.log("Just shown my players")
-    //var playerScoreList = [];
-    var userScoreList = [];    
-    myplayers.forEach( p => {
-      var MF = 1;
-      //console.log(capinfo);
-      if (p.pid === capinfo.viceCaptain) {
-        //console.log(`Vice Captain is ${capinfo.viceCaptain}`)
-        MF = ViceCaptain_MultiplyingFactor;
-      } else if (p.pid === capinfo.captain) {
-        //console.log(`Captain is ${capinfo.captain}`)
-        MF = Captain_MultiplyingFactor;
-      } else {
-        //console.log(`None of the above: ${p.pid}`);
-      }
-      //console.log(`Mul factor: ${MF}`);
-      // now get the statistics of this player in various maches
-      var myplayerstats = _.filter(statList, x => x.pid === p.pid);
-      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
-      //console.log(`Player: ${p.pid}   Score: ${myScore}  MF used: ${MF}`);
-      userScoreList.push({ uid: userPid, pid: p.pid, playerScore: myScore});
-    });
-    var totscore = _.sumBy(userScoreList, x => x.playerScore);
-    //if (userPid === 9) totscore = 873;  // for testing
-    // do not assign rank. Just now. Will be assigned when info of all user grad score is available
-    userRank.push({ 
-      uid: userPid, 
-      userName: curruserName, 
-      displayName: currdisplayName,
-      grandScore: totscore, 
-      rank: 0});
-  })
-  // assign ranking
-  var lastRank = 0;
-  var nextRank = 0;
-  var lastScore = 99999999999999999999999999999;  // OMG such a big number!!!! Can any player score this many points
-  userRank.forEach( x => {
-    ++nextRank;
-    if (x.grandScore < lastScore) {
-      lastRank = nextRank;
-      lastScore = x.grandScore;
-    }
-    x.rank = lastRank;
-  });
-  if (iwhichUser != 0)
-  userRank = _.filter(userRank, x => x.uid == iwhichUser);
-  //console.log(userRank);
-  sendok(userRank);
-});
-*/
 
 async function statBrief_orig(iwhichuser)
 {
@@ -1482,6 +1381,34 @@ async function fetchMatchesFromCricapi() {
   throw new Error(matchres.status); 
 }
 
+async function sendMatchInfoToClient(doSendWhat) {
+  var igroup = 1;
+  var currTime = new Date();
+  currTime.setDate(currTime.getDate())
+  //currTime.setHours(currTime.getHours());
+  var myGroup = await IPLGroup.find({"gid": igroup})
+  //console.log(myGroup);
+  //console.log(myGroup.tournament);
+  var myMatches = await CricapiMatch.find({tournament: myGroup[0].tournament});
+  ////sendok(myMatches);
+  //return;
+
+  var currMatches = _.filter(myMatches, x => _.lte (x.matchStartTime, currTime) && _.lte(currTime,x.matchEndTime));
+  var upcomingMatch = _.find(myMatches, x => _.gte(x.matchStartTime, currTime));
+  console.log(currTime);
+
+  if (doSendWhat === SENDRES) {
+    sendok(currMatches);
+  } else {
+    const socket = app.get("socket");
+    socket.emit("currentMatch", currMatches)
+    socket.broadcast.emit('curentMatch', currMatches);
+    socket.emit("upcomingMatch", upcomingMatch)
+    socket.broadcast.emit('upcomingMatch', upcomingMatch);
+
+  }
+  console.log(currTime);
+}
 // schedule task
 cron.schedule('*/2 * * * *', () => {
   console.log('==========running every N minute');
@@ -1492,6 +1419,7 @@ cron.schedule('*/2 * * * *', () => {
     statMax(0, doMaxWicket, SENDSOCKET);
     statRank(0, SENDSOCKET);
     statBrief(0, SENDSOCKET);
+    sendMatchInfoToClient(SENDSOCKET);
   } else
     console.log("============= No mongoose connection");
 });
