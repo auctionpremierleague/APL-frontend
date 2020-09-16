@@ -426,7 +426,7 @@ async function publish_auctionedplayers(userid)
     myfilter = {gid: igroup};
     userFilter = {};
   }else {
-    myfilter = {gid: _group, uid: userid};
+    myfilter = {gid: igroup, uid: userid};
     userFilter = {uid: userid}
   }
 
