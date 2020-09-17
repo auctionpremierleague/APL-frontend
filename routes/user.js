@@ -441,7 +441,7 @@ async function publish_auctionedplayers(userid)
   var gmembers = await Pgmembers;
   //console.log(datalist);
 
-  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'bidAmount']));
+  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'team', 'bidAmount']));
   var userlist = _.map(gmembers, d => _.pick(d, ['uid']));
   if (userid != allUSER)
     userlist = _.filter(userlist, x => x.uid == userid);
