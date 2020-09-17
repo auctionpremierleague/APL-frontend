@@ -1192,9 +1192,9 @@ cron.schedule('*/2 * * * *', () => {
 });
 
 
-cron.schedule('*/15 * * * * ', () => {
+cron.schedule('*/15 * * * * * ', () => {
   // schedule to continuous update to client
-  console.log('==========running every 30 seconds. Sending socket');
+  console.log('==========running every 15 seconds. Sending socket');
     _group = 1;
     _tournament = "IPL2020"
     statMax(0, doMaxRun, SENDSOCKET);
