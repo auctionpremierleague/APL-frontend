@@ -42,13 +42,9 @@ const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 
 
 const useStyles = makeStyles(styles);
-const uid = 8;
 
-const getMVP = (stats) => {
 
-  const mvp = stats.reduce((prev, current) => (prev.playerScrore > current.playerScrore) ? prev : current, "");
-  return mvp.pid;
-}
+
 
 
 export default function Dashboard() {
