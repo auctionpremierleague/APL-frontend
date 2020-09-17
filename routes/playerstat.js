@@ -1192,7 +1192,7 @@ cron.schedule('*/2 * * * *', () => {
 });
 
 
-cron.schedule('*/30 * * * * ', () => {
+cron.schedule('*/15 * * * * ', () => {
   // schedule to continuous update to client
   console.log('==========running every 30 seconds. Sending socket');
     _group = 1;
