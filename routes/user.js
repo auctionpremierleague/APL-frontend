@@ -438,7 +438,7 @@ async function publish_auctionedplayers(userid)
   var allCaptains = await PallCaptains;
   var allUsers = await PallUsers;
   var datalist = await Pdatalist;
-  var gmembers = await Pgmembers;
+  var gmembers = await Pgmembers; 
   //console.log(datalist);
 
   datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'team', 'bidAmount']));
