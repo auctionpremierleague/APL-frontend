@@ -64,7 +64,7 @@ export default function SignIn() {
   const { setUser } = useContext(UserContext);
 
   useEffect(() => {
-    console.log(window.localStorage.getItem("uid"))
+  
 
     if (window.localStorage.getItem("logout")) {
       localStorage.clear();

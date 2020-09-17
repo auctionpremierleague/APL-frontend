@@ -2,7 +2,7 @@ import React from "react";
 // react plugin for creating charts
 
 // @material-ui/core
-import { useEffect, useState,useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import axios from "axios";
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -33,9 +33,13 @@ import CardFooter from "components/Card/CardFooter.js";
 
 import { UserContext } from "../../UserContext";
 
-
-
+import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
+
+const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// const ENDPOINT = "http://localhost:4000";
+
+
 
 const useStyles = makeStyles(styles);
 const uid = 8;
@@ -48,57 +52,66 @@ const getMVP = (stats) => {
 
 
 export default function Dashboard() {
+
   const [rankArray, setRankArray] = useState([]);
   const [rank, setRank] = useState();
   const [score, setScore] = useState(0);
-  const [mostRuns, setMostRuns] = useState();
-  const [mostWickets, setMostwickets] = useState();
-  const [mvp, SetMvp] = useState();
-  const { user } = useContext(UserContext);
-  const date=new Date().toDateString() + " " + new Date().toLocaleTimeString();
+  const [mostRuns, setMostRuns] = useState({});
+  const [mostWickets, setMostwickets] = useState({});
+  // const [mvp, SetMvp] = useState();
+  // const { user } = useContext(UserContext);
+  const date = new Date().toDateString() + " " + new Date().toLocaleTimeString();
+  const socket = socketIOClient(ENDPOINT);
 
-  const tableData=(rankDetails)=>{
-  const arr=  rankDetails.map(element =>{
-    const {displayName,userName,grandScore,rank}=element;
-    //const {rank,displayName,userName,grandScore}=element;
-    return {data:Object.values({rank,displayName,userName,displayName,grandScore}),collapse:[]}
+
+
+  const tableData = (rankDetails) => {
+    const arr = rankDetails.map(element => {
+      const { displayName, userName, grandScore, rank } = element;
+      //const {rank,displayName,userName,grandScore}=element;
+      return { data: Object.values({ rank, displayName, userName, displayName, grandScore }), collapse: [] }
     });
 
-    return  arr;
+    return arr;
   }
   useEffect(() => {
 
-    const fetchRank = async () => {
-      try {
-        
-        const rank = await axios.get(`/stat/rank/${user.uid}`);
-        const rankDetails = await axios.get(`/stat/rank/all`);
-        const maxRuns = await axios.get(`/stat/maxrun/${user.uid}`);
-        const maxWickets = await axios.get(`/stat/maxwicket/${user.uid}`);
-      
-     
-       setRankArray(tableData(rankDetails.data));
-        setRank(rank.data[0].rank);
-        setScore(rank.data[0].grandScore);
-        setMostwickets(maxWickets.data[0].maxWicketPlayerName);
-        setMostRuns(maxRuns.data[0].maxRunPlayerName)
-      } catch (e) {
-        console.log(e)
-      }
-    }
+    socket.on("connect", () => {
+      console.log("dashboard connected");
+      socket.on("rank", (rank) => {
+        console.log(rank)
+        if (rank.length) {
+          setRank(rank[localStorage.getItem("uid")].rank);
+          setScore(rank[localStorage.getItem("uid")].grandScore)
+          setRankArray(tableData(rank));
+        }
 
-    fetchRank();
+      });
 
-  }, []);
+      socket.on("maxRun", (maxRun) => {
+
+        if (maxRun.length) { setMostRuns(maxRun[localStorage.getItem("uid")]) }
+
+      });
+
+      socket.on("maxWicket", (maxWicket) => {
+        if (maxWicket.length) { setMostwickets(maxWicket[localStorage.getItem("uid")]) }
+
+      });
+    });
+
+
+
+  }, [rankArray]);
   const classes = useStyles();
   return (
     <div>
-      { localStorage.getItem("admin")==="false"?<GridContainer>
+      { localStorage.getItem("admin") === "false" ? <GridContainer>
         <GridItem xs={12} sm={6} md={3}>
           <Card>
             <CardHeader color="warning" stats icon>
               <CardIcon color="warning">
-                <GroupIcon></GroupIcon>
+                <GroupIcon />
               </CardIcon>
               <h2 className={classes.cardCategory}>Rank</h2>
               <h3 className={classes.cardTitle}>
@@ -107,11 +120,9 @@ export default function Dashboard() {
             </CardHeader>
             <CardFooter stats>
               <div className={classes.stats}>
-                <Danger>
-                  <Warning />
-                </Danger>
+                <GroupIcon />
                 <a href="#pablo" onClick={e => e.preventDefault()}>
-                  Get more space
+                  IPL 2020
                 </a>
               </div>
             </CardFooter>
@@ -128,13 +139,13 @@ export default function Dashboard() {
             </CardHeader>
             <CardFooter stats>
               <div className={classes.stats}>
-                <DateRange />
-                Last 24 Hours
+                <Update />
+                Just Updated
               </div>
             </CardFooter>
           </Card>
         </GridItem>
-      
+
         <GridItem xs={12} sm={6} md={3}>
           <Card>
             <CardHeader color="info" stats icon>
@@ -142,12 +153,12 @@ export default function Dashboard() {
                 <Accessibility />
               </CardIcon>
               <p className={classes.cardCategory}>Most Runs</p>
-              <h3 className={classes.cardTitle}>{mostRuns}</h3>
+              <h3 className={classes.cardTitle}>{mostRuns.maxRunPlayerName}</h3>
             </CardHeader>
             <CardFooter stats>
               <div className={classes.stats}>
-                <Update />
-                Just Updated
+                <Accessibility />
+                {mostRuns.maxRun}
               </div>
             </CardFooter>
           </Card>
@@ -160,21 +171,21 @@ export default function Dashboard() {
                 <SportsHandballIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Most Wickets</p>
-              <h3 className={classes.cardTitle}>{mostWickets}</h3>
+              <h3 className={classes.cardTitle}>{mostWickets.maxWicketPlayerName}</h3>
             </CardHeader>
             <CardFooter stats>
               <div className={classes.stats}>
-                <LocalOffer />
-                Tracked from Github
+                <SportsHandballIcon />
+                {mostWickets.maxWicket}
               </div>
             </CardFooter>
           </Card>
         </GridItem>
-      </GridContainer>:""}
-      
-     
+      </GridContainer> : ""}
+
+
       <GridContainer>
-       
+
         <GridItem xs={12} sm={12} md={12}>
           <Card>
             <CardHeader color="warning">
@@ -186,7 +197,7 @@ export default function Dashboard() {
             <CardBody>
               <Table
                 tableHeaderColor="warning"
-                tableHead={[ "Rank", "Franchise", "Owner", "Score"]}
+                tableHead={["Rank", "Franchise", "Owner", "Score"]}
                 tableData={rankArray}
               />
             </CardBody>
