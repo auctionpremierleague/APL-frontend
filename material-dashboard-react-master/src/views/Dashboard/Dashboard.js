@@ -76,7 +76,7 @@ export default function Dashboard() {
       console.log("dashboard connected");
       socket.on("rank", (rank) => {
         console.log(rank)
-        if (rank.length) {
+        if (rank[localStorage.getItem("uid")]) {
           setRank(rank[localStorage.getItem("uid")].rank);
           setScore(rank[localStorage.getItem("uid")].grandScore)
           setRankArray(tableData(rank));
