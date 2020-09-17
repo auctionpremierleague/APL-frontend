@@ -455,30 +455,36 @@ async function statBrief(iwhichuser, doWhatSend)
     var playerScoreList = [];
     myplayers.forEach( p => {
       var MF = 1;
-      if (p.pid === capinfo.viceCaptain)
+      var nameSufffix = "";
+      if (p.pid === capinfo.viceCaptain) {
         MF = ViceCaptain_MultiplyingFactor;
-      else if (p.pid === capinfo.captain)
+        nameSufffix = " (VC)";
+      } else if (p.pid === capinfo.captain) {
         MF = Captain_MultiplyingFactor;
+        nameSufffix = " (C)";
+      }
 
       // now get the statistics of this player in various maches
       var myplayerstats = _.filter(statList, x => x.pid === p.pid);
-      //ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
-      var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['mid', 'pid', 'score']));
       //console.log(myplayerstats);
-      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      // var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      var myScore1 = _.sumBy(myplayerstats, x => x.score);
+      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
+      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myScore = myScore1 + myScore2 + myScore3;
+      var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['mid', 'pid', 'score']));
       var tmp = { 
         // uid: userPid, 
         // userName: urec.userName,
         // displayName: urec.displayName,
         pid: p.pid, 
-        playerName: p.playerName,
-        playerScrore: myScore, 
-        matchStat: myplayerstats
+        playerName: p.playerName + nameSufffix,
+        playerScore: myScore
+        //matchStat: myplayerstats
       };
-      //console.log(tmp);
       playerScoreList.push(tmp);
     });
-    var userScoreValue = _.sumBy(playerScoreList, x => x.playerScrore);
+    var userScoreValue = _.sumBy(playerScoreList, x => x.playerScore);
     userScoreList.push({uid: userPid, 
       userName: urec.userName, 
       displayName: urec.displayName, 
@@ -538,29 +544,32 @@ async function statScore(iwhichUser) {
     //var playerScoreList = [];
     myplayers.forEach( p => {
       var MF = 1;
-      if (p.pid === capinfo.viceCaptain)
+      var nameSufffix = "";
+      if (p.pid === capinfo.viceCaptain) {
         MF = ViceCaptain_MultiplyingFactor;
-      else if (p.pid === capinfo.captain)
+        nameSufffix = " (VC)"
+      } else if (p.pid === capinfo.captain) {
         MF = Captain_MultiplyingFactor;
+        nameSufffix = " (C)"
+      }
       //console.log(`Mul factor: ${MF}`);
 
       // now get the statistics of this player in various maches
       var myplayerstats = _.filter(statList, x => x.pid === p.pid);
       //console.log(myplayerstats)
 
-      // update score of each match played by user
-      // myplayerstats.forEach(s => {
-      //   s.score = calculateScore(s)*MF;
-      // })
-      //var myScore = _.sumBy(myplayerstats, x => x.score);
-      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
-      //console.log(`Player name: ${p}`)
+      // var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      // Only RUN & WICKET will be 2 times for caption and 1.5 time for Vice Captai
+      var myScore1 = _.sumBy(myplayerstats, x => x.score);
+      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
+      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myScore = myScore1 + myScore2 + myScore3;
       var tmp = { 
         uid: userPid, 
         userName: curruserName,
         displayName: currdisplayName,
         pid: p.pid, 
-        playerName: p.playerName, 
+        playerName: p.playerName + nameSufffix, 
         playerScrore: myScore, 
         stat: myplayerstats};
       //console.log(tmp);
@@ -626,9 +635,13 @@ async function statRank (iwhichUser, doSendWhat) {
 
       // now get the statistics of this player in various maches
       var myplayerstats = _.filter(statList, x => x.pid === p.pid);
-      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      // var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      var myScore1 = _.sumBy(myplayerstats, x => x.score);
+      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
+      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myScore = myScore1 + myScore2 + myScore3;
       //console.log(`Player: ${p.pid}   Score: ${myScore}  MF used: ${MF}`);
-      userScoreList.push({ uid: userPid, pid: p.pid, playerScore: myScore});
+      userScoreList.push({ uid: userPid, pid: p.pid, playerName: p.name, playerScore: myScore});
     });
     var totscore = _.sumBy(userScoreList, x => x.playerScore);
     //if (userPid === 9) totscore = 873;  // for testing
@@ -1348,14 +1361,3 @@ function setHeader() {
 
 }
 module.exports = router;
-
-// for testing async function
-// async function testingAwait()
-// {
-//   console.log("Starting Timer");
-//   let promise = new Promise( (resolve, reject) => {
-//     setTimeout(() => resolve('Done'), 10000);
-//   });
-//   let result = await promise;
-//   console.log(result);
-// }
