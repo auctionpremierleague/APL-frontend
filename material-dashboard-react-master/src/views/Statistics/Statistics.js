@@ -73,7 +73,7 @@ export default function App() {
                 tableHeaderColor="warning"
                 tableHead={["Player Name", "Score"]}
                 tableData={team.playerStat.map(player => {
-                    const arr = [player.playerName, player.playerScrore]
+                    const arr = [player.playerName, player.playerScore]
 
                     return { data: arr, collapse: [] }
                 })}
