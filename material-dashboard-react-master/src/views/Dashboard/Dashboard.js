@@ -39,9 +39,6 @@ const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 const useStyles = makeStyles(styles);
 
 
-
-
-
 export default function Dashboard() {
 
   const [rankArray, setRankArray] = useState([]);
@@ -71,11 +68,11 @@ export default function Dashboard() {
     socket.on("connect", () => {
       console.log("dashboard connected");
       socket.on("rank", (rank) => {
-console.log(rank)
-      const userDetails=rank.filter((element)=>element.uid=== parseInt(localStorage.getItem("uid")) )
-   
+        console.log(rank)
+        const userDetails = rank.filter((element) => element.uid === parseInt(localStorage.getItem("uid")))
+
         if (userDetails) {
-          
+
           setRank(userDetails[0].rank);
           setScore(userDetails[0].grandScore)
           setRankArray(tableData(rank));
@@ -85,12 +82,22 @@ console.log(rank)
 
       socket.on("maxRun", (maxRun) => {
 
-        if (maxRun.length) { setMostRuns(maxRun[localStorage.getItem("uid")]) }
+        const runDetails = maxRun.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
+
+        if (runDetails) {
+
+          setMostRuns(runDetails[0])
+        }
 
       });
 
       socket.on("maxWicket", (maxWicket) => {
-        if (maxWicket.length) { setMostwickets(maxWicket[localStorage.getItem("uid")]) }
+
+        const wicketDetails = maxWicket.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
+
+        if (wicketDetails) {
+          setMostwickets(wicketDetails[0]);
+        }
 
       });
     });
@@ -153,7 +160,7 @@ console.log(rank)
             <CardFooter stats>
               <div className={classes.stats}>
                 <Accessibility />
-                {mostRuns?mostRuns.maxRun:""}
+                {mostRuns ? mostRuns.maxRun : ""}
               </div>
             </CardFooter>
           </Card>
@@ -171,7 +178,7 @@ console.log(rank)
             <CardFooter stats>
               <div className={classes.stats}>
                 <SportsHandballIcon />
-                {mostWickets? mostWickets.maxWicket:""}
+                {mostWickets ? mostWickets.maxWicket : ""}
               </div>
             </CardFooter>
           </Card>
