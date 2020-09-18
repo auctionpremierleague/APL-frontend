@@ -10,9 +10,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import SportsHandballIcon from '@material-ui/icons/SportsHandball';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import GroupIcon from '@material-ui/icons/Group';
-import Warning from "@material-ui/icons/Warning";
-import DateRange from "@material-ui/icons/DateRange";
-import LocalOffer from "@material-ui/icons/LocalOffer";
+
 import Update from "@material-ui/icons/Update";
 
 import Accessibility from "@material-ui/icons/Accessibility";
@@ -23,15 +21,12 @@ import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
 import Table from "components/Table/Table.js";
 
-import Danger from "components/Typography/Danger.js";
+
 import Card from "components/Card/Card.js";
 import CardHeader from "components/Card/CardHeader.js";
 import CardIcon from "components/Card/CardIcon.js";
 import CardBody from "components/Card/CardBody.js";
 import CardFooter from "components/Card/CardFooter.js";
-
-
-import { UserContext } from "../../UserContext";
 
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
@@ -63,6 +58,7 @@ export default function Dashboard() {
 
   const tableData = (rankDetails) => {
     const arr = rankDetails.map(element => {
+      console.log(element)
       const { displayName, userName, grandScore, rank } = element;
       //const {rank,displayName,userName,grandScore}=element;
       return { data: Object.values({ rank, displayName, userName, displayName, grandScore }), collapse: [] }
@@ -75,10 +71,13 @@ export default function Dashboard() {
     socket.on("connect", () => {
       console.log("dashboard connected");
       socket.on("rank", (rank) => {
-        console.log(rank)
-        if (rank[localStorage.getItem("uid")]) {
-          setRank(rank[localStorage.getItem("uid")].rank);
-          setScore(rank[localStorage.getItem("uid")].grandScore)
+console.log(rank)
+      const userDetails=rank.filter((element)=>element.uid=== parseInt(localStorage.getItem("uid")) )
+   
+        if (userDetails) {
+          
+          setRank(userDetails[0].rank);
+          setScore(userDetails[0].grandScore)
           setRankArray(tableData(rank));
         }
 
@@ -149,12 +148,12 @@ export default function Dashboard() {
                 <Accessibility />
               </CardIcon>
               <p className={classes.cardCategory}>Most Runs</p>
-              <h3 className={classes.cardTitle}>{mostRuns.maxRunPlayerName}</h3>
+              <h3 className={classes.cardTitle}>{mostRuns ? mostRuns.maxRunPlayerName : ""}</h3>
             </CardHeader>
             <CardFooter stats>
               <div className={classes.stats}>
                 <Accessibility />
-                {mostRuns.maxRun}
+                {mostRuns?mostRuns.maxRun:""}
               </div>
             </CardFooter>
           </Card>
@@ -167,12 +166,12 @@ export default function Dashboard() {
                 <SportsHandballIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Most Wickets</p>
-              <h3 className={classes.cardTitle}>{mostWickets.maxWicketPlayerName}</h3>
+              <h3 className={classes.cardTitle}>{mostWickets ? mostWickets.maxWicketPlayerName : ""}</h3>
             </CardHeader>
             <CardFooter stats>
               <div className={classes.stats}>
                 <SportsHandballIcon />
-                {mostWickets.maxWicket}
+                {mostWickets? mostWickets.maxWicket:""}
               </div>
             </CardFooter>
           </Card>
