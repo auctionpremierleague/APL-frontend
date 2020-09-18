@@ -31,7 +31,7 @@ import CardFooter from "components/Card/CardFooter.js";
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
-const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+ const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 // const ENDPOINT = "http://localhost:4000";
 
 
@@ -84,6 +84,7 @@ export default function Dashboard() {
 
         const runDetails = maxRun.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
 
+        console.log(runDetails)
         if (runDetails) {
 
           setMostRuns(runDetails[0])

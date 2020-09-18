@@ -406,7 +406,8 @@ export default function ImgMediaCard() {
     }
 
     function UserAuctionPending() {
-        return <Typography>Auction has not been started by Admin! <br /> Auction is Coming !!</Typography>
+        
+        return auctionStatus==="PENDING"? <Typography>Auction has not been started by Admin! <br /> Auction is Coming !!</Typography>:<Typography>Auction has ended</Typography>
     }
 
     function UserAuction() {
@@ -447,7 +448,7 @@ export default function ImgMediaCard() {
     }
     return (
 
-        auctionStatus === "PENDING" ? localStorage.getItem("admin") === "true" ? <AdminPending /> : <UserAuctionPending /> : localStorage.getItem("admin") === "true" ? <AdminAuction /> : <UserAuction />
+       ( auctionStatus === "PENDING"||  auctionStatus === "OVER")? localStorage.getItem("admin") === "true" ? <AdminPending /> : <UserAuctionPending /> : localStorage.getItem("admin") === "true" ? <AdminAuction /> : <UserAuction />
 
 
     );

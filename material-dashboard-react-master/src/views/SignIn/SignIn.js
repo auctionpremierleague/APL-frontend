@@ -3,7 +3,9 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
 
+import DialogTitle from '@material-ui/core/DialogTitle';
 import Link from '@material-ui/core/Link';
 
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
@@ -49,24 +51,31 @@ export default function SignIn() {
   const [userName, setUserName] = useState();
   const [password, setPassword] = useState();
   const [showPage, setShowPage] = useState(false);
+  const [open, setOpen] = useState(false)
   const { setUser } = useContext(UserContext);
 
   useEffect(() => {
-  
+
 
     if (window.localStorage.getItem("logout")) {
       localStorage.clear();
     }
     if (window.localStorage.getItem("uid")) {
-      setUser({uid:window.localStorage.getItem("uid"),admin:window.localStorage.getItem("admin")})
+      setUser({ uid: window.localStorage.getItem("uid"), admin: window.localStorage.getItem("admin") })
       history.push("/admin")
     } else {
       setShowPage(true)
     }
   })
   const handleClick = async () => {
-    const response = await axios.get(`/user/login/${userName}/${password}`);
+    let response = ""
+    try { response = await axios.get(`/user/login/${userName}/${password}`); }
+    catch (err) {
+      setOpen(true)
+    }
 
+
+    console.log(response.status)
     if (response.status === 200) {
 
       window.localStorage.setItem("uid", response.data)
@@ -135,6 +144,13 @@ export default function SignIn() {
 
           </form>
         </div>
+
+        <Dialog aria-labelledby="simple-dialog-title" open={open}
+          onClose={() => setOpen(false)} >
+          <DialogTitle id="simple-dialog-title" >Invalid Username or Password</DialogTitle>
+
+
+        </Dialog>
 
       </Container> : ""
   );
