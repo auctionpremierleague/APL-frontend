@@ -8,15 +8,27 @@ const SENDRES = 1;
 const SENDSOCKET = 2;
 
 // user these keys in rotation for fetch data from cricapi
-const keylist = [				
-"O9vYC5AxilYm7V0EkYkvRP5jF9B2","RTf9weNrX8Xn2ts1ksdzAXcuxnE3","H2ObZFee6BVMN5kCjLxYCMwcEp52",
-"kAWvFxmpeJZmbtyNeDLXtxUPrAH3","EstH4EqbfEXMKXcS9M83k7cqUs13","ApVnpFFO6kgxTYXVwWQTEeiFVCO2",
-"72QuFkQezxf5IdqxV1CtGJrAtcn1","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
+// const keylist = [
+// "O9vYC5AxilYm7V0EkYkvRP5jF9B2","RTf9weNrX8Xn2ts1ksdzAXcuxnE3","H2ObZFee6BVMN5kCjLxYCMwcEp52",
+// "kAWvFxmpeJZmbtyNeDLXtxUPrAH3","EstH4EqbfEXMKXcS9M83k7cqUs13","ApVnpFFO6kgxTYXVwWQTEeiFVCO2",
+// "72QuFkQezxf5IdqxV1CtGJrAtcn1","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
+// "4mtu16sveyTPWgz5ID7ru9liwE12","iEsdTQufBnToUI1xVxWMQF6wauX2","bbdCNNOKBtPnL54mvGSgpToFUlA2",
+// "AM690XluFdZJ85PYvOP7IxgcxUI2","85L3mbm1GiXSfYmQWZJSeayoG2s1","LrNnasvQp0e2p5JfpAI5Q642o512",
+// "UsE0jiSe6ZbLSQlO6k9W8ePWT043","ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93",
+// "fvxbB9BLVNfxatmOaiseF7Jzz6B2","Klr0NkJuG3YpZ1KburbMBNpfO1q1"
+// ]; 
+
+//use for testing
+// const keylist= [ "M3Fg7CfVEkXYSQvDRKP3NwgJIuv1" ];
+
+const keylist = [
+"O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
 "4mtu16sveyTPWgz5ID7ru9liwE12","iEsdTQufBnToUI1xVxWMQF6wauX2","bbdCNNOKBtPnL54mvGSgpToFUlA2",
 "AM690XluFdZJ85PYvOP7IxgcxUI2","85L3mbm1GiXSfYmQWZJSeayoG2s1","LrNnasvQp0e2p5JfpAI5Q642o512",
-"UsE0jiSe6ZbLSQlO6k9W8ePWT043","ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93",
-"fvxbB9BLVNfxatmOaiseF7Jzz6B2","Klr0NkJuG3YpZ1KburbMBNpfO1q1"
-]; 
+"UsE0jiSe6ZbLSQlO6k9W8ePWT043","apuLbsy7PVddDnb4vAe72X3K10Z2","ZfX9ln4lqYaEEtxJprOTceDW9rx2",
+"93WLPVtYJIOLRKXzb3LJYfrd2Z72","iiyI0vNqKaS4Srie6thRQZe5hIi1","r4ZAGKxe9pdy9AuYzViW486eGI83",
+"ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93","fvxbB9BLVNfxatmOaiseF7Jzz6B2"
+]
 
 // to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
@@ -115,6 +127,33 @@ router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   })
   sendok("OK");
 });
+
+router.use('/reread/:matchid', async function(req, res, next) {
+  PlayerStatRes = res;  
+  setHeader();
+  var {matchid} = req.params;
+  if (isNaN(matchid)) { sendok("Invalid Match Id"); return}
+  var mymid = parseInt(matchid)
+  var mmm = await CricapiMatch.findOne({mid: mymid});
+  if (mmm == null) { sendok("Invalid Match Id"); return}
+  
+  const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
+  console.log(cricData.data);
+  if (cricData == null)
+    sendok("cricData is NULL");
+  else if (cricData.data == null)
+    sendok(cricData);
+  else {
+    var newstats = updateMatchStats_r1(mmm, cricData.data);
+    console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
+    if (mmm.matchEndTime < new Date()) {
+      mmm.matchEnded = true;
+      mmm.save();
+    }
+    sendok("OK");
+  }     
+});
+
 
 router.use('/test', async function(req, res, next) {
   PlayerStatRes = res;  
@@ -653,23 +692,32 @@ async function statRank (iwhichUser, doSendWhat) {
       grandScore: totscore, 
       rank: 0});
   })
-  // assign ranking
-  var lastRank = 0;
-  var nextRank = 0;
-  var lastScore = 99999999999999999999999999999;  // OMG such a big number!!!! Can any player score this many points
   userRank = _.sortBy(userRank, 'grandScore').reverse();
 
+  // assign ranking
+  var nextRank = 0;
+  var lastScore = 99999999999999999999999999999;  // OMG such a big number!!!! Can any player score this many points
+
+  // var lastRank = 0;
+  // userRank.forEach( x => {
+  //   ++nextRank;
+  //   if (x.grandScore < lastScore) {
+  //     lastRank = nextRank;
+  //     lastScore = x.grandScore;
+  //   }
+  //   x.rank = lastRank;
+  // });
+  // userRank = _.sortBy(userRank, 'grandScore').reverse();
+
   userRank.forEach( x => {
-    ++nextRank;
-    if (x.grandScore < lastScore) {
-      lastRank = nextRank;
-      lastScore = x.grandScore;
-    }
-    x.rank = lastRank;
+    if (x.grandScore < lastScore)
+      ++nextRank;
+    x.rank = nextRank;
+    lastScore = x.grandScore;
   });
-  
+
   if (iwhichUser != 0)
-  userRank = _.filter(userRank, x => x.uid == iwhichUser);
+    userRank = _.filter(userRank, x => x.uid == iwhichUser);
   //console.log(userRank);
   if (doSendWhat === SENDRES) {
     sendok(userRank);
@@ -907,14 +955,17 @@ async function update_cricapi_data_r1(logToResponse)
     // get stas of all these matches
     await matchesFromDB.forEach(async (mmm) => {
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
-      var newstats = updateMatchStats_r1(mmm, cricData.data);
-      // if pasrt end time. Then set matchended as true
-      var currdate = new Date();
-      console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
-      if (mmm.matchEndTime < new Date()) {
-        mmm.matchEnded = true;
-        mmm.save();
-      }     
+      if (cricData != null)
+      if (cricData.data != null) {
+        var newstats = updateMatchStats_r1(mmm, cricData.data);
+        // if pasrt end time. Then set matchended as true
+        var currdate = new Date();
+        console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
+        if (mmm.matchEndTime < new Date()) {
+          mmm.matchEnded = true;
+          mmm.save();
+        }     
+      }
     });
     return;
 }
@@ -945,8 +996,8 @@ async function updateMatchStats_r1(mmm, cricdata)
   if (cricdata["man-of-the-match"].pid != undefined)
   if (cricdata["man-of-the-match"].pid.length > 0)
     manOfTheMatchPid = parseInt(cricdata["man-of-the-match"].pid);
+  console.log(`Man of the match is ${manOfTheMatchPid} as per cric api ${cricdata["man-of-the-match"]}`)
 
-  //console.log(`Man of the match is ${manOfTheMatchPid} as per cric api ${cricdata["man-of-the-match"]}`)
   var allplayerstats = await tournamentStat.find({mid: mmm.mid});
   // update bowling details
   //console.log("Bowlong Started");
@@ -1142,7 +1193,7 @@ async function fetchMatchStatsFromCricapi(matchId) { // (1)
     let json = await cricres.json(); // (3)
     return json;
   }
-
+  console
   throw new Error(cricres.status);
 }
 
@@ -1165,49 +1216,84 @@ async function sendMatchInfoToClient(doSendWhat) {
   var myMatches = await CricapiMatch.find({tournament: myGroup[0].tournament});
   //console.log(myMatches);
 
-  var currMatches = _.filter(myMatches, x => _.lte (x.matchStartTime, currTime) && _.lte(currTime,x.matchEndTime));
-  var upcomingMatch = _.find(myMatches, x => _.gte(x.matchStartTime, currTime));
-
   if (doSendWhat === SENDRES) {
-    sendok(currMatches);
+    sendok(myMatches);
   } else {
     const socket = app.get("socket");
+    var currMatches = _.filter(myMatches, x => _.gte (currTime, x.matchStartTime) && _.lte(currTime,x.matchEndTime));
     socket.emit("currentMatch", currMatches)
     socket.broadcast.emit('curentMatch', currMatches);
+    var upcomingMatch = _.find(myMatches, x => _.gte(x.matchStartTime, currTime));
     socket.emit("upcomingMatch", upcomingMatch)
     socket.broadcast.emit('upcomingMatch', upcomingMatch);
     // console.log(upcomingMatch);
     // console.log(currMatches)
   }
 }
+
 // schedule task
-cron.schedule('*/2 * * * *', () => {
-  console.log('==========running every 2 minute');
+cron.schedule('*/1 * * * * *', () => {
+  if (!db_connection) {
+    console.log("============= No mongoose connection");
+    return;
+  }  
+
   _group = 1;
   _tournament = "IPL2020"
-  if (db_connection) {
+
+  ++cricTimer;
+  if (cricTimer >= cricUpdateInterval) {
+    cricTimer = 0;
+    console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);
-  } else
-    console.log("============= No mongoose connection");
-});
+  }
 
-
-cron.schedule('*/15 * * * * * ', () => {
-  // schedule to continuous update to client
-  console.log('==========running every 15 seconds. Sending socket');
-    _group = 1;
-    _tournament = "IPL2020"
+  ++serverTimer;
+  if (serverTimer >= serverUpdateInterval) {
+    serverTimer = 0;
+    console.log("Time toi send send to data to server")
+    // statMax(0, doMaxRun, SENDSOCKET);
+    // statMax(0, doMaxWicket, SENDSOCKET);
+    // statRank(0, SENDSOCKET);
+    // statBrief(0, SENDSOCKET);
+    // sendMatchInfoToClient(SENDSOCKET);
+  }
+  else if (sendDashboard) {
+    sendDashboard = false;
     statMax(0, doMaxRun, SENDSOCKET);
     statMax(0, doMaxWicket, SENDSOCKET);
     statRank(0, SENDSOCKET);
-    statBrief(0, SENDSOCKET);
-    sendMatchInfoToClient(SENDSOCKET);
+  }
 });
+
+// cron.schedule('*/2 * * * *', () => {
+//   console.log('==========running every 2 minute');
+//   _group = 1;
+//   _tournament = "IPL2020"
+//   if (db_connection) {
+//     update_cricapi_data_r1(false);
+//   } else
+//     console.log("============= No mongoose connection");
+// });
+
+
+// cron.schedule('*/15 * * * * * ', () => {
+//   // schedule to continuous update to client
+//   console.log('==========running every 15 seconds. Sending socket');
+//     _group = 1;
+//     _tournament = "IPL2020"
+//     statMax(0, doMaxRun, SENDSOCKET);
+//     statMax(0, doMaxWicket, SENDSOCKET);
+//     statRank(0, SENDSOCKET);
+//     statBrief(0, SENDSOCKET);
+//     sendMatchInfoToClient(SENDSOCKET);
+// });
 
 var keyIndex = 0;
 function nextapikey() {
   if (++keyIndex >= keylist.length) 
     keyIndex = 0;
+  console.log(`Key used is ${keylist[keyIndex]}`);
   return keylist[keyIndex];
 }
 

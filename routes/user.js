@@ -74,8 +74,10 @@ router.get('/internal/:userAction/:userName/:userParam', function (req, res, nex
     else {
       switch (userAction) {
         case "login":
-          if ((urec) && (urec.password == userParam))
+          if ((urec) && (urec.password == userParam)) {
             sendok(urec.uid.toString());
+            sendDashboard = true;         // send dashboard data so that it gets displayed to user
+          }
           else
             senderr(602, "Invalid User name or password");
           break;

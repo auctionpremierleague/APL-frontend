@@ -266,6 +266,14 @@ BonusMOM = 20;
 BonusMaxRun = 100;
 BonusMaxWicket = 100;
 
+// variables rreuiqred by timer
+sendDashboard = false;
+cricTimer = 0;
+serverTimer = 0;
+
+// time interval for scheduler
+cricUpdateInterval = 30;    // in seconds. Interval after seconds fetch cricket match data from cricapi
+serverUpdateInterval = 10; // in seconds. INterval after which data to be updated to server
 
 // ----------------  end of globals
 
