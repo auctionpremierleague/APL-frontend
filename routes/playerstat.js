@@ -154,6 +154,13 @@ router.use('/reread/:matchid', async function(req, res, next) {
   }     
 });
 
+router.use('/sendmystat', async function(req, res, next) {
+  PlayerStatRes = res;  
+  setHeader();
+  sendMyStat = true;
+  sendok("OK");
+});
+
 
 router.use('/test', async function(req, res, next) {
   PlayerStatRes = res;  
@@ -1244,25 +1251,35 @@ cron.schedule('*/1 * * * * *', () => {
   ++cricTimer;
   if (cricTimer >= cricUpdateInterval) {
     cricTimer = 0;
-    console.log("TIme to getch cric data");
+    // console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);
   }
 
   ++serverTimer;
   if (serverTimer >= serverUpdateInterval) {
     serverTimer = 0;
-    console.log("Time toi send send to data to server")
-    // statMax(0, doMaxRun, SENDSOCKET);
-    // statMax(0, doMaxWicket, SENDSOCKET);
-    // statRank(0, SENDSOCKET);
-    // statBrief(0, SENDSOCKET);
-    // sendMatchInfoToClient(SENDSOCKET);
-  }
-  else if (sendDashboard) {
-    sendDashboard = false;
+    // console.log("Time toi send send to data to server")
     statMax(0, doMaxRun, SENDSOCKET);
     statMax(0, doMaxWicket, SENDSOCKET);
     statRank(0, SENDSOCKET);
+    statBrief(0, SENDSOCKET);
+    // sendMatchInfoToClient(SENDSOCKET);
+  }
+  else {
+    
+    if (sendMyStat) {
+      // console.log(`send My stat ${sendMyStat}`)
+      sendMyStat = false;
+      statBrief(0, SENDSOCKET);
+    }
+    
+    if (sendDashboard) {
+      // console.log(`send My Dashboard ${sendDashboard}`)
+      sendDashboard = false;
+      statMax(0, doMaxRun, SENDSOCKET);
+      statMax(0, doMaxWicket, SENDSOCKET);
+      statRank(0, SENDSOCKET);
+    }
   }
 });
 
