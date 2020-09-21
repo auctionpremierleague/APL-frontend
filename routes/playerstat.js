@@ -694,7 +694,7 @@ async function statRank (iwhichUser, doSendWhat) {
     // do not assign rank. Just now. Will be assigned when info of all user grad score is available
     userRank.push({ 
       uid: userPid, 
-      userName: curruserName, 
+      // userName: curruserName, 
       displayName: currdisplayName,
       grandScore: totscore, 
       rank: 0});
@@ -1399,7 +1399,7 @@ function getMatchStartTime(cricapiRec) {
 
 const OdiHours = 9;
 const testHours = 9;
-const t20Hours = 4;
+const t20Hours = 5;
 
 function getMatchEndTime(cricapiRec) {
   var tmp = getMatchStartTime(cricapiRec);       // clone start date
