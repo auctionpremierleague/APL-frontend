@@ -694,7 +694,7 @@ async function statRank (iwhichUser, doSendWhat) {
     // do not assign rank. Just now. Will be assigned when info of all user grad score is available
     userRank.push({ 
       uid: userPid, 
-      // userName: curruserName, 
+      userName: curruserName, 
       displayName: currdisplayName,
       grandScore: totscore, 
       rank: 0});
