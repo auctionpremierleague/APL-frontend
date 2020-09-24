@@ -55,7 +55,7 @@ export default function Dashboard() {
 
   const tableData = (rankDetails) => {
     const arr = rankDetails.map(element => {
-      console.log(element)
+      // console.log(element)
       const { displayName, userName, grandScore, rank } = element;
       //const {rank,displayName,userName,grandScore}=element;
       return { data: Object.values({ rank, displayName, userName, displayName, grandScore }), collapse: [] }
@@ -68,13 +68,22 @@ export default function Dashboard() {
     socket.on("connect", () => {
       console.log("dashboard connected");
       socket.on("rank", (rank) => {
-        console.log(rank)
+        // console.log(rank)
         const userDetails = rank.filter((element) => element.uid === parseInt(localStorage.getItem("uid")))
 
-        if (userDetails) {
+        // if (userDetails) {
 
+        //   setRank(userDetails[0].rank);
+        //   setScore(userDetails[0].grandScore)
+        //   setRankArray(tableData(rank));
+        // }
+        if (userDetails.length > 0) {
+          // if details of current user found (current user is a member of group 1)
           setRank(userDetails[0].rank);
           setScore(userDetails[0].grandScore)
+          setRankArray(tableData(rank));
+        } else if (localStorage.getItem("admin") === "true") {
+          // current user is not member of the group but is ADMIN. Thus show the rank details
           setRankArray(tableData(rank));
         }
 
@@ -84,7 +93,7 @@ export default function Dashboard() {
 
         const runDetails = maxRun.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
 
-        console.log(runDetails)
+        // console.log(runDetails)
         if (runDetails) {
 
           setMostRuns(runDetails[0])

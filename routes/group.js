@@ -133,6 +133,19 @@ router.get('/setauctionstatus/:groupid/:newstate', function (req, res, next) {
   });
 });
 
+router.get('/getfirstmatch/:groupid', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  console.log("Hello");
+  var { groupid } = req.params;
+  if (isNaN(groupid))  { senderr(621, "Invalid Group"); return; }
+  var igroup = parseInt(groupid);
+  var mygroup = await IPLGroup.findOne({ gid: igroup });
+  if (!mygroup) { senderr(621, "Invalid Group"); return; }
+  var mymatch = await CricapiMatch.find({tournament: mygroup.tournament}).limit(1).sort({ "matchStartTime": 1 });
+  console.log(mymatch);
+  sendok(mymatch);
+});
 
 router.get('/getauctionplayer/:groupid', function (req, res, next) {
   GroupRes = res;
