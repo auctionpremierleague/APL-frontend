@@ -1,7 +1,7 @@
 const { route, use } = require(".");
 router = express.Router();
 
-
+// const allUSER = 99999999;
 const is_Captain = true;
 const is_ViceCaptain = false;
 const WITH_CVC  = 1;
@@ -268,6 +268,7 @@ router.get('/myteam/:userid', function (req, res, next) {
   let iuser = allUSER;
   if (userid.toUpperCase() != "ALL") {
     if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
+    iuser = parseInt(userid);
   }
   publish_auctionedplayers(igroup, iuser, WITH_CVC);
 
@@ -282,6 +283,7 @@ router.get('/myteamwos/:userid', function (req, res, next) {
   let iuser = allUSER;
   if (userid.toUpperCase() != "ALL") {
     if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
+    iuser = parseInt(userid);
   }
   publish_auctionedplayers(igroup, iuser, WITHOUT_CVC);
 
@@ -413,17 +415,15 @@ async function publish_auctionedplayers(groupid, userid, withOrWithout)
   var myGroup = await IPLGroup({gid: groupid});
   if (!myGroup) { senderr(601, `Invalid group number ${groupid}`); return; }
   if (isNaN(userid)) { senderr(605, "Invalid user"); return; }
-
-  if (userid == allUSER) { 
+  if (userid === allUSER) { 
     myfilter = {gid: groupid};
     userFilter = {};
   }else {
     myfilter = {gid: groupid, uid: userid};
     userFilter = {uid: userid}
   }
-
   var PallCaptains = Captain.find(myfilter); 
-  var Pgmembers = GroupMember.find({gid: igroup});
+  var Pgmembers = GroupMember.find({gid: groupid});
   var PallUsers = User.find(userFilter);
   var Pdatalist = Auction.find(myfilter);
   
