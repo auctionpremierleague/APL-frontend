@@ -4,6 +4,8 @@ router = express.Router();
 const allUSER = 99999999;
 const is_Captain = true;
 const is_ViceCaptain = false;
+const WITH_CVC  = 1;
+const WITHOUT_CVC = 2;
 let CricRes;
 var _group;
 var _tournament;
@@ -136,11 +138,15 @@ router.get('/internal/:userAction/:userName/:userParam', function (req, res, nex
 router.get('/captain/:myuser/:myplayer', function (req, res, next) {
   CricRes = res;
   setHeader();
+  igroup = _group;
 
-  if (ipl_started()) {
-    senderr(604, "IPL has started!!!! Cannot set Captain");
+  // check tournament has started
+  var myMsg = ipl_started(igroup);
+  if (myMsg != "") {
+    senderr(604, myMsg);
     return;
   }
+
   var { myuser, myplayer } = req.params;
   var iuser = parseInt(myuser);
   var iplayer = parseInt(myplayer);
@@ -164,11 +170,15 @@ router.get('/captain/:myuser/:myplayer', function (req, res, next) {
 router.get('/vicecaptain/:myuser/:myplayer', function (req, res, next) {
   CricRes = res;
   setHeader();
+  igroup = _group;
 
-  if (ipl_started()) {
-    senderr(604, "IPL has started!!!! Cannot set Vice Captain");
+  // check tournament has started
+  var myMsg = ipl_started(igroup);
+  if (myMsg != "") {
+    senderr(604, myMsg);
     return;
   }
+
   var { myuser, myplayer } = req.params;
   var iuser = parseInt(myuser);
   var iplayer = parseInt(myplayer);
@@ -189,7 +199,7 @@ router.get('/vicecaptain/:myuser/:myplayer', function (req, res, next) {
 });
 
 // select caption for the user (currently only group 1 supported by default)
-router.get('/getcaptain/:myuser', function (req, res, next) {
+router.get('/getcaptain/:myuser', async function (req, res, next) {
   CricRes = res;
   setHeader();
 
@@ -200,8 +210,10 @@ router.get('/getcaptain/:myuser', function (req, res, next) {
   if (myuser.toUpperCase() === "ALL")
     myfilter = { gid: igroup };
   else {
+    if (isNaN(myuser)) { senderr(605, "Invalid user"); return; }
     var iuser = parseInt(myuser);
-    if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
+    var myMembership = await GroupMember.findOne({gid: igroup, uid: iuser});
+    if (!myMembership) { senderr(605, "Invalid user"); return; }
     myfilter = { gid: igroup, uid: iuser };
   }
   publishCaptain(myfilter);
@@ -252,11 +264,25 @@ router.get('/myteam/:userid', function (req, res, next) {
 
   var { userid } = req.params;
   let igroup = _group;   // default group 1
-  let iuser = (userid.toUpperCase() != "ALL") ? parseInt(userid) : allUSER;
-  if (isNaN(iuser))
-    senderr(605, `Invalid user ${userid}`);
-  else
-    publish_auctionedplayers(iuser);
+  let iuser = allUSER;
+  if (userid.toUpperCase() != "ALL") {
+    if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
+  }
+  publish_auctionedplayers(igroup, iuser, WITH_CVC);
+
+});
+
+router.get('/myteamwos/:userid', function (req, res, next) {
+  CricRes = res;
+  setHeader();
+
+  var { userid } = req.params;
+  let igroup = _group;   // default group 1
+  let iuser = allUSER;
+  if (userid.toUpperCase() != "ALL") {
+    if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
+  }
+  publish_auctionedplayers(igroup, iuser, WITHOUT_CVC);
 
 });
 
@@ -378,57 +404,20 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype) {
   });
 }
 
-
-async function publish_auctionedplayers_orig(userid) {
-  var myfilter;
-  var userFilter;
-  if (userid == allUSER) {
-    myfilter = { gid: _group };
-    userFilter = {};
-  } else {
-    myfilter = { gid: _group, uid: userid };
-    userFilter = { uid: userid }
-  }
-
-  var allUsers = await User.find(userFilter);
-  var datalist = await Auction.find(myfilter);
-  //console.log(datalist);
-  if (!datalist) { senderr(DBFETCHERR, err); return; }
-  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'team', 'bidAmount']));
-
-  // make grouping of players per user
-  // NEED TO CLEAN UP THIS PIECE OF CODE
-  var userlist = _.map(datalist, d => _.pick(d, ['uid']));
-  userlist = _.uniqBy(userlist, 'uid');
-
-  var grupdatalist = [];
-  userlist.forEach(myuser => {
-    //var userRec = await User.findOne({uid: myuser.uid});
-    var userRecs = _.filter(allUsers, x => x.uid == myuser.uid);
-    var myplrs = _.filter(datalist, x => x.uid === myuser.uid);
- 
-    var tmp = { uid: myuser.uid, displayName: userRecs[0].displayName, userName: userRecs[0].userName, players: myplrs };
-
-    grupdatalist.push(tmp);
-  })
-  sendok(grupdatalist);
-}
-
-async function publish_auctionedplayers(userid)
+async function publish_auctionedplayers(groupid, userid, withOrWithout)
 {
   var myfilter;
   var userFilter;
-  var igroup = _group;
 
-  var myGroup = await IPLGroup({gid: igroup});
-  if (!myGroup) { senderr(601, `Invalid group number ${mygroup}`); return; }
+  var myGroup = await IPLGroup({gid: groupid});
+  if (!myGroup) { senderr(601, `Invalid group number ${groupid}`); return; }
   if (isNaN(userid)) { senderr(605, "Invalid user"); return; }
 
   if (userid == allUSER) { 
-    myfilter = {gid: igroup};
+    myfilter = {gid: groupid};
     userFilter = {};
   }else {
-    myfilter = {gid: igroup, uid: userid};
+    myfilter = {gid: groupid, uid: userid};
     userFilter = {uid: userid}
   }
 
@@ -455,19 +444,21 @@ async function publish_auctionedplayers(userid)
     var myplrs = _.filter(datalist, x => x.uid === myuser.uid);
     // set captain and vice captain
     var caprec = _.find(allCaptains, x => x.uid == myuser.uid);
-    if (caprec) {
-      var myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.captain;}, 0);
-      if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (C)"
-      myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.viceCaptain;}, 0);
-      if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (VC)"  
-    } 
+    if (withOrWithout === WITH_CVC) {
+      if (caprec) {
+        var myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.captain;}, 0);
+        if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (C)"
+        myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.viceCaptain;}, 0);
+        if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (VC)"  
+      } 
+    }
 
     var tmp = {uid: myuser.uid, 
       userName: userRec[0].userName, displayName: userRec[0].displayName, 
       players: myplrs};
     grupdatalist.push(tmp);
   })
-  console.log(grupdatalist.length);
+  // console.log(grupdatalist.length);
   sendok(grupdatalist);
 }
 
@@ -480,19 +471,23 @@ async function publish_users(filter_users) {
 }
 
 async function publishCaptain(filter_users) {
-  console.log(filter_users);
+  // console.log(filter_users);
   var ulist = await Captain.find(filter_users);
   ulist = _.map(ulist, o => _.pick(o, ['gid', 'uid',
     'captain', 'captainName',
     'viceCaptain', 'viceCaptainName']));
+  // console.log(ulist);
   sendok(ulist);
 }
 
 // return true if IPL has started
-function ipl_started() {
+function ipl_started(mygroup) {
   var justnow = new Date();
   var difference = IPL_Start_Date - justnow;
-  return (difference <= 0)
+  var retstr = "";
+  if (difference >= 0)
+    retstr = "IPL has started!!!! Cannot set Vice Captain";
+  return (retstr)
 }
 
 function sendok(usrmgs) { CricRes.send(usrmgs); }

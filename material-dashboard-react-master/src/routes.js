@@ -32,6 +32,7 @@ import Logout from "views/Logout/Logout.js"
 
 import Auction from "views/Auction/Auction.js";
 import MyTeam from "views/MyTeam/MyTeam.js"
+import Captain from "views/Captain/Captain.js"
 
 
 const dashboardRoutes = [

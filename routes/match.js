@@ -122,7 +122,7 @@ router.use('/date/:mydate', function(req, res, next) {
 
 async function publish_matches(myfilter)
 {
-  console.log(myfilter);
+  // console.log(myfilter);
   var matchlist = await CricapiMatch.find(myfilter);  
   sendok(matchlist);
 }

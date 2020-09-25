@@ -18,7 +18,7 @@ const SENDSOCKET = 2;
 // "fvxbB9BLVNfxatmOaiseF7Jzz6B2","Klr0NkJuG3YpZ1KburbMBNpfO1q1"
 // ]; 
 
-//use for testing
+// use for testing
 // const keylist= [ "M3Fg7CfVEkXYSQvDRKP3NwgJIuv1" ];
 
 const keylist = [
@@ -1251,19 +1251,19 @@ cron.schedule('*/1 * * * * *', () => {
   ++cricTimer;
   if (cricTimer >= cricUpdateInterval) {
     cricTimer = 0;
-    // console.log("TIme to getch cric data");
+    console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);
   }
 
   ++serverTimer;
   if (serverTimer >= serverUpdateInterval) {
     serverTimer = 0;
-    // console.log("Time toi send send to data to server")
+    console.log("Time toi send send to data to server")
     statMax(0, doMaxRun, SENDSOCKET);
     statMax(0, doMaxWicket, SENDSOCKET);
     statRank(0, SENDSOCKET);
     statBrief(0, SENDSOCKET);
-    // sendMatchInfoToClient(SENDSOCKET);
+    sendMatchInfoToClient(SENDSOCKET);
   }
   else {
     
