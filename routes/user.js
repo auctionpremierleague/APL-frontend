@@ -1,7 +1,7 @@
 const { route, use } = require(".");
 router = express.Router();
 
-const allUSER = 99999999;
+
 const is_Captain = true;
 const is_ViceCaptain = false;
 const WITH_CVC  = 1;
@@ -30,6 +30,7 @@ router.get('/group', async function (req, res, next) {
   //_group = defaultGroup;
   showGroupMembers(1);
 });
+
 
 // get users belonging to group "mygroup"
 router.get('/group/:mygroup', async function (req, res, next) {
@@ -465,7 +466,7 @@ async function publish_auctionedplayers(groupid, userid, withOrWithout)
 async function publish_users(filter_users) {
   //console.log(filter_users);
   var ulist = await User.find(filter_users);
-  ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName']));
+  ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName', 'defaultGroup']));
   ulist = _.sortBy(ulist, 'uid');
   sendok(ulist);
 }
@@ -502,9 +503,13 @@ module.exports = router;
 
 async function showGroupMembers(groupno) {
   //console.log(_ggroupnoroup);
-  gmlist = await GroupMember.find({ gid: groupno });
-  var userlist = _.map(gmlist, 'uid');
-  publish_users({ uid: { $in: userlist } });
+  gmlist = await GroupMember.find({ gid: groupno, enable: true });
+  // ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName', 'defaultGroup']));
+  if (gmlist.length > 0)
+    gmlist = _.map(gmlist, o => _.pick(o, ['gid', 'uid', 'userName', 'displayName']));
+  // var userlist = _.map(gmlist, 'uid');
+  // publish_users({ uid: { $in: userlist } });
+  sendok(gmlist);
 }
 
 

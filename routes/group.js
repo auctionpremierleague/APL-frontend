@@ -329,13 +329,47 @@ router.get('/test', function (req, res, next) {
   update_tournament_max(1);
 });
 
-// router.get('/members/:groupid', function(req, res, next) {
-//   GroupRes = res;
-//   setHeader();
+// list of group of which user is the member
+router.get('/memberof/:userid', async function(req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {userid}=req.params;
 
-//   var {groupid}=req.params;
-//   sendok("Member details under development");
-// });
+  // // check if valid user
+  // var iuser = allUSER;
+  // var ufilter = {}
+  // if (userid.toUpperCase() != "ALL") {
+  //   if (isNaN(userid)) { senderr(623, `Invalid user id ${userid}`); return;}
+  //   iuser = parseInt(userid);
+  //   ufilter = {uid: iuser}
+  // }
+  // var myUsers = await User.find(ufilter)
+  // var myGroups = await GroupMember.find ({enable: true});
+  // var groupData = [];
+  // myUsers.forEach(u => {
+  //   var tmp = _.filter(myGroups, x => x.uid === u.uid);
+  //   if (tmp.length > 0) {
+  //     // const newArr = _.map(arr, o => _.extend({married: false}, o));
+  //     // myindex = _.findIndex(myteams, (x) => { return x.name.toUpperCase() === myTeam2});
+  //     tmp = _.map(tmp, x => _.extend({default: false}, x));
+  //     if (u.defaultGroup > 0) {
+  //       var idx = _.findIndex(tmp, (x) => { return} )   
+  //     }
+  //   }
+  // });
+  // my
+  // myGroups = _.sortBy(myGroups, 'uid').reverse();
+
+  // // sort to key default group at the top
+  // if (myUser.defaultGroup > 0) {
+  //   var tmp1 = _.filter(myGroups, x => x.gid === myUser.defaultGroup )
+  //   _.remove(myGroups, {'gid':  myUser.defaultGroup});
+  //   myGroups = tmp1.concat(myGroups);
+  // } 
+
+  // sendok(myGroups);
+  sendok("Under develoment");
+});
 
 async function update_tournament_max(groupno) {
   // first find maximum of run scored by batsman and wickets taken by bowler 

@@ -21,13 +21,22 @@ const SENDSOCKET = 2;
 // use for testing
 // const keylist= [ "M3Fg7CfVEkXYSQvDRKP3NwgJIuv1" ];
 
+// const keylist = [
+// "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
+// "4mtu16sveyTPWgz5ID7ru9liwE12","iEsdTQufBnToUI1xVxWMQF6wauX2","bbdCNNOKBtPnL54mvGSgpToFUlA2",
+// "AM690XluFdZJ85PYvOP7IxgcxUI2","85L3mbm1GiXSfYmQWZJSeayoG2s1","LrNnasvQp0e2p5JfpAI5Q642o512",
+// "UsE0jiSe6ZbLSQlO6k9W8ePWT043","apuLbsy7PVddDnb4vAe72X3K10Z2","ZfX9ln4lqYaEEtxJprOTceDW9rx2",
+// "93WLPVtYJIOLRKXzb3LJYfrd2Z72","iiyI0vNqKaS4Srie6thRQZe5hIi1","r4ZAGKxe9pdy9AuYzViW486eGI83",
+// "ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93","fvxbB9BLVNfxatmOaiseF7Jzz6B2"
+// ]
+
+// list provided by ANKIT
 const keylist = [
-"O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
-"4mtu16sveyTPWgz5ID7ru9liwE12","iEsdTQufBnToUI1xVxWMQF6wauX2","bbdCNNOKBtPnL54mvGSgpToFUlA2",
-"AM690XluFdZJ85PYvOP7IxgcxUI2","85L3mbm1GiXSfYmQWZJSeayoG2s1","LrNnasvQp0e2p5JfpAI5Q642o512",
-"UsE0jiSe6ZbLSQlO6k9W8ePWT043","apuLbsy7PVddDnb4vAe72X3K10Z2","ZfX9ln4lqYaEEtxJprOTceDW9rx2",
-"93WLPVtYJIOLRKXzb3LJYfrd2Z72","iiyI0vNqKaS4Srie6thRQZe5hIi1","r4ZAGKxe9pdy9AuYzViW486eGI83",
-"ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93","fvxbB9BLVNfxatmOaiseF7Jzz6B2"
+  "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
+  "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
+  "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
+  "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
+  "8LweszMN9vMnjb4W9UjjeQzTgEx1"
 ]
 
 // to get Matches
@@ -1258,7 +1267,7 @@ cron.schedule('*/1 * * * * *', () => {
   ++serverTimer;
   if (serverTimer >= serverUpdateInterval) {
     serverTimer = 0;
-    console.log("Time toi send send to data to server")
+    // console.log("Time toi send send to data to server")
     statMax(0, doMaxRun, SENDSOCKET);
     statMax(0, doMaxWicket, SENDSOCKET);
     statRank(0, SENDSOCKET);

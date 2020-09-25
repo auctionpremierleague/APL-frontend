@@ -39,10 +39,7 @@ tournamentRouter = require('./routes/tournament');
 
 
 io.on('connect', socket => {
-
   app.set("socket",socket);
- 
-
 });
 
 app.set('view engine', 'html');
@@ -87,7 +84,8 @@ UserSchema = mongoose.Schema({
   userName: String,
   displayName: String,
   password: String,
-  status: Boolean
+  status: Boolean,
+  defaultGroup: Number
 });
 IPLGroupSchema = mongoose.Schema({
   gid: Number,
@@ -97,7 +95,8 @@ IPLGroupSchema = mongoose.Schema({
   //tournamentOver:Boolean,
   tournament: String,
   auctionStatus: String,
-  auctionPlayer: Number
+  auctionPlayer: Number,
+  enable: Boolean
 });
 PlayerSchema = mongoose.Schema({
   pid: Number,
@@ -121,8 +120,11 @@ GroupMemberSchema = mongoose.Schema({
   gid: Number,
   uid: Number,
   userName: String,
-  balanceAmount: Number        // balance available to be used for bid
+  balanceAmount: Number,        // balance available to be used for bid
+  displayName: String,
+  enable: Boolean
 });
+
 CaptainSchema = mongoose.Schema({
   gid: Number,
   uid: Number,
@@ -143,17 +145,18 @@ TournamentSchema = mongoose.Schema({
   over: Boolean,
   enabled: Boolean
 })
-
-MatchSchema = mongoose.Schema({
-  mid: Number,
-  description: String,
-  team1: String,
-  team2: String,
-  team1Desciption: String,
-  team2Desciption: String,
-  matchTime: Date,
-  weekDay: String
-});
+// USE CRICMATCHSCHEMA since match details will be imported from CRICAPI 
+// Avoid createing match database
+// MatchSchema = mongoose.Schema({
+//   mid: Number,
+//   description: String,
+//   team1: String,
+//   team2: String,
+//   team1Desciption: String,
+//   team2Desciption: String,
+//   matchTime: Date,
+//   weekDay: String
+// });
 StatSchema = mongoose.Schema({
   mid: Number,
   pid: Number,
@@ -204,7 +207,7 @@ IPLGroup = mongoose.model("iplgroups", IPLGroupSchema);
 GroupMember = mongoose.model("groupmembers", GroupMemberSchema);
 Captain = mongoose.model("iplcaptains", CaptainSchema);
 Team = mongoose.model("iplteams", TeamSchema);
-Match = mongoose.model("iplmatches", MatchSchema);
+// Match = mongoose.model("iplmatches", MatchSchema);
 Stat = mongoose.model("iplplayerstats", StatSchema);
 Tournament = mongoose.model("tournaments", TournamentSchema);
 
@@ -231,6 +234,7 @@ ERR_NODB = "No connection to CricDream database";
 
 // Bid amount given to user when he/she joins group 1
 GROUP1_MAXBALANCE = 1000;
+allUSER = 99999999;
 
 // Number of hours after which match details to be read frpom cricapi.
 MATCHREADINTERVAL = 3;
