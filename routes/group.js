@@ -61,6 +61,53 @@ router.get('/close/:groupid/:ownerid', function (req, res, next) {
   });
 });
 
+router.get('/gettournamentmax/:groupid', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var { groupid } = req.params;
+  // groupAction = groupAction.toLowerCase();
+  var groupRec = await IPLGroup.findOne({ gid: groupid });
+  if (!groupRec) { senderr(621, "Invalid Group"); return; }
+
+  var maxRec = {maxRunPid: 0, maxRunPlayer: "", maxRunValue: 0,
+                maxWicketPid: 0, maxWicketPlayer: "", maxWicketValue: 0};
+  var tournamentStat = mongoose.model(groupRec.tournament, StatSchema);
+  var allRecs = await tournamentStat.find({});
+  if (allRecs.length > 0) {
+    var myPlayers = _.map(allRecs, 'pid');
+    var myPlayers = _.uniq(myPlayers);
+    var allPlayerInfo = await Player.find({pid: {$in: myPlayers}});
+    console.log(allPlayerInfo);
+    var myData = [];
+    myPlayers.forEach(myPid => {
+      var tmp = _.filter(allRecs, x => x.pid === myPid);
+      var pRec = _.filter(allPlayerInfo, x => x.pid === myPid);   //   await Player.findOne({pid: myPid});
+      myData.push({pid: myPid, playerName: pRec[0].name, 
+          totalRun: _.sumBy(tmp, 'run'), 
+          totalWicket: _.sumBy(tmp, 'wicket')})
+    })
+    myData = _.sortBy(myData, x => x.totalRun).reverse();
+    maxRec.maxRunPid = myData[0].pid;
+    maxRec.maxRunPlayer = myData[0].playerName;
+    maxRec.maxRunValue = myData[0].totalRun;
+
+    myData = _.sortBy(myData, x => x.totalWicket).reverse();
+    maxRec.maxWicketPid = myData[0].pid;
+    maxRec.maxWicketPlayer = myData[0].playerName;
+    maxRec.maxWicketValue = myData[0].totalWicket;
+  }
+  sendok(maxRec);
+
+  // , (err, gdoc) => {
+  //   if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+  //   else {
+  //     console.log(gdoc);
+  //     sendok(gdoc.auctionStatus);
+  //   }
+  // });
+});
+
 router.get('/getauctionstatus/:groupid', function (req, res, next) {
   GroupRes = res;
   setHeader();
@@ -329,46 +376,139 @@ router.get('/test', function (req, res, next) {
   update_tournament_max(1);
 });
 
+// requred duting sign in
+// window.localStorage.setItem("uid", response.data)
+// window.localStorage.setItem("gid", "1");
+// window.localStorage.setItem("groupName", "Friends of Happy Home Society");
+// window.localStorage.setItem("tournament", "IPL2020");
+router.get('/default/:myUser', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {myUser}=req.params;
+
+  // get user rec
+  var userRec = await User.findOne({uid: myUser});
+  if (!userRec) { senderr(623, "Invalid user"); return; }
+
+  var myGmRec = await GroupMember.find({uid: myUser}).limit(-1).sort({ "gid": -1 });
+  var myData = {uid: myUser, gid: 0, displayName: "", groupName: "", tournament: "", ismember: false, admin: false};
+  if (myGmRec.length > 0) {
+    // console.log(myGmRec[0].gid);
+    var myGroup = await IPLGroup.findOne({gid: myGmRec[0].gid});
+    // console.log(myGroup);
+    // myData.uid = myGmRec[0].uid;
+    myData.gid = myGmRec[0].gid;
+    myData.displayName = myGmRec[0].displayName;
+    myData.groupName = myGroup.name;
+    myData.tournament = myGroup.tournament;
+    myData.admin = (myUser == myGroup.owner);
+    myData.ismember = true;
+  } else {
+    // not a member of any group. Just check if
+    var myGroup = await IPLGroup.find({owner: myUser}).limit(-1).sort({"gid": -1});
+    if (myGroup.length > 0) {
+      myData.gid = myGroup[0].gid
+      myData.displayName = myGroup[0].displayName;
+      myData.groupName = myGroup[0].name;
+      myData.tournament = myGroup[0].tournament;
+      myData.admin = true;
+      myData.ismember = false;    // owner but not member. Remember Apurva
+    }
+  }
+  sendok(myData);
+  // var msg = await tournament_started(igroup);
+  // sendok(msg);
+});
+
+
+// requred duting change of current group
+// window.localStorage.setItem("uid", response.data)
+// window.localStorage.setItem("gid", "1");
+// window.localStorage.setItem("groupName", "Friends of Happy Home Society");
+// window.localStorage.setItem("tournament", "IPL2020");
+router.get('/current/:myGroup/:myUser', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {myGroup, myUser}=req.params;
+
+  // get user rec
+  var userRec = await User.findOne({uid: myUser});
+  if (!userRec) { senderr(623, "Invalid user"); return; }
+  var groupRec = await IPLGroup.findOne({gid: myGroup})
+  if (!groupRec) { senderr(621, `Invalid group ${myGroup}`); return; }
+
+  var myData = {uid: myUser, gid: myGroup, displayName: "", groupName: "", tournament: "", ismember: false, admin: false};
+  myData.groupName = groupRec.name;
+  myData.tournament = groupRec.tournament;
+  myData.admin = (myUser == groupRec.owner);
+
+  var myGmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
+  if (myGmRec) {
+    myData.displayName = myGmRec.displayName;
+    myData.ismember = true;
+  } else {
+      myData.displayName = myGroup.displayName;
+      myData.ismember = false;    // owner but not member. Remember Apurva
+  }
+  sendok(myData);
+});
+
+router.get('/gamestarted/:mygroup', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {mygroup}=req.params;
+  if (isNaN(mygroup)) { return senderr(621, `Invalid group ${mygroup}`); return; }
+  var igroup = parseInt(mygroup);
+  var msg = await tournament_started(igroup);
+  sendok(msg);
+});
+
 // list of group of which user is the member
 router.get('/memberof/:userid', async function(req, res, next) {
   GroupRes = res;
   setHeader();
   var {userid}=req.params;
 
-  // // check if valid user
-  // var iuser = allUSER;
-  // var ufilter = {}
-  // if (userid.toUpperCase() != "ALL") {
-  //   if (isNaN(userid)) { senderr(623, `Invalid user id ${userid}`); return;}
-  //   iuser = parseInt(userid);
-  //   ufilter = {uid: iuser}
-  // }
-  // var myUsers = await User.find(ufilter)
-  // var myGroups = await GroupMember.find ({enable: true});
-  // var groupData = [];
-  // myUsers.forEach(u => {
-  //   var tmp = _.filter(myGroups, x => x.uid === u.uid);
-  //   if (tmp.length > 0) {
-  //     // const newArr = _.map(arr, o => _.extend({married: false}, o));
-  //     // myindex = _.findIndex(myteams, (x) => { return x.name.toUpperCase() === myTeam2});
-  //     tmp = _.map(tmp, x => _.extend({default: false}, x));
-  //     if (u.defaultGroup > 0) {
-  //       var idx = _.findIndex(tmp, (x) => { return} )   
-  //     }
-  //   }
-  // });
-  // my
-  // myGroups = _.sortBy(myGroups, 'uid').reverse();
-
-  // // sort to key default group at the top
-  // if (myUser.defaultGroup > 0) {
-  //   var tmp1 = _.filter(myGroups, x => x.gid === myUser.defaultGroup )
-  //   _.remove(myGroups, {'gid':  myUser.defaultGroup});
-  //   myGroups = tmp1.concat(myGroups);
-  // } 
-
-  // sendok(myGroups);
-  sendok("Under develoment");
+  // check if valid user
+  var iuser = allUSER;
+  var ufilter = {}
+  var gfilter = {enable: true};
+  if (userid.toUpperCase() != "ALL") {
+    if (isNaN(userid)) { senderr(623, `Invalid user id ${userid}`); return;}
+    iuser = parseInt(userid);
+    ufilter = {uid: iuser}
+    gfilter = {uid: iuser, enable: true};
+  }
+  var myUsers = await User.find(ufilter)
+  var myGmRec = await GroupMember.find (gfilter);
+  var allGroups = await IPLGroup.find({});
+  // console.log(myGroups);
+  var groupData = [];
+  myUsers.forEach(u => {
+    // console.log(u);
+    var gData = [];
+    var tmp = _.filter(myGmRec, x => x.uid === u.uid);
+    tmp.forEach( gm => {
+      var grp = _.find(allGroups, x => x.gid === gm.gid);
+      var xxx =  { gid: gm.gid, displayName: gm.displayName, 
+        groupName: grp.name, tournament: grp.tournament, 
+        admin: ""};
+      // console.log(grp);
+      // console.log(gm);
+      // console.log(xxx);
+      if (gm.uid === grp.owner)  xxx.admin = "Admin";
+      // if (gm.gid === u.defaultGroup) xxx.default = "Default";
+      gData.push(xxx)
+    })
+    // if (gData.length > 0) {
+    //   if (u.defaultGroup > 0) {
+    //     var idx = _.findIndex(gData, (x) => { return x.gid === u.defaultGroup} );
+    //     gData[idx].default = "Default";
+    //   }
+    // }
+    groupData.push({ uid: u.uid, userName: u.userName, displayName: u.displayName, groups: gData});
+  });
+  sendok(groupData);
 });
 
 async function update_tournament_max(groupno) {
@@ -406,6 +546,23 @@ function publish_groups(filter_groups) {
     else
       senderr(DBFETCHERR, "Unable to fetch Groups from database");
   });
+}
+
+// return true if IPL has started
+async function tournament_started(mygroup) {
+  var justnow = new Date();
+  var groupRec = await IPLGroup.findOne({gid: mygroup})
+  if (!groupRec) return("Invalid Group");
+  var mymatch = await CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
+
+  // console.log(mymatch[0]);
+  var difference = 1;   // make it positive if no match schedule
+  if (mymatch.length > 0) {
+    var firstMatchStart = mymatch[0].matchStartTime;  
+    firstMatchStart.setHours(firstMatchStart.getHours() - 1)
+    difference = firstMatchStart - justnow;
+  }
+  return (difference <= 0) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
 }
 
 function senderr(errcode, msg) { GroupRes.status(errcode).send(msg); }

@@ -1261,13 +1261,13 @@ cron.schedule('*/1 * * * * *', () => {
   if (cricTimer >= cricUpdateInterval) {
     cricTimer = 0;
     console.log("TIme to getch cric data");
-    update_cricapi_data_r1(false);
+    // update_cricapi_data_r1(false);
   }
 
   ++serverTimer;
   if (serverTimer >= serverUpdateInterval) {
     serverTimer = 0;
-    // console.log("Time toi send send to data to server")
+    console.log("Time toi send send to data to server")
     statMax(0, doMaxRun, SENDSOCKET);
     statMax(0, doMaxWicket, SENDSOCKET);
     statRank(0, SENDSOCKET);
@@ -1292,28 +1292,6 @@ cron.schedule('*/1 * * * * *', () => {
   }
 });
 
-// cron.schedule('*/2 * * * *', () => {
-//   console.log('==========running every 2 minute');
-//   _group = 1;
-//   _tournament = "IPL2020"
-//   if (db_connection) {
-//     update_cricapi_data_r1(false);
-//   } else
-//     console.log("============= No mongoose connection");
-// });
-
-
-// cron.schedule('*/15 * * * * * ', () => {
-//   // schedule to continuous update to client
-//   console.log('==========running every 15 seconds. Sending socket');
-//     _group = 1;
-//     _tournament = "IPL2020"
-//     statMax(0, doMaxRun, SENDSOCKET);
-//     statMax(0, doMaxWicket, SENDSOCKET);
-//     statRank(0, SENDSOCKET);
-//     statBrief(0, SENDSOCKET);
-//     sendMatchInfoToClient(SENDSOCKET);
-// });
 
 var keyIndex = 0;
 function nextapikey() {

@@ -18,7 +18,7 @@
 // @material-ui/icons
 import Dashboard from "@material-ui/icons/Dashboard";
 
-import BubbleChart from "@material-ui/icons/BubbleChart";
+// import BubbleChart from "@material-ui/icons/BubbleChart";
 import GroupIcon from '@material-ui/icons/Group';
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import TimelineIcon from '@material-ui/icons/Timeline';
@@ -33,9 +33,18 @@ import Logout from "views/Logout/Logout.js"
 import Auction from "views/Auction/Auction.js";
 import MyTeam from "views/MyTeam/MyTeam.js"
 import Captain from "views/Captain/Captain.js"
+import Group from "views/Group/Group.js"
 
 
 const dashboardRoutes = [
+  {
+    path: "/mygroup",
+    name: "My Group",
+    rtlName: "لوحة القيادة",
+    icon: Dashboard,
+    component: Group,
+    layout: "/admin"
+  },
   {
     path: "/dashboard",
     name: "Dashboard",
@@ -58,6 +67,14 @@ const dashboardRoutes = [
     rtlName: "قائمة الجدول",
     icon: GroupIcon,
     component: MyTeam ,
+    layout: "/admin"
+  },
+  {
+    path: "/captain",
+    name: "My Captain",
+    rtlName: "قائمة الجدول",
+    icon: GroupIcon,
+    component: Captain,
     layout: "/admin"
   },
   {

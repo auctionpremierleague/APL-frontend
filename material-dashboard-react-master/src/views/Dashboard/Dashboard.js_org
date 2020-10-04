@@ -30,10 +30,9 @@ import CardFooter from "components/Card/CardFooter.js";
 
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import {Redirect} from 'react-router-dom';
 
-//  const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-const ENDPOINT = "http://localhost:4000";
+ const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// const ENDPOINT = "http://localhost:4000";
 
 
 
@@ -67,13 +66,10 @@ export default function Dashboard() {
   }
   useEffect(() => {
 
-    // if (!localStorage.getItem("uid"))
-    //   return  <Redirect  to="/signIn" />
-
     socket.on("connect", () => {
       console.log("dashboard connected");
       socket.on("rank", (rank) => {
-        console.log(localStorage.getItem("uid"))
+        // console.log(rank)
         const userDetails = rank.filter((element) => element.uid === parseInt(localStorage.getItem("uid")))
 
         // if (userDetails) {
@@ -85,7 +81,6 @@ export default function Dashboard() {
         // console.log(`Admin: ${localStorage.getItem("admin")}`)
         if (userDetails.length > 0) {
           // if details of current user found (current user is a member of group 1)
-          console.log("Data available");
           setRank(userDetails[0].rank);
           setScore(userDetails[0].grandScore)
           setRankArray(tableData(rank));
@@ -122,11 +117,10 @@ export default function Dashboard() {
 
 
   }, [rankArray]);
-
-  function ShowUserBoard() {
-    if (localStorage.getItem("ismember") === "true")
-      return(
-      <GridContainer>
+  const classes = useStyles();
+  return (
+    <div>
+      { localStorage.getItem("admin") === "false" ? <GridContainer>
         <GridItem xs={12} sm={6} md={3}>
           <Card>
             <CardHeader color="warning" stats icon>
@@ -165,6 +159,7 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
+
         <GridItem xs={12} sm={6} md={3}>
           <Card>
             <CardHeader color="info" stats icon>
@@ -182,6 +177,7 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
+
         <GridItem xs={12} sm={6} md={3}>
           <Card>
             <CardHeader color="danger" stats icon>
@@ -199,55 +195,29 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
-      </GridContainer>
-      )
-    else
-        return(<div></div>);        // no display if not a member
-  } 
+      </GridContainer> : ""}
 
-  function ShowUserRank() {
-    if ((localStorage.getItem("ismember") === "true") || (localStorage.getItem("admin") === "true"))
-    return(
-    <GridContainer>
-      <GridItem xs={12} sm={12} md={12}>
-        <Card>
-          <CardHeader color="warning">
 
-            <h4 className={classes.cardTitleWhite}>Franchise Score Board</h4>
-            <p className={classes.cardCategoryWhite}>
-              {`Updated as of ${date}`}
-            </p>
-          </CardHeader>
-          <CardBody>
-            <Table
-              tableHeaderColor="warning"
-              tableHead={["Rank", "Franchise", "Owner", "Score"]}
-              tableData={rankArray}
-            />
-          </CardBody>
-        </Card>
-      </GridItem>
-    </GridContainer>
-    )
-    else 
-    return (
       <GridContainer>
-      <GridItem xs={12} sm={12} md={12}>
-        <Card>
-          <CardHeader color="warning">
-            <h4 className={classes.cardTitleWhite}>Not a member of this group</h4>
-          </CardHeader>
-        </Card>
-      </GridItem>
-    </GridContainer>
-    )
-  }
 
-  const classes = useStyles();
-  return (
-    <div>
-      <ShowUserBoard />
-      <ShowUserRank />
+        <GridItem xs={12} sm={12} md={12}>
+          <Card>
+            <CardHeader color="warning">
+              <h4 className={classes.cardTitleWhite}>Franchise Score Board</h4>
+              <p className={classes.cardCategoryWhite}>
+                {`Updated as of ${date}`}
+              </p>
+            </CardHeader>
+            <CardBody>
+              <Table
+                tableHeaderColor="warning"
+                tableHead={["Rank", "Franchise", "Owner", "Score"]}
+                tableData={rankArray}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+      </GridContainer>
     </div>
   );
 }

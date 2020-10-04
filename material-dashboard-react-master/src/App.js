@@ -18,13 +18,12 @@ function AppRouter() {
 
   // localStorage.clear()
   window.onbeforeunload = () => Router.refresh();
+  console.log("in before unload");
+  // localStorage.clear();
+  // console.log("clearing local storage");
   return (
     <Router history={hist}>
-
-
       <UserContext.Provider value={value}>
-
-
         {!user && <Redirect from="/" to="/signIn" />}
         <Route path="/signIn" component={SignIn} />
         <Route path="/admin" component={value ? Admin : SignIn} />
