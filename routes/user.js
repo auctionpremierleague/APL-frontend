@@ -1,3 +1,4 @@
+const { sortedIndexOf } = require("lodash");
 const { route, use } = require(".");
 router = express.Router();
 
@@ -136,13 +137,13 @@ router.get('/internal/:userAction/:userName/:userParam', function (req, res, nex
 });
 
 // select caption for the user (currently only group 1 supported by default)
-router.get('/captain/:myuser/:myplayer', function (req, res, next) {
+router.get('/captain/:myuser/:myplayer', async function (req, res, next) {
   CricRes = res;
   setHeader();
   igroup = _group;
 
   // check tournament has started
-  var myMsg = ipl_started(igroup);
+  var myMsg = await ipl_started(igroup);
   if (myMsg != "") {
     senderr(604, myMsg);
     return;
@@ -168,13 +169,13 @@ router.get('/captain/:myuser/:myplayer', function (req, res, next) {
 });
 
 // select vice caption for the user (currently only group 1 supported by default)
-router.get('/vicecaptain/:myuser/:myplayer', function (req, res, next) {
+router.get('/vicecaptain/:myuser/:myplayer', async function (req, res, next) {
   CricRes = res;
   setHeader();
   igroup = _group;
 
   // check tournament has started
-  var myMsg = ipl_started(igroup);
+  var myMsg = await ipl_started(igroup);
   if (myMsg != "") {
     senderr(604, myMsg);
     return;
@@ -200,12 +201,12 @@ router.get('/vicecaptain/:myuser/:myplayer', function (req, res, next) {
 });
 
 // select caption for the user (currently only group 1 supported by default)
-router.get('/getcaptain/:myuser', async function (req, res, next) {
+router.get('/getcaptain/:mygroup/:myuser', async function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var { myuser } = req.params;
-  var igroup = defaultGroup;
+  var { mygroup, myuser } = req.params;
+  var igroup =  parseInt(mygroup);    // defaultGroup;
 
   var myfilter;
   if (myuser.toUpperCase() === "ALL")
@@ -257,6 +258,21 @@ router.get('/balance/:myuser', async function (req, res, next) {
 })
 
 
+router.get('/myteam/:userGroup/:userid', function (req, res, next) {
+  CricRes = res;
+  setHeader();
+
+  var { userGroup, userid } = req.params;
+  let igroup = parseInt(userGroup);   //_group;   // default group 1
+  let iuser = allUSER;
+  if (userid.toUpperCase() != "ALL") {
+    if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
+    iuser = parseInt(userid);
+  }
+  publish_auctionedplayers(igroup, iuser, WITH_CVC);
+
+});
+
 // get players purchased by me.
 // currently only group 1 supported
 router.get('/myteam/:userid', function (req, res, next) {
@@ -274,12 +290,12 @@ router.get('/myteam/:userid', function (req, res, next) {
 
 });
 
-router.get('/myteamwos/:userid', function (req, res, next) {
+router.get('/myteamwos/:groupid/:userid', function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var { userid } = req.params;
-  let igroup = _group;   // default group 1
+  var { groupid, userid } = req.params;
+  let igroup = parseInt(groupid);     //  _group;   // default group 1
   let iuser = allUSER;
   if (userid.toUpperCase() != "ALL") {
     if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
@@ -399,10 +415,11 @@ async function updateCaptainOrVicecaptain(iuser, iplayer, mytype) {
         caprec.viceCaptainName = myplayer.name;
       }
       //console.log(caprec);
-      caprec.save(function (err) {
-        if (err) senderr(DBFETCHERR, `Could not update ${caporvice}`);
-        else sendok(`${caporvice} updated for user ${iuser}`);
-      });
+      // caprec.save(function (err) {
+      //   if (err) senderr(DBFETCHERR, `Could not update ${caporvice}`);
+      //   else sendok(`${caporvice} updated for user ${iuser}`);
+      // });
+      sendok(`${caporvice} updated for user ${iuser}`);
     }
   });
 }
@@ -482,17 +499,24 @@ async function publishCaptain(filter_users) {
 }
 
 // return true if IPL has started
-function ipl_started(mygroup) {
+async function ipl_started(mygroup) {
   var justnow = new Date();
-  var difference = IPL_Start_Date - justnow;
-  var retstr = "";
-  if (difference >= 0)
-    retstr = "IPL has started!!!! Cannot set Vice Captain";
-  return (retstr)
+  var groupRec = await IPLGroup.findOne({gid: mygroup})
+  if (!groupRec) return("Invalid Group");
+  var mymatch = await CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
+
+  // console.log(mymatch[0]);
+  var difference = 1;   // make it positive if no match schedule
+  if (mymatch.length > 0) {
+    var firstMatchStart = mymatch[0].matchStartTime;  
+    firstMatchStart.setHours(firstMatchStart.getHours() - 1)
+    difference = firstMatchStart - justnow;
+  }
+  return (difference <= 0) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
 }
 
 function sendok(usrmgs) { CricRes.send(usrmgs); }
-function senderr(errcode, errmsg) { CricRes.status(errcode).send(errmsg); }
+function senderr(errcode, errmsg) { CricRes.status(errcode).send({error: errmsg}); }
 function setHeader() {
   CricRes.header("Access-Control-Allow-Origin", "*");
   CricRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -511,32 +535,3 @@ async function showGroupMembers(groupno) {
   // publish_users({ uid: { $in: userlist } });
   sendok(gmlist);
 }
-
-
-/** codes used for testing
-let words = ['sky', 'wood', 'forest', 'falcon',
-    'pear', 'ocean', 'universe'];
-let fel = _.first(words);
-let lel = _.last(words);
-let users = [
-  { name: 'John', age: 25, occupation: 'gardener' },
-  { name: 'Lenny', age: 45, occupation: 'programmer' },
-  { name: 'Andrew', age: 43, occupation: 'teacher' },
-  { name: 'Peter', age: 25, occupation: 'gardener' },
-  { name: 'Anna', age: 43, occupation: 'teacher' },
-  { name: 'Albert', age: 45, occupation: 'programmer' },
-  { name: 'Adam', age: 25, occupation: 'teacher' },
-  { name: 'Robert', age: 43, occupation: 'driver' }
-];
-//let u2 = _.find(users, (u) => { return u.age < 30 });
-// var u2 = YourArray.filter(function( obj ) {
-//   return obj.value === 1;
-// });
-// console.log(u2);
-let grouped = _.reduce(users, (result, user) => {
-    (result["AGE"+user.age] || (result["AGE"+user.age] = [])).push(user);
-    return result;
-}, {});
-var g25 = grouped.AGE25;
-
- */
