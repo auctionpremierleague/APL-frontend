@@ -98,6 +98,7 @@ IPLGroupSchema = mongoose.Schema({
   auctionPlayer: Number,
   enable: Boolean
 });
+
 PlayerSchema = mongoose.Schema({
   pid: Number,
   name: String,
