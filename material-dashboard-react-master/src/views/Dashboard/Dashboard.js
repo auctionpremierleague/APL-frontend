@@ -69,6 +69,9 @@ export default function Dashboard() {
   axios.get(`/stat/sendmydashboard/${localStorage.getItem("gid")}`);
   useEffect(() => {
 
+    // if (!localStorage.getItem("uid"))
+    //   return  <Redirect  to="/signIn" />
+
     socket.on("connect", () => {
       console.log("dashboard connected");
       socket.on("rank", (rank) => {
