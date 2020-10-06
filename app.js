@@ -274,6 +274,8 @@ BonusMaxWicket = 100;
 // variables rreuiqred by timer
 sendDashboard = false;
 sendMyStat = false;
+myStatGroup = [];
+myDashboardGroup = [];
 cricTimer = 0;
 serverTimer = 0;
 

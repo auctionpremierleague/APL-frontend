@@ -1,9 +1,9 @@
 import React from "react";
+import axios from "axios";
 // react plugin for creating charts
 
 // @material-ui/core
 import { useEffect, useState } from 'react';
-// import axios from "axios";
 import { makeStyles } from "@material-ui/core/styles";
 
 // @material-ui/icons
@@ -30,7 +30,7 @@ import CardFooter from "components/Card/CardFooter.js";
 
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import {Redirect} from 'react-router-dom';
+// import {Redirect} from 'react-router-dom';
 
 //  const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 const ENDPOINT = "http://localhost:4000";
@@ -65,54 +65,46 @@ export default function Dashboard() {
 
     return arr;
   }
-  useEffect(() => {
 
-    // if (!localStorage.getItem("uid"))
-    //   return  <Redirect  to="/signIn" />
+  axios.get(`/stat/sendmydashboard/${localStorage.getItem("gid")}`);
+  useEffect(() => {
 
     socket.on("connect", () => {
       console.log("dashboard connected");
       socket.on("rank", (rank) => {
-        console.log(localStorage.getItem("uid"))
-        const userDetails = rank.filter((element) => element.uid === parseInt(localStorage.getItem("uid")))
+        // console.log(localStorage.getItem("uid"))
+        const allRank = rank.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
+        const userDetails = allRank.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
 
-        // if (userDetails) {
-
-        //   setRank(userDetails[0].rank);
-        //   setScore(userDetails[0].grandScore)
-        //   setRankArray(tableData(rank));
-        // }
-        // console.log(`Admin: ${localStorage.getItem("admin")}`)
         if (userDetails.length > 0) {
           // if details of current user found (current user is a member of group 1)
-          console.log("Data available");
+          // console.log("Data available");
           setRank(userDetails[0].rank);
           setScore(userDetails[0].grandScore)
-          setRankArray(tableData(rank));
+          setRankArray(tableData(allRank));
         } else if (localStorage.getItem("admin") === "true") {
           // current user is not member of the group but is ADMIN. Thus show the rank details
-          setRankArray(tableData(rank));
+          setRankArray(tableData(allRank));
         }
 
       });
 
       socket.on("maxRun", (maxRun) => {
 
-        const runDetails = maxRun.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
-
+        const allMaxRun = maxRun.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
+        const runDetails = allMaxRun.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
         // console.log(runDetails)
-        if (runDetails) {
-
+        if (runDetails.length > 0) {
           setMostRuns(runDetails[0])
         }
 
       });
 
       socket.on("maxWicket", (maxWicket) => {
-
-        const wicketDetails = maxWicket.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
-
-        if (wicketDetails) {
+        const allMaxWicket = maxWicket.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
+        const wicketDetails = allMaxWicket.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
+        // console.log(wicketDetails);
+        if (wicketDetails.length > 0) {
           setMostwickets(wicketDetails[0]);
         }
 

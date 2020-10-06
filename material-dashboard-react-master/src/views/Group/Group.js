@@ -3,13 +3,8 @@ import axios from "axios";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
-
-
 import MenuItem from '@material-ui/core/MenuItem';
-
 import FormControl from '@material-ui/core/FormControl';
-
-
 import DoneIcon from '@material-ui/icons/Done';
 
 // import Typography from '@material-ui/core/Typography';
@@ -40,18 +35,10 @@ import IconButton from '@material-ui/core/IconButton';
 
 
 import Card from "components/Card/Card.js";
-// import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
-
-
-
-// import Input from '@material-ui/core/Input';
-
-
 import { UserContext } from "../../UserContext";
 
 // import socketIOClient from "socket.io-client";
-
 // const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 // const ENDPOINT = "http://localhost:4000";
 
@@ -117,29 +104,15 @@ export default function ImgMediaCard() {
 
     const classes = useStyles();
     const theme = useTheme();
-
-    // const [auctionStatus, setAuctionStatus] = useState("");
-    // const [playerName, setPlayerName] = useState("");
-    // const [playerImage, setPlayerImage] = useState("");
-    // const [team, setTeam] = useState("");
-    // const [role, setRole] = useState("");
-    // const [battingStyle, setBattingStyle] = useState("");
-    // const [bowlingStyle, setBowlingStyle] = useState("");
-    // const [bidAmount, setBidAmount] = useState();
-
     const [open, setOpen] = useState(false);
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
-    // const [pid, setPid] = useState();
     const [selectedOwner, setSelectedOwner] = useState(null);
-
     const [backDropOpen, setBackDropOpen] = useState(false);
     const [playerStatus, setPlayerStatus] = useState();
-    // const [AuctionTableData, setAuctionTableData] = useState([]);
     const [myGroupTableData, setMyGroupTableData] = useState([]);
     const [hasatleast1Group, setUserHasGroup] = useState(false);
     const [selectWhat, setSelectWhat] = useState("Captain");
     const [selectedPlayerValue, setSelectedPlayerValue] = useState("");
-    // const [selectedPlayerKey, setSelectedPlayerKey] = useState("");
 
     const handleDrawerClose = () => {
         setOpen(false);
@@ -223,100 +196,9 @@ export default function ImgMediaCard() {
     }
 
     
- 
-    function StartGroupSetting_orig_notusednow() {
-        console.log("In admin auction");
-        console.log(myGroupTableData);
-        return <div className={classes.root}>
-
-
-            <Grid container justify="center" alignItems="center">
-
-                <Grid item xs={12}>
-
-                    <div>
-                        <Grid container justify="center" alignItems="center" >
-                            <GridItem xs={12} sm={12} md={12} lg={12} >
-                                <Card profile>
-                                    <CardBody profile>
-                                    <h3 className={classes.cardTitle}>Group Information</h3>
-                                        <Table
-                                            tableHeaderColor="warning"
-                                            tableHead={["Group Name", "Franchise", "Tournament", "Admin"]}
-                                            tableData={myGroupTableData.map(element => {
-                                                const arr = [element.groupName, element.displayName, element.tournament, element.admin]
-                                                return { data: arr, collapse: [] }
-                                            })}
-                                        />
-                                        <displayButtons />
-                                    </CardBody>
-                                </Card>
-                            </GridItem>
-                        </Grid>
-                    </div>
-                </Grid>
-            </Grid>
-            <Dialog aria-labelledby="simple-dialog-title" open={backDropOpen}
-                onClose={() => setBackDropOpen(false)} >
-                <DialogTitle id="simple-dialog-title" className={classes.sold}>{playerStatus}</DialogTitle>
-
-
-            </Dialog>
-
-            <Drawer
-                variant="persistent"
-                anchor="right"
-                open={open}
-                classes={{
-                    paper: classes.drawerPaper,
-                }}
-            >
-                <IconButton onClick={handleDrawerClose}>
-                    {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-                <div>
-                    <FormControl className={classes.formControl}>
-                        <Select
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            value={selectedOwner}
-                            displayEmpty
-                            onChange={handleOwnerChange}>
-                                {myGroupTableData.map(item => <MenuItem key={item.gid} value={item.groupName}>{item.groupName}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        size="small"
-                        className={classes.button}
-                        startIcon={<DoneIcon />}
-                        onClick={() => { setConfirmDialogOpen(true) }}>
-                        Confirm
-                    </Button>
-                </div>
-            </Drawer>
-
-            <Dialog
-                open={confirmDialogOpen}
-                onClose={handleModalClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{`Are you sure you want to set ${selectedPlayerValue} as ${selectWhat}`}</DialogTitle>
-                <DialogActions>
-                    <Button onClick={handleModalClose} color="primary" autoFocus>Cancel</Button>
-                    <Button onClick={sellPlayer} color="primary">Set</Button>
-                </DialogActions>
-            </Dialog>
-        </div>
-    }
-    
     class CricButton extends Component {
         handleClick() {
           setSelectWhat(this.props.label);
-        //   console.log(`openwindws ${this.props.openwindow}`)
-        //   if (this.props.openwindow) 
             setOpen(true); 
         }
         render() {
@@ -370,7 +252,7 @@ export default function ImgMediaCard() {
         )
     }
 
-    function RTL_Icon() {
+    function RtlIcon() {
         return(
         <IconButton onClick={handleDrawerClose}>
             {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
@@ -389,7 +271,7 @@ export default function ImgMediaCard() {
             </Dialog>
             <Drawer variant="persistent" anchor="right" open={open} 
                 classes={{ paper: classes.drawerPaper, }}>
-                <RTL_Icon />
+                <RtlIcon />
                 {/* <IconButton onClick={handleDrawerClose}>
                     {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton> */}
