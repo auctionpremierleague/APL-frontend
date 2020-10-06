@@ -549,7 +549,10 @@ async function statBrief(iwhichuser, doWhatSend)
   if (iwhichuser != 0) {
     userScoreList = _.filter(userScoreList, x => x.uid == iwhichuser);
   }
+  else
+    userScoreList = _.sortBy(userScoreList, 'userScore').reverse();
   //console.log(userScoreList);
+
   if (doWhatSend === SENDRES) {
     sendok(userScoreList); 
   } else {
@@ -1231,40 +1234,46 @@ async function sendMatchInfoToClient(doSendWhat) {
   var myGroup = await IPLGroup.find({"gid": igroup})
   var myMatches = await CricapiMatch.find({tournament: myGroup[0].tournament});
   //console.log(myMatches);
+  const upcomingMatchCount = 5;
+  // get current ongoing match
+  var currMatches = _.filter(myMatches, x => _.gte (currTime, x.matchStartTime) && _.lte(currTime,x.matchEndTime));
+  // get upcoming match (limit to count as set in upcomingmatchcount)
+  var upcomingMatch = _.filter(myMatches, x => _.gte(x.matchStartTime, currTime));
+  var upcomingMatch = _.sortBy(upcomingMatch, 'matchStartTime');
+  var upcomingMatch = _.slice(upcomingMatch, 0, upcomingMatchCount)
+  // console.log(upcomingMatch);
+  // console.log(currMatches)
 
   if (doSendWhat === SENDRES) {
-    sendok(myMatches);
+    sendok(currMatches);
   } else {
     const socket = app.get("socket");
-    var currMatches = _.filter(myMatches, x => _.gte (currTime, x.matchStartTime) && _.lte(currTime,x.matchEndTime));
     socket.emit("currentMatch", currMatches)
     socket.broadcast.emit('curentMatch', currMatches);
-    var upcomingMatch = _.find(myMatches, x => _.gte(x.matchStartTime, currTime));
     socket.emit("upcomingMatch", upcomingMatch)
     socket.broadcast.emit('upcomingMatch', upcomingMatch);
-    // console.log(upcomingMatch);
-    // console.log(currMatches)
   }
 }
 
 // schedule task
-cron.schedule('*/1 * * * * *', () => {
+cron.schedule('*/5 * * * * *', () => {
   if (!db_connection) {
     console.log("============= No mongoose connection");
     return;
   }  
+  var count = 5;
 
   _group = 1;
   _tournament = "IPL2020"
 
-  ++cricTimer;
+  // cricTimer += count;
   if (cricTimer >= cricUpdateInterval) {
     cricTimer = 0;
     console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);
   }
 
-  ++serverTimer;
+  // serverTimer += count;
   if (serverTimer >= serverUpdateInterval) {
     serverTimer = 0;
     // console.log("Time toi send send to data to server")
@@ -1272,7 +1281,7 @@ cron.schedule('*/1 * * * * *', () => {
     statMax(0, doMaxWicket, SENDSOCKET);
     statRank(0, SENDSOCKET);
     statBrief(0, SENDSOCKET);
-    sendMatchInfoToClient(SENDSOCKET);
+    // sendMatchInfoToClient(SENDSOCKET);
   }
   else {
     
