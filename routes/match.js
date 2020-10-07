@@ -16,7 +16,7 @@ function cricDate(d)  {
   console.log(myHour);
   var amPm = (myHour < 12) ? "AM" : "PM";
   if (myHour > 12) myHour -= 12;
-  var tmp = monthName[d.getMonth()+1] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
+  var tmp =("0" + d.getDate()).slice(-2)  + ' '  +  monthName[d.getMonth()+1] + ' ' + 
       ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + amPm;
   return tmp;
 }

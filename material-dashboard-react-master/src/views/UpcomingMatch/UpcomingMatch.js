@@ -90,7 +90,7 @@ export default function App() {
             return (
                 <Card profile>
                 <CardBody profile>
-                    <h3 className={classes.cardTitle}>Match running just now</h3>
+                    <h3 className={classes.cardTitle}>Live Match</h3>
                     <Table
                         tableHeaderColor="warning"
                         tableHead={["Team1", "Team2", "Match Start Time"]}
@@ -163,7 +163,7 @@ export default function App() {
 
     return (
         <div>
-            <h2 className={classes.cardTitle}>Matches information of IPL2020</h2>
+            <h2 className={classes.cardTitle}>Matches Schedule IPL2020</h2>
             <ShowCurrentMatch/>
             <ShowUpcomingMatch/>
         </div>
