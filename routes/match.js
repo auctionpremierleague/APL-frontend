@@ -8,9 +8,12 @@ const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'
  * @param {Date} d The date
  */
 function cricDate(d)  {
-  d.setHours(d.getHours()+5);
-  d.setMinutes(d.setMinutes()+30);
+  // convert to IST
+  // d.setHours(d.getHours()+5);
+  // d.setMinutes(d.getMinutes()+30);
+
   var myHour = d.getHours();
+  console.log(myHour);
   var amPm = (myHour < 12) ? "AM" : "PM";
   if (myHour > 12) myHour -= 12;
   var tmp = monthName[d.getMonth()+1] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
@@ -178,11 +181,11 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   tmp.forEach(m => {
     upcomingMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
   })
-  console.log(upcomingMatches);
+  // console.log(upcomingMatches);
 
   if (doSendWhat === SENDRES) {
     var mydata = {current: currMatches, upcoming: upcomingMatches}
-    console.log(mydata);
+    // console.log(mydata);
     sendok(mydata);
   } else {
     const socket = app.get("socket");
