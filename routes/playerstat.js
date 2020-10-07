@@ -4,8 +4,8 @@ var _group = 1;
 var _tournament = "IPL2020";
 const doMaxRun = 1;
 const doMaxWicket = 2;
-const SENDRES = 1;
-const SENDSOCKET = 2;
+// const SENDRES = 1;
+// const SENDSOCKET = 2;
 
 // user these keys in rotation for fetch data from cricapi
 // const keylist = [

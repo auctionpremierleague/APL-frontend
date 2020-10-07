@@ -1,7 +1,37 @@
 var router = express.Router();
 var MatchRes;
-var _group;
+// var _group;
 var _tournament;
+
+const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/**
+ * @param {Date} d The date
+ */
+function cricDate(d)  {
+  var myHour = d.getHours();
+  var amPm = (myHour < 12) ? "AM" : "PM";
+  if (myHour > 12) myHour -= 12;
+  var tmp = monthName[d.getMonth()+1] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
+      ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + amPm;
+  return tmp;
+}
+
+const notToConvert = ['XI', 'ARUN']
+/**
+ * @param {string} t The date
+ */
+function cricTeamName(t)  {
+  var tmp = t.split(' ');
+  for(i=0; i < tmp.length; ++i)  {
+    var x = tmp[i].trim().toUpperCase();
+    if (notToConvert.includes(x))
+      tmp[i] = x;
+    else
+      tmp[i] = x.substr(0, 1) + x.substr(1, x.length - 1).toLowerCase();
+  }
+  return tmp.join(' ');
+}
+
 
 /* GET all users listing. */
 router.use('/', function(req, res, next) {
@@ -11,6 +41,7 @@ router.use('/', function(req, res, next) {
   
   var tmp = req.url.split('/');
   if (!["DATE"].includes(tmp[1].toUpperCase()))
+  if (!["MATCHINFO"].includes(tmp[1].toUpperCase()))
   {
     // take care of /list/csk  ,   /list/csk/rr,  /list
     switch (tmp.length)
@@ -57,15 +88,18 @@ router.use('/list/:myteam1/:myteam2', function(req, res, next) {
   publish_matches(myfilter);
 });
 
-// GET all matches to be held on give date 
-/*
-router.use('/today', function(req, res, next) {
-  MatchRes = res;
+router.get('/matchinfo/:myGroup', async function(req, res, next) {
+  MatchRes = res;  
   setHeader();
-  req.url = '/date/today';
-  next('route');
+  
+  var {myGroup} = req.params;
+  var groupRec = await IPLGroup.findOne({gid: myGroup});
+  if (groupRec)
+    sendMatchInfoToClient(groupRec.gid, SENDRES);
+  else
+    senderr(662, `Invalid group ${myGroup}`);
 });
-*/
+
 
 // GET all matches to be held on give date 
 router.use('/date/:mydate', function(req, res, next) {
@@ -119,6 +153,44 @@ router.use('/date/:mydate', function(req, res, next) {
   let myfilter = { tournament: _tournament, matchStartTime: { $gte: startDate, $lt: endDate } };
   publish_matches(myfilter);
 });
+
+async function sendMatchInfoToClient(igroup, doSendWhat) {
+  // var igroup = _group;
+  var currTime = new Date();
+  currTime.setDate(currTime.getDate())
+  var myGroup = await IPLGroup.find({"gid": igroup})
+  var myMatches = await CricapiMatch.find({tournament: myGroup[0].tournament});
+
+  // get current match list (may be 2 matches are running). So send it in array list
+  var tmp = _.filter(myMatches, x => _.gte (currTime, x.matchStartTime) && _.lte(currTime,x.matchEndTime));
+  var currMatches = [];
+  tmp.forEach(m => {
+    currMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
+  })
+  
+  // now get upcoming match. Limit it to 5. This number is defined in UPCOMINGCOUNT
+  tmp = _.filter(myMatches, x => _.gte(x.matchStartTime, currTime));
+  tmp = _.sortBy(tmp, 'matchStartTime');
+  tmp = _.slice(tmp, 0, UPCOMINGCOUNT);
+  var upcomingMatches = [];
+  tmp.forEach(m => {
+    upcomingMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
+  })
+  console.log(upcomingMatches);
+
+  if (doSendWhat === SENDRES) {
+    var mydata = {current: currMatches, upcoming: upcomingMatches}
+    console.log(mydata);
+    sendok(mydata);
+  } else {
+    const socket = app.get("socket");
+    socket.emit("currentMatch", currMatches)
+    socket.broadcast.emit('curentMatch', currMatches);
+    socket.emit("upcomingMatch", upcomingMatches)
+    socket.broadcast.emit('upcomingMatch', upcomingMatches);
+  }
+}
+
 
 async function publish_matches(myfilter)
 {

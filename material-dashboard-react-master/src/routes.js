@@ -33,7 +33,7 @@ import Logout from "views/Logout/Logout.js"
 import Auction from "views/Auction/Auction.js";
 import MyTeam from "views/MyTeam/MyTeam.js"
 import Captain from "views/Captain/Captain.js"
-
+import UpcomingMatch from "views/UpcomingMatch/UpcomingMatch.js"
 
 const dashboardRoutes = [
   {
@@ -69,6 +69,14 @@ const dashboardRoutes = [
     layout: "/admin"
   },
   {
+    path: "/upcomingmatch",
+    name: "UpcomingMatch",
+    rtlName: "طباعة",
+    icon: TimelineIcon,
+    component: UpcomingMatch,
+    layout: "/admin"
+  },
+   {
     path: "/Logout",
     name: "Logout",
     rtlName: "طباعة",

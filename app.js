@@ -227,6 +227,11 @@ minutesDay = 1440;   // minutes in a day 24*60 = 1440
 weekDays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 IPL_Start_Date = new Date("2020-09-19");   // IPL Starts on this date
 
+UPCOMINGCOUNT = 5;     // number of upcoming matches to be shown
+
+SENDRES = 1;        // send OK response
+SENDSOCKET = 2;     // send data on socket
+
 // Error messages
 DBERROR = 990;
 DBFETCHERR = 991;
