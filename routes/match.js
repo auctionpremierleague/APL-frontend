@@ -9,8 +9,8 @@ const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'
  */
 function cricDate(d)  {
   // convert to IST
-  // d.setHours(d.getHours()+5);
-  // d.setMinutes(d.getMinutes()+30);
+  d.setHours(d.getHours()+5);
+  d.setMinutes(d.getMinutes()+30);
 
   var myHour = d.getHours();
   console.log(myHour);
