@@ -163,7 +163,7 @@ export default function App() {
 
     return (
         <div>
-            <h2 className={classes.cardTitle}>Matches information of {localStorage.getItem("tournament")}</h2>
+            <h2 className={classes.cardTitle}>Matches information of IPL2020</h2>
             <ShowCurrentMatch/>
             <ShowUpcomingMatch/>
         </div>

@@ -1266,14 +1266,14 @@ cron.schedule('*/5 * * * * *', () => {
   _group = 1;
   _tournament = "IPL2020"
 
-  // cricTimer += count;
+  cricTimer += count;
   if (cricTimer >= cricUpdateInterval) {
     cricTimer = 0;
     console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);
   }
 
-  // serverTimer += count;
+  serverTimer += count;
   if (serverTimer >= serverUpdateInterval) {
     serverTimer = 0;
     // console.log("Time toi send send to data to server")

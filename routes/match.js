@@ -8,6 +8,8 @@ const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'
  * @param {Date} d The date
  */
 function cricDate(d)  {
+  d.setHours(d.getHours()+5);
+  d.setMinutes(d.setMinutes()+30);
   var myHour = d.getHours();
   var amPm = (myHour < 12) ? "AM" : "PM";
   if (myHour > 12) myHour -= 12;
