@@ -93,7 +93,7 @@ export default function App() {
                     <h3 className={classes.cardTitle}>Live Match</h3>
                     <Table
                         tableHeaderColor="warning"
-                        tableHead={["Team1", "Team2", "Match Start Time"]}
+                        tableHead={["Team1", "Team2", "Time"]}
                         tableData={currentArray.map(x => {
                             const arr = [x.team1, x.team2, x.matchTime]
                             return { data: arr, collapse: [] }
@@ -120,7 +120,7 @@ export default function App() {
                 <h3 className={classes.cardTitle}>Upcoming Matches</h3>
                 <Table
                     tableHeaderColor="warning"
-                    tableHead={["Team1", "Team2", "Match Start Time"]}
+                    tableHead={["Team1", "Team2", "Time"]}
                     tableData={upcomingArray.map(x => {
                         const arr = [x.team1, x.team2, x.matchTime]
                         return { data: arr, collapse: [] }
@@ -163,7 +163,7 @@ export default function App() {
 
     return (
         <div>
-            <h2 className={classes.cardTitle}>Matches Schedule IPL2020</h2>
+            <h2 className={classes.cardTitle}>IPL2020</h2>
             <ShowCurrentMatch/>
             <ShowUpcomingMatch/>
         </div>
