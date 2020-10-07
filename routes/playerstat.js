@@ -4,8 +4,6 @@ var _group = 1;
 var _tournament = "IPL2020";
 const doMaxRun = 1;
 const doMaxWicket = 2;
-const SENDRES = 1;
-const SENDSOCKET = 2;
 
 // user these keys in rotation for fetch data from cricapi
 // const keylist = [
@@ -82,15 +80,7 @@ router.use('/', async function(req, res, next) {
     next('route');
 });
 
-router.use('/test1/:myGroup', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
 
-  var {myGroup} = req.params;
-
-  var groupRec = await IPLGroup.findOne({gid: myGroup});
-  sendMatchInfoToClient(groupRec.gid, SENDRES);
-});
 
 router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   PlayerStatRes = res;  
@@ -1234,15 +1224,15 @@ cron.schedule('*/15 * * * * *', () => {
   _group = 1;
   _tournament = "IPL2020"
 
-  cricTimer += count;
+  // cricTimer += count;
   if (cricTimer >= cricUpdateInterval) {
     cricTimer = 0;
     console.log("TIme to getch cric data");
-    // update_cricapi_data_r1(false);
+    update_cricapi_data_r1(false);
   }
 
 
-  serverTimer += count;
+  // serverTimer += count;
   if (serverTimer >= serverUpdateInterval) {
     serverTimer = 0;
     console.log("Time toi send send to data to server")
