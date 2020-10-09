@@ -5,9 +5,10 @@ var _tournament;
 
 const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /**
- * @param {Date} d The date
+ * @param {Date} myDate The date
  */
-function cricDate(d)  {
+function cricDate(myDate)  {
+  var d = new Date(myDate.getTime());   
   // convert to IST
   d.setHours(d.getHours()+5);
   d.setMinutes(d.getMinutes()+30);
@@ -28,11 +29,11 @@ const notToConvert = ['XI', 'ARUN']
 function cricTeamName(t)  {
   var tmp = t.split(' ');
   for(i=0; i < tmp.length; ++i)  {
-    var x = tmp[i].trim().toUpperCase();
-    if (notToConvert.includes(x))
+    var x = tmp[i].trim();
+    if (notToConvert.includes(x.toUpperCase()))
       tmp[i] = x;
     else
-      tmp[i] = x.substr(0, 1) + x.substr(1, x.length - 1).toLowerCase();
+      tmp[i] = x.substr(0, 1).toUpperCase() + x.substr(1, x.length - 1).toLowerCase();
   }
   return tmp.join(' ');
 }
@@ -45,8 +46,8 @@ router.use('/', function(req, res, next) {
   if (!db_connection) { senderr(DBERROR,  ERR_NODB); return; }
   
   var tmp = req.url.split('/');
-  if (!["DATE"].includes(tmp[1].toUpperCase()))
   if (!["MATCHINFO"].includes(tmp[1].toUpperCase()))
+  if (!["DATE"].includes(tmp[1].toUpperCase()))
   {
     // take care of /list/csk  ,   /list/csk/rr,  /list
     switch (tmp.length)
@@ -98,11 +99,11 @@ router.get('/matchinfo/:myGroup', async function(req, res, next) {
   setHeader();
   
   var {myGroup} = req.params;
-  var groupRec = await IPLGroup.findOne({gid: myGroup});
-  if (groupRec)
-    sendMatchInfoToClient(groupRec.gid, SENDRES);
-  else
-    senderr(662, `Invalid group ${myGroup}`);
+  // var groupRec = await IPLGroup.findOne({gid: myGroup});
+  // if (isNaN(myGroup))
+  sendMatchInfoToClient(myGroup, SENDRES);
+  // else
+  //   senderr(662, `Invalid group ${myGroup}`);
 });
 
 
@@ -162,8 +163,13 @@ router.use('/date/:mydate', function(req, res, next) {
 async function sendMatchInfoToClient(igroup, doSendWhat) {
   // var igroup = _group;
   var currTime = new Date();
-  currTime.setDate(currTime.getDate())
   var myGroup = await IPLGroup.find({"gid": igroup})
+  if (!myGroup) {
+    if (doSendWhat === SENDRES) senderr(622, `Invalid group ${igroup}`);
+    return;
+  }
+
+  currTime.setDate(currTime.getDate())
   var myMatches = await CricapiMatch.find({tournament: myGroup[0].tournament});
 
   // get current match list (may be 2 matches are running). So send it in array list
