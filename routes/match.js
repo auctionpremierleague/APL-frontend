@@ -187,7 +187,7 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   tmp.forEach(m => {
     upcomingMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
   })
-  // console.log(upcomingMatches);
+  console.log(upcomingMatches[0]);
 
   if (doSendWhat === SENDRES) {
     var mydata = {current: currMatches, upcoming: upcomingMatches}
