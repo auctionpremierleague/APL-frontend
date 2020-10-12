@@ -533,5 +533,6 @@ async function showGroupMembers(groupno) {
     gmlist = _.map(gmlist, o => _.pick(o, ['gid', 'uid', 'userName', 'displayName']));
   // var userlist = _.map(gmlist, 'uid');
   // publish_users({ uid: { $in: userlist } });
+  gmlist = _.sortBy(gmlist, 'userName')
   sendok(gmlist);
 }

@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from "axios";
 
 
 import Grid from "@material-ui/core/Grid";
 import Table from "components/Table/Table.js";
 
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
-import { UserContext } from "../../UserContext";
+// import { UserContext } from "../../UserContext";
 // import { Typography } from '@material-ui/core';
 import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
@@ -63,19 +63,19 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const populateTable = (data) => {
-    const tableData = [];
-    data.forEach(element => {
-        tableData.push({ displayName: element.displayName, players: element.players })
-    });
-    return tableData;
-}
+// const populateTable = (data) => {
+//     const tableData = [];
+//     data.forEach(element => {
+//         tableData.push({ displayName: element.displayName, players: element.players })
+//     });
+//     return tableData;
+// }
 
 export default function App() {
-    const { user } = useContext(UserContext);
+    // const { user } = useContext(UserContext);
+    // const theme = useTheme();
 
     const classes = useStyles();
-    // const theme = useTheme();
     const [teamArray, setTeamArray] = useState([]);
 
     useEffect(() => {
@@ -87,12 +87,15 @@ export default function App() {
                 else if (localStorage.getItem("ismember") === "true")
                     myTeamUrl = `/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`;
                 
-                var data = [{displayName: "Not a team member", players: [{playerName: "", team: "", bidAmount: ""}] }];
                 if (myTeamUrl.length > 0) {
                     var response = await axios.get(myTeamUrl);
-                    data = populateTable(response.data);
+                    // data = populateTable(response.data);
+                    console.log(response.data);
+                    setTeamArray(response.data);
+                } else {
+                    var data = [{displayName: "Not a team member", players: [{playerName: "", team: "", bidAmount: ""}] }];
+                    setTeamArray(data);
                 }
-                setTeamArray(data);
             } catch (e) {
                 console.log(e)
             }
@@ -131,6 +134,7 @@ export default function App() {
                                 <CardBody profile>
                                 <h3 className={classes.cardTitle}>{team.displayName}</h3>
                                     <Table
+                                        id={team.displayName}
                                         tableHeaderColor="warning"
                                         tableHead={["Player Name", "Team", "Bid Amount"]}
                                         tableData={team.players.map(team => {
@@ -145,7 +149,6 @@ export default function App() {
                 </div>
             </Grid>
         </Grid>
-
         )
     )
 };

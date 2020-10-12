@@ -1247,6 +1247,8 @@ cron.schedule('*/15 * * * * *', () => {
     })
   }
   else {    
+    sendMyStat = false;
+    sendDashboard = false;
     if (sendMyStat) {
       console.log(`send My stat ${sendMyStat}`)
       sendMyStat = false;

@@ -35,6 +35,9 @@ import MyTeam from "views/MyTeam/MyTeam.js"
 import Captain from "views/Captain/Captain.js"
 import Group from "views/Group/Group.js"
 import UpcomingMatch from "views/UpcomingMatch/UpcomingMatch.js"
+// testing
+import NewGroup from "views/NewGroup/NewGroup.js"
+import GroupMember from "views/GroupMember/GroupMember.js"
 
 
 const dashboardRoutes = [
@@ -92,6 +95,22 @@ const dashboardRoutes = [
     rtlName: "طباعة",
     icon: TimelineIcon,
     component: UpcomingMatch,
+    layout: "/admin"
+  },
+  {
+    path: "/test",
+    name: "Test",
+    rtlName: "لوحة القيادة",
+    icon: Dashboard,
+    component: NewGroup,
+    layout: "/admin"
+  },
+  {
+    path: "/test1",
+    name: "TestMember",
+    rtlName: "لوحة القيادة",
+    icon: Dashboard,
+    component: GroupMember,
     layout: "/admin"
   },
   {
