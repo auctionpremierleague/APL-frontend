@@ -13,7 +13,32 @@ router.use('/', function(req, res, next) {
     next('route');
 });
 
-router.use('/add/:tournamentName/:tournamentDesc/:tournamentType', async function(req, res, next) {
+router.get(`/list/running`, function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  publishTournament({over: false});
+});
+
+router.get(`/list/over`, function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  publishTournament({over: true});
+});
+
+router.get(`/list/enabled`, function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  publishTournament({enabled: true});
+});
+
+router.get(`/list/disabled`, function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  publishTournament({enabled: false});
+});
+
+
+router.get('/add/:tournamentName/:tournamentDesc/:tournamentType', async function(req, res, next) {
     TournamentRes = res;
     setHeader();
     if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
@@ -86,7 +111,7 @@ async function updateTournamentStatus(tname, started)
 async function publishTournament(filter_tournament)
 {
   var tlist = await Tournament.find(filter_tournament);
-  tlist = _.map(tlist, o => _.pick(o, ['name', 'desc', 'type', 'over']));
+  // tlist = _.map(tlist, o => _.pick(o, ['name', 'desc', 'type', 'over']));
   sendok(tlist);
 }
 

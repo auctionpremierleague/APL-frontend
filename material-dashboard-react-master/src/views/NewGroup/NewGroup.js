@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-// import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 
 import DialogTitle from '@material-ui/core/DialogTitle';
-// import Link from '@material-ui/core/Link';
-// import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
@@ -16,9 +13,7 @@ import { useHistory } from "react-router-dom";
 import axios from "axios";
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from "@material-ui/core/Select";
-// import { UserContext } from "../../UserContext";
-// import { StepLabel } from '@material-ui/core';
-
+// import Label from "@material-ui/core/Select";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -32,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
     backgroundColor: theme.palette.secondary.main,
   },
-  form: {
+  form: { 
     width: '100%', // Fix IE 11 issue.
     marginTop: theme.spacing(1),
   },
@@ -41,6 +36,10 @@ const useStyles = makeStyles((theme) => ({
   },
   cancel: {
     margin: theme.spacing(20, 0, 2),
+  },
+  errMessage: {
+    fontSize: "12px",
+    color: "red",
   },
   customLabelStyle: {
     fontSize: "24px"
@@ -61,55 +60,78 @@ export default function NewGroup() {
   const [groupName, setGroupName] = useState("");
   const [bidAmount, setBidAmount] = useState("200");
   const [open, setOpen] = useState(false)
-  const [tournamentData, setTournamentData] = useState([{tournament: "IPL2020"}, 
-    {tournament: "ENGAUST20"},
-    {tournament: "ENGPAKT20"}]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [tournamentData, setTournamentData] = useState([]);
   // const { setUser } = useContext(UserContext);
 
   useEffect(() => {
-    if (window.localStorage.getItem("xxxuid")) {
-      // setUser({ uid: window.localStorage.getItem("uid"), admin: window.localStorage.getItem("admin") })
-      history.push("/admin")
-    } 
+
+    const a = async () => {
+      if (tournamentData.length === 0) {
+        var response = await axios.get(`/tournament/list/running`); 
+        // console.log("Getting tournament list");
+        // console.log(response.data);
+        setTournamentData(response.data);
+      }
+    };    
+    a();
+    
   })
 
   const handleClick = async () => {
-    let response = ""
-    try { 
-      response = await axios.get(`/user/login/pppp/xxxx`); 
-    }
-    catch (err) {
-      setOpen(true)
-    }
+    // let response = ""
+    // try { 
+    //   response = await axios.get(`/user/login/pppp/xxxx`); 
+    // }
+    // catch (err) {
+    //   setOpen(true)
+    // }
 
-    var myVal = parseInt(bidAmount)
-    if (isNaN(myVal)) myVal = 0;
-    console.log(`Value is ${myVal}`)
-    var errMsg = "";
-    if (groupName.length === 0)       errMsg = "Group Name cannot be blank";
-    else if (myVal < 200)  errMsg = "Maximum BidAmount should be greater than 200";
-    else if (selectedTournament.length === 0) errMsg = "Tournamenet has to be selected";
-    else {
+    // Basic Validation
+    var errCount = 0;
+    if (groupName.length === 0)  {
+      setErrorGroupName("Group Name cannot be blank");     //errMsg = "Group Name cannot be blank";
+      ++errCount;
+    } else
+      setErrorGroupName("");
+
+    if ((bidAmount === "") || (parseInt(bidAmount) < 200)) {
+      setErrorBidAmount("Maximum BidAmount should be greater than 200")
+      ++errCount;
+    } else
+      setErrorBidAmount("");
+
+    if (selectedTournament.length === 0) {
+      setErrorTournament("Tournamenet has to be selected");
+      ++errCount;
+    } else
+      setErrorTournament("");
+    
+    if (errCount === 0) {
       // all data looks okay. JUst check if duplicate group name
-      errMsg = "All is fine";
+      setErrorMessage("All is fine");
+      setOpen(true);
     }
-    setErrorMessage(errMsg);
-    setOpen(true);
 }
 
-  const [selectedTournament, SetSelectedTournament] = useState("");
-  const handleSelectedTournament = (event) => {
-    SetSelectedTournament(event.target.value);
-  };
+const [selectedTournament, SetSelectedTournament] = useState("");
+const handleSelectedTournament = (event) => {
+  SetSelectedTournament(event.target.value);
+};
+
+  // error messages
+  const [errGroupName, setErrorGroupName] = useState("")
+  const [errBidAtmount, setErrorBidAmount] = useState("")
+  const [errTournament, setErrorTournament] = useState("")
+
+  function DisplayError(props) {
+    return (<div className={classes.errMessage}>{props.message}</div>);
+  }
 
   return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <div className={classes.paper}>
-          {/* <Avatar className={classes.avatar}>
-            <LockOutlinedIcon />
-          </Avatar> */}
           <Typography component="h1" variant="h5">Create New Group</Typography>
           <h3> </h3>
           <form className={classes.form} onSubmit={handleSubmit} noValidate>
@@ -124,6 +146,7 @@ export default function NewGroup() {
               autoFocus
               onChange={(event) => setGroupName(event.target.value)}
             />
+            <DisplayError message={errGroupName}/>
             <h3></h3>
             <TextField
               variant="outlined"
@@ -138,58 +161,36 @@ export default function NewGroup() {
               value={bidAmount}
               onChange={(event) => setBidAmount(event.target.value)}
             />
+            <DisplayError message={errBidAtmount}/>
             <h3></h3>
             <label classes={{label: classes.customLabelStyle}}>Tournament</label>
             <Select labelId='tournament' id='tournament'
               variant="outlined"
               label="Tournament Name"
               name="tournamentName"
-              id="tournamentName"
+              id="tournamentList"
               fullWidth
               required
               value={selectedTournament}
                 displayEmpty onChange={handleSelectedTournament}>
                 {tournamentData.map(x =>
-                  <MenuItem key={x.tournament} value={x.tournament}>{x.tournament}</MenuItem>)}
+                  <MenuItem key={x.name} value={x.name}>{x.name}</MenuItem>)}
             </Select>
+            <DisplayError message={errTournament}/>
             <h3></h3>
             <Button variant="contained" color="secondary" size="small"
                     className={classes.button} onClick={handleClick}>Submit
             </Button>
-            <label>                     </label>
+            <label>     </label>
             <Button variant="contained" color="secondary" size="small"
                     className={classes.button} onClick={() => { history.push("/admin/mygroup") }}>Cancel
             </Button>
-            {/* <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.submit}
-              onClick={handleClick}
-            >
-              Submit
-          </Button>
-          <Button
-              type="cancel"
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.cancel}
-              onClick={handleCancel}
-            >
-              Cancel
-          </Button> */}
           </form>
         </div>
-
         <Dialog aria-labelledby="simple-dialog-title" open={open}
           onClose={() => setOpen(false)} >
           <DialogTitle id="simple-dialog-title" >{errorMessage}</DialogTitle>
-
-
         </Dialog>
-
       </Container>
   );
 }

@@ -83,6 +83,7 @@ export default function ImgMediaCard() {
 
             // user belong to group. get cpation / vice captian alreasy set
             // let response = ""
+            console.log("Calling getcaptain")
             var response = await axios.get(`/user/getcaptain/${mygroup}/${localStorage.getItem("uid")}`);
             // var isGroupMember = false;
             if (response.data.length > 0) {
