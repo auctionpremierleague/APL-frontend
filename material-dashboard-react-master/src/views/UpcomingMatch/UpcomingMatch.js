@@ -117,7 +117,7 @@ export default function App() {
         return (
             <Card profile>
             <CardBody profile>
-                <h3 className={classes.cardTitle}>Upcoming Matches</h3>
+                <h3 className={classes.cardTitle}>Match Schedule</h3>
                 <Table
                     tableHeaderColor="warning"
                     tableHead={["Team1", "Team2", "Time"]}
