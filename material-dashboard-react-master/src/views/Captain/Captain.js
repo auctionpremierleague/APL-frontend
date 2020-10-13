@@ -93,7 +93,7 @@ export default function ImgMediaCard() {
 
             response = await axios.get(`/group/gamestarted/${localStorage.getItem("gid")}`);
             gameStarted = (response.data.length > 0);
-            // gameStarted = false;
+            gameStarted = false;
             if (!gameStarted) {
                 // get list of player purchased by user for aelecting captain / vice captain
                 var myUrl = `/user/myteamwos/${mygroup}/${localStorage.getItem("uid")}`;

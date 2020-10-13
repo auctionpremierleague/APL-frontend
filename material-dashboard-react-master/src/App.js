@@ -5,13 +5,12 @@ import { UserContext } from "./UserContext";
 import Admin from "layouts/Admin.js";
 // import RTL from "layouts/RTL.js";
 import SignIn from "views/SignIn/SignIn.js";
+import NewGroup from "views/NewGroup/NewGroup.js";
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 
 const hist = createBrowserHistory();
 function AppRouter() {
 
-
-  
   const [user, setUser] = useState(null);
 
   const value = useMemo(() => ({ user, setUser }), [user, setUser]);
@@ -22,15 +21,15 @@ function AppRouter() {
   // localStorage.clear();
   // console.log("clearing local storage");
   return (
-    <Router history={hist}>
+    <Router history={hist}> 
       <UserContext.Provider value={value}>
         {!user && <Redirect from="/" to="/signIn" />}
         <Route path="/signIn" component={SignIn} />
+        <Route path="/admin/createnewgroup
+        " component={NewGroup} />
         <Route path="/admin" component={value ? Admin : SignIn} />
         <Redirect from="/" to="/signIn" />
-
       </UserContext.Provider>
-
     </Router>
   );
 }

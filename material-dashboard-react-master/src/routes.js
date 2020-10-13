@@ -106,8 +106,8 @@ const dashboardRoutes = [
     layout: "/admin"
   },
   {
-    path: "/test1",
-    name: "TestMember",
+    path: "/groupmember",
+    name: "GroupMember",
     rtlName: "لوحة القيادة",
     icon: Dashboard,
     component: GroupMember,

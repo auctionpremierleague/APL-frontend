@@ -111,7 +111,8 @@ export default function Group() {
         a();
     }, [])
 
-    function updateCurrentGroup() {
+    async function  updateCurrentGroup() {
+        // use has select another group as current group
         var newCurrent = expandedPanel;
         if (newCurrent.slice(-1) === "*")
             newCurrent = newCurrent.slice(0, -1);
@@ -125,11 +126,26 @@ export default function Group() {
             // set asterix to new current group
             if (ggg.groupName === newCurrent) {
                 window.localStorage.setItem("gid", ggg.gid.toString());
-                window.localStorage.setItem("groupName", ggg.groupName);
+                // window.localStorage.setItem("groupName", ggg.groupName);
                 ggg.groupName = ggg.groupName.concat("*");
             }
-            // console.log(`After ${ggg.groupName}`)
         });
+
+        // get data of new current group from backend
+        var myUID = localStorage.getItem("uid");
+        var response = await axios.get(`/group/current/${localStorage.getItem("gid")}/${myUID}`);
+        // SAMPLE OUTPUT
+        // {"uid":"8","gid":2,"displayName":"Salgia Super Stars",
+        // "groupName":"Happy Home Society Grp 2","tournament":"ENGAUST20","ismember":true,"admin":true}
+        // window.localStorage.setItem("uid", myUID)
+        // window.localStorage.setItem("gid", response.data.gid);
+        window.localStorage.setItem("displayName", response.data.displayName);
+        window.localStorage.setItem("groupName", response.data.groupName);
+        window.localStorage.setItem("tournament", response.data.tournament);
+        window.localStorage.setItem("ismember", response.data.ismember);
+        window.localStorage.setItem("admin", response.data.admin)
+        setUser({ uid: myUID, admin: response.data.admin })    
+
         setMyGroupTableData(myGroupTableData);
         setExpandedPanel(false);
     }
@@ -182,7 +198,7 @@ export default function Group() {
     }
 
     function NewGroupButton() {
-        return (<Link align="center" to='/createnewgroup' >Create New Group</Link>) 
+        return (<Link align="center" to='admin/createnewgroup' >Create New Group</Link>) 
     }
 
     if (hasatleast1Group)
