@@ -94,7 +94,7 @@ export default function Group() {
             const teamResponse = await axios.get(myUrl);
             var hasgroup = false;
             if (teamResponse.data[0].groups.length > 0) {
-                console.log(teamResponse);
+                // console.log(teamResponse);
                 hasgroup = true;
                 var currgrp = parseInt(localStorage.getItem("gid"));
                 var tmpidx = teamResponse.data[0].groups.findIndex(x => x.gid === currgrp);

@@ -52,8 +52,8 @@ import { UserContext } from "../../UserContext";
 
 import socketIOClient from "socket.io-client";
 
-const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// const ENDPOINT = "http://localhost:4000";
+// const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+const ENDPOINT = "http://localhost:4000";
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
         height: "200px"
     },
     container: {
-        backgroundImage: "url(\"../RCB/5334.jpg\")",
+        backgroundImage: "url(\"./sample.JPG\")",
         backgroundSize: 'cover'
     }, drawer: {
         width: drawerWidth,
@@ -82,7 +82,8 @@ const useStyles = makeStyles((theme) => ({
     },
     sold: {
         color: "green"
-    }, cardCategoryWhite: {
+    }, 
+    cardCategoryWhite: {
         color: "rgba(255,255,255,.62)",
         margin: "0",
         fontSize: "14px",
@@ -97,9 +98,20 @@ const useStyles = makeStyles((theme) => ({
         fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
         marginBottom: "3px",
         textDecoration: "none"
-    }, large: {
+    }, 
+    large: {
         width: theme.spacing(12),
         height: theme.spacing(12),
+    },
+    medium: {
+        width: theme.spacing(9),
+        height: theme.spacing(9),
+    },
+    playerinfo: {
+        display: 'flex',
+        alignItems: 'left',
+        padding: theme.spacing(3, 0),
+        justifyContent: 'flex-start',
     },
 }));
 
@@ -111,12 +123,8 @@ export default function ImgMediaCard() {
     window.onbeforeunload = () => setUser(null)
 
     const { user, setUser } = useContext(UserContext);
-
-
-
     const classes = useStyles();
     const theme = useTheme();
-
     const [auctionStatus, setAuctionStatus] = useState("");
     const [playerName, setPlayerName] = useState("");
     const [playerImage, setPlayerImage] = useState("");
@@ -148,51 +156,37 @@ export default function ImgMediaCard() {
     };
 
     useEffect(() => {
-
-
         const socket = socketIOClient(ENDPOINT);
         socket.on("connect", () => {
-
-            console.log("client connected");
-
-
+            // console.log("client connected");
             socket.on("playerChange", async (newPlayerDetails, balanceDetails) => {
-
                 setAuctionStatus("RUNNING");
                 console.log("player change")
-
                 let userBalance = [];
                 const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
-
-                console.log(balanceDetails);
-                // console.log(user.uid)
-
+                // first set PID so that display is better
+                setPid(pid)
+                // console.log(balanceDetails);
                 if (localStorage.getItem("admin") === "false") {
                     userBalance = balanceDetails.filter(balance => balance.uid === parseInt(localStorage.getItem("uid"), 10))
                 }
                 else {
                     userBalance = balanceDetails
                 }
-                // const userBalance = user && user.admin ? balanceDetails:[balanceDetails.filter(balance => balance.uid === user.uid)]
-
-
-
-                console.log(userBalance);
-                setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
+                setAuctionTableData(userBalance);
+                // console.log(userBalance);
                 setRole(role)
                 setTeam(Team)
                 setBattingStyle(battingStyle)
                 setBowlingStyle(bowlingStyle)
                 setPlayerName(fullName)
-                setPid(pid)
-                setAuctionTableData(userBalance);
+                console.log(`New player is ${pid}`)
+                setPlayerImage(`${process.env.PUBLIC_URL}/${pid}.JPG`);
             });
-
-
         })
 
         const a = async () => {
-            const response = await axios.get("/group/getauctionstatus/1");
+            const response = await axios.get(`/group/getauctionstatus/${localStorage.getItem("gid")}`);
             console.log(response.data)
             setAuctionStatus(response.data);
 
@@ -201,26 +195,20 @@ export default function ImgMediaCard() {
             }
 
         }
-
         a();
-
-
     }, [])
 
 
     const startAuction = async (status) => {
-
         if (status === "PENDING") {
-            const response = await axios.get("/group/setauctionstatus/1/RUNNING");
+            const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/RUNNING`);
             if (response.data) {
                 setAuctionStatus("RUNNING");
             }
+        } else if (status === "RUNNING") {
+            const response = await axios.get(`/group/getauctionplayer/${localStorage.getItem("gid")}`);
+            // console.log(response);
         }
-        if (status === "RUNNING") {
-            const response = await axios.get("/group/getauctionplayer/1");
-            console.log(response);
-        }
-
     }
 
     const handleOwnerChange = (event) => {
@@ -229,112 +217,42 @@ export default function ImgMediaCard() {
 
 
     async function sellPlayer() {
-
-
         const amount = document.getElementById("standard-required").value;
         console.log(amount);
-        let response = await fetch(`/auction/add/1/${selectedOwner}/${pid}/${bidAmount}`);
-        if (response.status === 707) {
-            setPlayerStatus("Already Purchased")
+        let response = await fetch(`/auction/add/${localStorage.getItem("gid")}/${selectedOwner}/${pid}/${bidAmount}`);
+        var msg;
+        switch (response.status) { 
+            case 707: msg = "Already Purchased"; break;
+            case 706: msg = "User does not belong to this group"; break;
+            case 704: msg = "Invalid Player"; break;
+            case 708: msg = "Insufficient Balance"; break;
+            case 200: msg = "Sold"; break;
+            default:  msg = `unknown error ${response.status}`; break;
         }
-        if (response.status === 706) {
-            setPlayerStatus("User does not belong to this group");
-        }
-        if (response.status === 704) {
-            setPlayerStatus("Invalid Player")
-        }
-        if (response.status === 708) {
-            setPlayerStatus("Insufficient Balance")
-        }
+        setPlayerStatus(msg);
         if (response.status === 200) {
-            setPlayerStatus("SOLD");
-
-            const balance = await axios.get("/user/balance/all")
+            const balance = await axios.get(`/user/balance/${localStorage.getItem("gid")}/all`);
             setAuctionTableData(balance.data);
         }
         setConfirmDialogOpen(false);
-
-        setBackDropOpen(true)
+        setBackDropOpen(true);
     }
 
-
-    async function unsellPlayer() {
-        await fetch(`/auction/skip/1/${pid}`);
-
+    async function skipPlayer() {
+        await fetch(`/auction/skip/${localStorage.getItem("gid")}/${pid}`);
     }
-
-
-
 
     function AdminAuction() {
         return <div className={classes.root}>
-
-
-            <Grid container justify="center" alignItems="center">
-
-                <Grid item xs={12}>
-
-                    <div>
-                        <Grid container justify="center" alignItems="center" >
-                            <GridItem xs={12} sm={12} md={12} lg={12} >
-                                <Card profile>
-                                    <CardAvatar profile>
-
-                                        <img src={playerImage} alt="..." />
-
-                                    </CardAvatar>
-                                    <CardBody profile>
-
-                                        <h3 className={classes.cardTitle}>{playerName}</h3>
-                                        <Grid container justify="center" alignItems="center">
-                                            <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${team}.JPG`} className={classes.large} />
-                                        </Grid>
-
-                                        <Button
-                                            variant="contained"
-                                            color="secondary"
-                                            size="small"
-                                            className={classes.button}
-                                            startIcon={<CheckSharpIcon />}
-                                            onClick={() => { setOpen(true); }}>
-                                            SOLD
-                                        </Button>
-                                        <Button
-                                            variant="contained"
-                                            color="secondary"
-                                            size="small"
-                                            className={classes.button}
-                                            startIcon={<ClearSharpIcon />}
-                                            onClick={() => unsellPlayer()}>
-                                            UNSOLD
-                                        </Button>
-
-                                    </CardBody>
-                                </Card>
-                            </GridItem>
-
-                        </Grid>
-
-                    </div>
-
-                </Grid>
+            <Grid container justify="center" alignItems="center" >
+                <ShowGroupName/>
+                <GridItem xs={12} sm={12} md={12} lg={12} >
+                    <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 
+                    <ShowAdminButtons/>
+                </GridItem>
             </Grid>
-            <Table
-                tableHeaderColor="warning"
-                tableHead={["Owner", "Player Count", "Balance"]}
-                tableData={AuctionTableData.map(element => {
-                    const arr = [element.userName, element.playerCount, element.balance]
-                    return { data: arr, collapse: [] }
-                })}
-            />
-
-            <Dialog aria-labelledby="simple-dialog-title" open={backDropOpen}
-                onClose={() => setBackDropOpen(false)} >
-                <DialogTitle id="simple-dialog-title" className={classes.sold}>{playerStatus}</DialogTitle>
-
-
-            </Dialog>
-
+            <ShowBalance/>
+            <ShowDialog/>
             <Drawer
                 variant="persistent"
                 anchor="right"
@@ -348,17 +266,7 @@ export default function ImgMediaCard() {
                 </IconButton>
                 <div>
                     <FormControl className={classes.formControl}>
-
-                        <Select
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            value={selectedOwner}
-                            displayEmpty
-                            onChange={handleOwnerChange}
-                        >
-                            {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
-
-                        </Select>
+                    <SelctNewOwner/>
 
                     </FormControl>
                     <Input key="hi" id="standard-required" label="Bid Amount" type="number" />
@@ -410,47 +318,107 @@ export default function ImgMediaCard() {
         return auctionStatus==="PENDING"? <Typography>Auction has not been started by Admin! <br /> Auction is Coming !!</Typography>:<Typography>Auction has ended</Typography>
     }
 
-    function UserAuction() {
-        return <Grid container justify="center"
-            alignItems="center" >
-            <GridItem xs={12} sm={12} md={4} >
+    function ShowPlayerAvatar(props) {
+        return (
+            <div key="playerInfo">
                 <Card profile>
                     <CardAvatar profile>
-
-                        <img src={playerImage} alt="..." />
-
+                        <img src={props.pImage} alt="..." />
                     </CardAvatar>
                     <CardBody profile>
-
-                        <h3 className={classes.cardTitle}>{playerName}</h3>
+                        <h5 className={classes.cardTitle}>{props.pName}</h5>
                         <Grid container justify="center" alignItems="center">
-                            <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${team}.JPG`} className={classes.large} />
-                        </Grid>
-                        <h4 className={classes.cardCategory}> {role}</h4>
-                        <h6 className={classes.description}>
+                            <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.pTeamLogo}.JPG`} className={classes.medium} />
+                        {/* <h4 className={classes.cardCategory}>{role}</h4> */}
+                        <h6 className={classes.playerinfo} align="left">
+                            {role}<br/>
                             {battingStyle}<br />
                             {bowlingStyle}
-
                         </h6>
-
+                        </Grid>
                     </CardBody>
                 </Card>
-            </GridItem>
-            <Table
-                tableHeaderColor="warning"
-                tableHead={["Owner", "Player Count", "Balance"]}
-                tableData={AuctionTableData.map(element => {
-                    const arr = [element.userName, element.playerCount, element.balance]
-                    return { data: arr, collapse: [] }
-                })}
-            />
-        </Grid>
+            </div>
+        );
+
     }
+
+    function ShowBalance() {
+        return (
+            <Table tableHeaderColor="warning"
+                tableHead={["Owner", "Player Count", "Balance"]}
+                tableData={AuctionTableData.map(x => {
+                    const arr = [x.userName, x.playerCount, x.balance]
+                    return { data: arr, collapse: [] }
+                })}/>
+        );
+    }
+
+    function ShowAdminButtons() {
+        return(
+        <div align="center" key="playerAuctionButton">
+            <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                className={classes.button}
+                startIcon={<CheckSharpIcon />}
+                onClick={() => { setOpen(true); }}>
+                SOLD
+            </Button>
+            <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                className={classes.button}
+                startIcon={<ClearSharpIcon />}
+                onClick={() => skipPlayer()}>
+                UNSOLD
+            </Button>
+        </div>
+        );
+    }
+
+    function ShowDialog() {
+        return (
+        <Dialog aria-labelledby="simple-dialog-title" open={backDropOpen}
+            onClose={() => setBackDropOpen(false)} >
+            <DialogTitle id="simple-dialog-title" className={classes.sold}>{playerStatus}</DialogTitle>
+        </Dialog>
+        );
+    }
+
+    function SelctNewOwner() {
+        return (
+            <Select labelId="demo-simple-select-label" id="demo-simple-select"
+            value={selectedOwner}
+            displayEmpty
+            onChange={handleOwnerChange}
+        >
+            {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
+
+        </Select>
+        );
+    }
+
+    function ShowGroupName() {
+        return(<div><h3 align="center">Auction ({localStorage.getItem("groupName")})</h3><br/></div>);
+    }
+
+    function UserAuction() {
+        return (
+        <Grid container justify="center" alignItems="center" >
+        <ShowGroupName/>
+        <GridItem xs={12} sm={12} md={4} >
+            <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 
+            <ShowBalance/>
+        </GridItem>
+        </Grid>
+        );
+    }
+    
     return (
-
+        // <DisplayAuction/>
        ( auctionStatus === "PENDING"||  auctionStatus === "OVER")? localStorage.getItem("admin") === "true" ? <AdminPending /> : <UserAuctionPending /> : localStorage.getItem("admin") === "true" ? <AdminAuction /> : <UserAuction />
-
-
     );
-
 }

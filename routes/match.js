@@ -3,16 +3,15 @@ var MatchRes;
 var _group;
 var _tournament;
 
-const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /**
  * @param {Date} d The date
  */
 function cricDate(d)  {
   var myHour = d.getHours();
-  var amPm = (myHour < 12) ? "AM" : "PM";
+  // var amPm = (myHour < 12) ? "AM" : "PM";
   if (myHour > 12) myHour -= 12;
-  var tmp = monthName[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
-      ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + amPm;
+  var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
+      ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + AMPM[myHour];
   return tmp;
 }
 

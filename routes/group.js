@@ -4,19 +4,15 @@ var _group = 1;
 var _tournament = "";
 /* GET users listing. */
 
-const fetchBalance = async () => {
-  var userFilter = { gid: _group };
-
-  let gmRec = await GroupMember.find(userFilter);
+const fetchBalance = async (groupid) => {
+  let gmRec = await GroupMember.find({ gid: groupid });
   gmRec = _.sortBy(gmRec, 'uid');
 
-  var auctionList = await Auction.find({ gid: _group });
+  var auctionList = await Auction.find({ gid: groupid });
   var balanceDetails = [];
 
   gmRec.forEach(gm => {
-
     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
-
     var myPlayerCount = myAuction.length;
     var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
     balanceDetails.push({
@@ -27,9 +23,9 @@ const fetchBalance = async () => {
       balance: mybal
     });
   });
-
-  return balanceDetails;
+  return _.sortBy(balanceDetails, 'userName');
 }
+
 router.use('/', function (req, res, next) {
   GroupRes = res;
   setHeader();
@@ -114,10 +110,10 @@ router.get('/getauctionstatus/:groupid', function (req, res, next) {
 
   var { groupid } = req.params;
   // groupAction = groupAction.toLowerCase();
-  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+  // if (groupid != "1") { senderr(621, "Invalid Group"); return; }
 
-  IPLGroup.findOne({ gid: 1 }, (err, gdoc) => {
-    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+  IPLGroup.findOne({ gid: groupid }, (err, gdoc) => {
+    if (!gdoc) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
       console.log(gdoc);
       sendok(gdoc.auctionStatus);
@@ -125,59 +121,55 @@ router.get('/getauctionstatus/:groupid', function (req, res, next) {
   });
 });
 
-router.get('/setauctionstatus/:groupid/:newstate', function (req, res, next) {
+router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, next) {
   GroupRes = res;
   setHeader();
-
   var { groupid, newstate } = req.params;
-  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-  newstate = newstate.toUpperCase();
+  var stateReq = newstate.toUpperCase().substring(0,3);
 
-  IPLGroup.findOne({ gid: 1 }, async (err, gdoc) => {
-    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
-    else {
-      console.log(gdoc);
-      var aplayer = gdoc.auctionPlayer;
-      switch (gdoc.auctionStatus) {
-        case "PENDING":
-          if (newstate.substring(0, 3) != "RUN") {
-            senderr(625, `Invalid auction state ${newstate}`);
-            return;
-          }
+  var gdoc = await IPLGroup.findOne({ gid: groupid });
+  if (!gdoc) { 
+    senderr(621, `Invalid group ${groupid}`); 
+    return 
+  }
 
-          newstate = "RUNNING";
-
-          const playerList = await Player.find({});
-          const socket = app.get("socket");
-
-          const balanceDetails = await fetchBalance();
-
-          socket.emit("playerChange",   playerList[0], balanceDetails )
-
-          socket.broadcast.emit('playerChange', playerList[0], balanceDetails );
-          aplayer = playerList[0].pid;
-          break;
-        case "RUNNING":
-          if (newstate.substring(0, 3) != "OVE") {
-            senderr(625, `Invalid auction state ${newstate}`);
-            return;
-          }
-          newstate = "OVER";
-          break;
-        case "OVER":
-          if (newstate.substring(0, 3) != "OVE") {
-            senderr(625, `Invalid auction state ${newstate}`);
-            return;
-          }
-          newstate = "OVER";
-          break;
+  // console.log(gdoc);
+  var aplayer = gdoc.auctionPlayer;
+  switch (gdoc.auctionStatus) {
+    case "PENDING":
+      if (stateReq != "RUN") {
+        senderr(625, `Invalid auction state ${newstate}`);
+        return;
       }
-      gdoc.auctionStatus = newstate;
-      gdoc.auctionPlayer = aplayer;
-      gdoc.save();
-      sendok("Auction Status Updated");
-    }
-  });
+      newstate = "RUNNING";
+
+      const playerList = await Player.find({});
+      const socket = app.get("socket");
+      const balanceDetails = await fetchBalance(groupid);
+      // console.log(playerList[0]);
+      socket.emit("playerChange",   playerList[0], balanceDetails )
+      socket.broadcast.emit('playerChange', playerList[0], balanceDetails );
+      aplayer = playerList[0].pid;
+      break;
+    case "RUNNING":
+      if (stateReq != "OVE") {
+        senderr(625, `Invalid auction state ${newstate}`);
+        return;
+      }
+      newstate = "OVER";
+      break;
+    case "OVER":
+      if (stateReq != "OVE") {
+        senderr(625, `Invalid auction state ${newstate}`);
+        return;
+      }
+      newstate = "OVER";
+      break;
+  }
+  gdoc.auctionStatus = newstate;
+  gdoc.auctionPlayer = aplayer;
+  gdoc.save();
+  sendok(aplayer.toString());
 });
 
 router.get('/getfirstmatch/:groupid', async function (req, res, next) {
@@ -194,33 +186,24 @@ router.get('/getfirstmatch/:groupid', async function (req, res, next) {
   sendok(mymatch);
 });
 
-router.get('/getauctionplayer/:groupid', function (req, res, next) {
+router.get('/getauctionplayer/:groupid',  async function (req, res, next) {
   GroupRes = res;
   setHeader();
-
   var { groupid } = req.params;
-  // groupAction = groupAction.toLowerCase();
-  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
 
-  IPLGroup.findOne({ gid: 1 }, async (err, gdoc) => {
-  
-    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
-    else {
-      if (gdoc.auctionStatus === "RUNNING") {
-        const playerDetails = await Player.find({pid:gdoc.auctionPlayer});
-        const socket = app.get("socket");
+  var gdoc = await IPLGroup.findOne({ gid: groupid });
+  if (!gdoc) { senderr(621, `Invalid Group ${groupid}`); return; }
 
-        const balanceDetails = await fetchBalance();
+  if (gdoc.auctionStatus === "RUNNING") {
+    const playerDetails = await Player.find({pid:gdoc.auctionPlayer});
+    const socket = app.get("socket");
+    const balanceDetails = await fetchBalance(groupid);
 
-        console.log(balanceDetails);
-        socket.emit("playerChange", playerDetails[0], balanceDetails )
-
-        socket.broadcast.emit('playerChange', playerDetails[0], balanceDetails );
-      }
-  
-      sendok(gdoc.auctionPlayer.toString());
-    }
-  });
+    // console.log(balanceDetails);
+    socket.emit("playerChange", playerDetails[0], balanceDetails )
+    socket.broadcast.emit('playerChange', playerDetails[0], balanceDetails );
+  }
+  sendok(gdoc.auctionPlayer.toString());
 });
 
 

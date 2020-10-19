@@ -223,6 +223,38 @@ router.get('/getcaptain/:mygroup/:myuser', async function (req, res, next) {
 
 // get users balance
 // only group 1 supported which is default group
+router.get('/balance/:mygroup/:myuser', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var { mygroup, myuser } = req.params;
+  var userFilter = (myuser.toUpperCase() !== "ALL") ? { gid: mygroup, uid: myuser }  : { gid: mygroup }
+
+  console.log(`hello ${myuser}`);
+  gmRec = await GroupMember.find(userFilter);
+  // gmRec = _.sortBy(gmRec, 'uid');
+
+  var auctionList = await Auction.find({ gid: mygroup });
+  var balanceDetails = [];
+  gmRec.forEach(gm => {
+    //console.log(gm);
+    myAuction = _.filter(auctionList, x => x.uid === gm.uid);
+    //console.log(myAuction);
+    var myPlayerCount = myAuction.length;
+    var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
+    balanceDetails.push({
+      uid: gm.uid,
+      userName: gm.userName,
+      gid: gm.gid,
+      playerCount: myPlayerCount,
+      balance: mybal
+    })
+  })
+  sendok(balanceDetails);
+})
+
+
+// get users balance
+// only group 1 supported which is default group
 router.get('/balance/:myuser', async function (req, res, next) {
   CricRes = res;
   setHeader();

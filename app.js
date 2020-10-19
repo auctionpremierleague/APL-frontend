@@ -143,6 +143,7 @@ TournamentSchema = mongoose.Schema({
   name: String,
   desc: String,
   type: String,
+  started: Boolean,
   over: Boolean,
   enabled: Boolean
 })
@@ -224,8 +225,14 @@ connectRequest = true;
 // constant used by routers
 minutesIST = 330;    // IST time zone in minutes 330 i.e. GMT+5:30
 minutesDay = 1440;   // minutes in a day 24*60 = 1440
+MONTHNAME = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 weekDays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
-IPL_Start_Date = new Date("2020-09-19");   // IPL Starts on this date
+weekShortDays = new Array("Sun", "Mon", "Tue", "Wedn", "Thu", "Fri", "Sat");
+// IPL_Start_Date = new Date("2020-09-19");   // IPL Starts on this date
+AMPM = [
+"AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM",
+"PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM"
+];
 
 SENDRES = 1;        // send OK response
 SENDSOCKET = 2;     // send data on socket

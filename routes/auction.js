@@ -82,39 +82,48 @@ router.get('/add_orig/:groupId/:userId/:playerId/:bidValue', async function(req,
   sendok(`Added bid for player ${iplayer} with amount ${bidrec.bidAmount}> New Balance is ${balance}`);
 });  // aution get
 
-router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res, next) {
+router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) {
   AuctionRes = res;
   setHeader();
-  var {groupId,userId,playerId,bidValue}=req.params;
+  var {igroup,iuser,iplayer,ibid}=req.params;
 
-  if (isNaN(groupId)) { senderr(702, `Invalid Group ${groupId}`); return; }
-  var igroup = parseInt(groupId);
+  // if (isNaN(groupId)) { senderr(702, `Invalid Group ${groupId}`); return; }
+  // var igroup = parseInt(groupId);
   
   var PallPlayers = Player.find({});
   var PauctionList = Auction.find({gid: igroup});
-  var Pgmembers = GroupMember.find({gid: igroup});
-  var PmyGroup = IPLGroup.find({gid: igroup});
+  var Pgmembers = GroupMember.findOne({gid: igroup, uid: iuser});
+  var PgRec = IPLGroup.findOne({gid: igroup});
 
-  if (isNaN(userId)) { senderr(703, "Invalid User"); return;}
-  var iuser = parseInt(userId);
-  if (isNaN(playerId)) { senderr(704, "Invalid Player"); return;}
-  var iplayer = parseInt(playerId);
-  if (isNaN(bidValue)) { senderr(705, "Invalid bid amount"); return;} 
-  var ibid = parseInt(bidValue);
+  // if (isNaN(userId)) { senderr(703, "Invalid User"); return;}
+  // var iuser = parseInt(userId);
+  // if (isNaN(playerId)) { senderr(704, "Invalid Player"); return;}
+  // var iplayer = parseInt(playerId);
+  // if (isNaN(bidValue)) { senderr(705, "Invalid bid amount"); return;} 
+  // var ibid = parseInt(bidValue);
  
-  // validate group number
-  var myGroup = await PmyGroup;
-  if (myGroup.length != 1) { senderr(702, `Invalid Group ${groupId}`); return; }
+  // Step 1: validate group number
+  var gRec = await PgRec;
+  if (!gRec) { senderr(702, `Invalid Group ${igroup}`); return; }
 
-  // confirm user is member of specified group
-  var gmembers = await Pgmembers;
-  var gmRec = _.find(gmembers, {uid: iuser});
+  // Step 2: Validate user is member of the group
+  var gmRec = await Pgmembers;
   if (!gmRec) {
     senderr(706, `User ${iuser} does not belong to Group 1`);
     return;
   }
 
-  // check if player already purchase during auction
+  // Step 3: Player is part if the tournament configured in group.
+  var allPlayers = await PallPlayers;
+  console.log(`${gRec.tournament}   ${iplayer}`);
+  var myplayer = _.find(allPlayers, {tournament: gRec.tournament, pid: parseInt(iplayer)});
+  console.log(myplayer);
+  if (!myplayer) {
+    senderr(704, `Invalid player ${iplayer}`);
+    return
+  }
+
+  // Step 4: Player is available for purchase
   var auctionList = await PauctionList;
   var tmp = _.find(auctionList, {pid: iplayer});
   if (tmp) {
@@ -122,29 +131,21 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
     return;
   }
 
-  // make list of players purchsed by the user
+  // Step 5: User has not purchased maximum allowed player in auction
   myAuctionList = _.filter(auctionList, x => x.uid == iuser);
-  // check if user has already purchased maximum allowed players. If yes then throw error
   if (myAuctionList.length === defaultMaxPlayerCount) {
     senderr(709, `Max player purchase count reached. Cannot buy additional player.`);
     return;
   }
 
-  // check if user has sufficent balance points to purhcase the player at given bid amount
-  var balance = myGroup[0].maxBidAmount - _.sumBy(myAuctionList, x => x.bidAmount);
+  // Step 6: User has sufficient balance to purhcase the player at given bid amount
+  var balance = gRec.maxBidAmount - _.sumBy(myAuctionList, x => x.bidAmount);
   if (balance < ibid ) {
     senderr(708, `Insufficient balance. Bid balance available is ${balance}`);
     return;
   }
   
-  // Player is not purhased. Check if player id provided during call correct
-  var allPlayers = await PallPlayers;
-  var myplayer = _.find(allPlayers, {tournament: myGroup[0].tournament, pid: iplayer});
-  if (!myplayer) {
-    senderr(704, `Invalid player ${iplayer}`);
-    return
-  }
-
+  // All validation done. Now add player in user's kitty
   var bidrec = new Auction({ 
     uid: iuser,
     pid: iplayer,
@@ -159,30 +160,27 @@ router.get('/add/:groupId/:userId/:playerId/:bidValue', async function(req, res,
   // now find all unsold players
   var soldPlayerId = _.map(auctionList, 'pid');
 
-  // identify players who are still not sold
+  // identify players who are still not sold and thus are available for purchase
   allPlayers = _.filter(allPlayers, x => 
-    x.tournament == myGroup[0].tournament &&
+    x.tournament == gRec.tournament &&
     !soldPlayerId.includes(x.pid)
     );
 
-  // let index = _.findIndex(array1, (e) => { 
-  //   return e == 1; 
-  // }, 0); 
   var myindex = _.findIndex(allPlayers, (x) => { return x.pid == iplayer});
   ++myindex;
   if (myindex === allPlayers.length) myindex = 0;
 
   // update new player in Group auction player field and save
-  myGroup[0].auctionPlayer = allPlayers[myindex].pid;
-  myGroup[0].save();
+  gRec.auctionPlayer = allPlayers[myindex].pid;
+  gRec.save();
   
-  // calculate fresh balance for all users
-  gmembers = _.sortBy(gmembers, 'uid');
+  // calculate fresh balance for all users to be submitted to caller
+  var gmembers = _.sortBy(gmembers, 'uid');
   var balanceDetails = [];
   gmembers.forEach(gm => {
     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
     var myPlayerCount = myAuction.length;
-    var mybal = myGroup[0].maxBidAmount - _.sumBy(myAuction, 'bidAmount');
+    var mybal = gRec.maxBidAmount - _.sumBy(myAuction, 'bidAmount');
     if (gm.uid === iuser) {
       // this user has purchased just now new player with amount "ibit"
       // take care of if
