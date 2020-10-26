@@ -92,10 +92,12 @@ IPLGroupSchema = mongoose.Schema({
   name: String,
   owner: Number,
   maxBidAmount: Number,
-  //tournamentOver:Boolean,
   tournament: String,
   auctionStatus: String,
   auctionPlayer: Number,
+  auctionBid: Number,
+  currentBidUid: Number,
+  currentBidUser: String,
   enable: Boolean
 });
 

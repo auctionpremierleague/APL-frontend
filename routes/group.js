@@ -168,9 +168,12 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
   }
   gdoc.auctionStatus = newstate;
   gdoc.auctionPlayer = aplayer;
+  gdoc.currentBidUid = 0;
+  gdoc.currentBidUser = "";
   gdoc.save();
   sendok(aplayer.toString());
 });
+
 
 router.get('/getfirstmatch/:groupid', async function (req, res, next) {
   GroupRes = res;

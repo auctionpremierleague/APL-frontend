@@ -390,13 +390,11 @@ export default function ImgMediaCard() {
 
     function SelctNewOwner() {
         return (
-            <Select labelId="demo-simple-select-label" id="demo-simple-select"
+        <Select labelId="demo-simple-select-label" id="demo-simple-select"
             value={selectedOwner}
             displayEmpty
-            onChange={handleOwnerChange}
-        >
+            onChange={handleOwnerChange}>
             {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
-
         </Select>
         );
     }

@@ -9,6 +9,7 @@ import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
 // import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
+import { useLocation } from "react-router-dom";
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -62,11 +63,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function GroupMember() {
     const classes = useStyles();
+    const location = useLocation();
     const history = useHistory();
     const [memberArray, setMemberArray] = useState([]);
+    // const { state } = this.props.history.location;
 
     useEffect(() => {
+       
         const fetchMember = async () => {
+            // console.log(state);
             try {
                 var response = await axios.get(`/user/group/${localStorage.getItem("gdGid")}`);
                 console.log(response.data);
@@ -80,7 +85,7 @@ export default function GroupMember() {
     }, []);
 
     function addNewMember() {
-
+        console.log("Add new member to be implemnted");
     }
 
 
@@ -88,10 +93,10 @@ export default function GroupMember() {
         if (localStorage.getItem("gdAdmin") !== "") {
             return (
             <div align="center">
-                <Button variant="contained" color="secondary" size="small"
+                <Button variant="contained" color="primary" size="small"
                     className={classes.button} onClick={addNewMember}>Add Member
                 </Button>
-                <Button variant="contained" color="secondary" size="small"
+                <Button variant="contained" color="primary" size="small"
                     className={classes.button} onClick={() => { history.push("/admin/mygroup") }}>Back
                 </Button>
 

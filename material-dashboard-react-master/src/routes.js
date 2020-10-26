@@ -98,8 +98,8 @@ const dashboardRoutes = [
     layout: "/admin"
   },
   {
-    path: "/test",
-    name: "Test",
+    path: "/newgroup",
+    name: "NewGroup",
     rtlName: "لوحة القيادة",
     icon: Dashboard,
     component: NewGroup,
@@ -108,8 +108,8 @@ const dashboardRoutes = [
   {
     path: "/groupmember",
     name: "GroupMember",
-    rtlName: "لوحة القيادة",
-    icon: Dashboard,
+    rtlName: "طباعة",
+    icon: TimelineIcon,
     component: GroupMember,
     layout: "/admin"
   },

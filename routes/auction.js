@@ -202,6 +202,17 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   sendok(allPlayers[myindex]);
 });
 
+router.get('/nextbid/:groupId/:userId/:bidAmount', async function(req, res, next) {
+  AuctionRes = res;
+  setHeader();
+  var {groupId,userId,bidAmount}=req.params;
+  var tmp = await GroupMember.findOne({gid: groupId, uid: userId});
+  if (!tmp) { senderr(702, `Invalid Group ${groupId}`); return; }    
+  if 
+
+});
+
+
 // to provide next player available for auction
 router.get('/skip/:groupId/:playerId', async function(req, res, next) {
   AuctionRes = res;
