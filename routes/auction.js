@@ -208,7 +208,7 @@ router.get('/nextbid/:groupId/:userId/:bidAmount', async function(req, res, next
   var {groupId,userId,bidAmount}=req.params;
   var tmp = await GroupMember.findOne({gid: groupId, uid: userId});
   if (!tmp) { senderr(702, `Invalid Group ${groupId}`); return; }    
-  if 
+  // if 
 
 });
 
