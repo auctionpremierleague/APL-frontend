@@ -31,8 +31,8 @@ import CardFooter from "components/Card/CardFooter.js";
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
-//  const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-const ENDPOINT = "http://localhost:4000";
+ const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// const ENDPOINT = "http://localhost:4000";
 
 
 

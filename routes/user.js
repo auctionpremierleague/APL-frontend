@@ -200,12 +200,12 @@ router.get('/vicecaptain/:myuser/:myplayer', function (req, res, next) {
 });
 
 // select caption for the user (currently only group 1 supported by default)
-router.get('/getcaptain/:myuser', async function (req, res, next) {
+router.get('/getcaptain/:mygroup/:myuser', async function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var { myuser } = req.params;
-  var igroup = defaultGroup;
+  var { mygroup, myuser } = req.params;
+  var igroup =  parseInt(mygroup);    // defaultGroup;
 
   var myfilter;
   if (myuser.toUpperCase() === "ALL")
@@ -274,20 +274,34 @@ router.get('/myteam/:userid', function (req, res, next) {
 
 });
 
-router.get('/myteamwos/:userid', function (req, res, next) {
+router.get('/myteamwos/:groupid/:userid', function (req, res, next) {
   CricRes = res;
   setHeader();
 
-  var { userid } = req.params;
-  let igroup = _group;   // default group 1
+  var { groupid, userid } = req.params;
+  let igroup = parseInt(groupid);     //  _group;   // default group 1
   let iuser = allUSER;
   if (userid.toUpperCase() != "ALL") {
     if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
     iuser = parseInt(userid);
   }
   publish_auctionedplayers(igroup, iuser, WITHOUT_CVC);
-
 });
+
+// router.get('/myteamwos/:userid', function (req, res, next) {
+//   CricRes = res;
+//   setHeader();
+
+//   var { userid } = req.params;
+//   let igroup = _group;   // default group 1
+//   let iuser = allUSER;
+//   if (userid.toUpperCase() != "ALL") {
+//     if (isNaN(iuser)) { senderr(605, `Invalid user ${userid}`); return; }
+//     iuser = parseInt(userid);
+//   }
+//   publish_auctionedplayers(igroup, iuser, WITHOUT_CVC);
+
+// });
 
 router.get('/myteamwocvc/:userid', async function (req, res, next) {
   CricRes = res;
@@ -443,6 +457,7 @@ async function publish_auctionedplayers(groupid, userid, withOrWithout)
     var userRec = _.filter(allUsers, x => x.uid == myuser.uid);
     //console.log(`${userRec}`);
     var myplrs = _.filter(datalist, x => x.uid === myuser.uid);
+    myplrs = _.sortBy(myplrs, 'playerName');
     // set captain and vice captain
     var caprec = _.find(allCaptains, x => x.uid == myuser.uid);
     if (withOrWithout === WITH_CVC) {
@@ -459,7 +474,6 @@ async function publish_auctionedplayers(groupid, userid, withOrWithout)
       players: myplrs};
     grupdatalist.push(tmp);
   })
-  // console.log(grupdatalist.length);
   sendok(grupdatalist);
 }
 

@@ -372,6 +372,16 @@ router.get('/test', function (req, res, next) {
   update_tournament_max(1);
 });
 
+router.get('/gamestarted/:mygroup', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {mygroup}=req.params;
+  if (isNaN(mygroup)) { return senderr(621, `Invalid group ${mygroup}`); return; }
+  var igroup = parseInt(mygroup);
+  var msg = await tournament_started(igroup);
+  sendok(msg);
+});
+
 // list of group of which user is the member
 router.get('/memberof/:userid', async function(req, res, next) {
   GroupRes = res;
@@ -450,6 +460,25 @@ function publish_groups(filter_groups) {
       senderr(DBFETCHERR, "Unable to fetch Groups from database");
   });
 }
+
+// return true if IPL has started
+async function tournament_started(mygroup) {
+  var justnow = new Date();
+  var groupRec = await IPLGroup.findOne({gid: mygroup})
+  if (!groupRec) return("Invalid Group");
+  var mymatch = await CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
+
+  // console.log(mymatch[0]);
+  var difference = 1;   // make it positive if no match schedule
+  if (mymatch.length > 0) {
+    var firstMatchStart = mymatch[0].matchStartTime;  
+    firstMatchStart.setHours(firstMatchStart.getHours() - 1)
+    difference = firstMatchStart - justnow;
+  }
+  return (difference <= 0) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
+}
+
+
 
 function senderr(errcode, msg) { GroupRes.status(errcode).send(msg); }
 function sendok(msg) { GroupRes.send(msg); GroupRes.end(); }

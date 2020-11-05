@@ -52,8 +52,8 @@ import { UserContext } from "../../UserContext";
 
 import socketIOClient from "socket.io-client";
 
-// const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-const ENDPOINT = "http://localhost:4000";
+const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// const ENDPOINT = "http://localhost:4000";
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
     margin: {

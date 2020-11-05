@@ -61,6 +61,14 @@ const dashboardRoutes = [
     layout: "/admin"
   },
   {
+    path: "/captain",
+    name: "Captain",
+    rtlName: "قائمة الجدول",
+    icon: GroupIcon,
+    component: Captain,
+    layout: "/admin"
+  },
+  {
     path: "/statistics",
     name: "Statistics",
     rtlName: "طباعة",
