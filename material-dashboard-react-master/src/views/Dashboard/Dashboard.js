@@ -30,14 +30,21 @@ import CardFooter from "components/Card/CardFooter.js";
 
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-// import {Redirect} from 'react-router-dom';
 
 //  const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 const ENDPOINT = "http://localhost:4000";
 
 
 
+
 const useStyles = makeStyles(styles);
+
+
+function leavingDashboard(myConn) {
+  console.log("Leaving Dashboard wah wah ");
+  myConn.disconnect();
+}
+
 
 
 export default function Dashboard() {
@@ -50,13 +57,11 @@ export default function Dashboard() {
   // const [mvp, SetMvp] = useState();
   // const { user } = useContext(UserContext);
   const date = new Date().toDateString() + " " + new Date().toLocaleTimeString();
-  const socket = socketIOClient(ENDPOINT);
-
+  
 
 
   const tableData = (rankDetails) => {
     const arr = rankDetails.map(element => {
-      // console.log(element)
       const { displayName, userName, grandScore, rank } = element;
       //const {rank,displayName,userName,grandScore}=element;
       // return { data: Object.values({ rank, displayName, userName, displayName, grandScore }), collapse: [] }
@@ -66,16 +71,26 @@ export default function Dashboard() {
     return arr;
   }
 
-  axios.get(`/stat/sendmydashboard/${localStorage.getItem("gid")}`);
+  // axios.get(`/stat/sendmydashboard/${localStorage.getItem("gid")}`);
   useEffect(() => {
+    var sendMessage = {page: "DASH", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
 
-    // if (!localStorage.getItem("uid"))
-    //   return  <Redirect  to="/signIn" />
+    const makeconnection = async () => {
+      await sockConn.connect();
+      console.log("just after connect command");
+      sockConn.emit("page", sendMessage);
+    }
 
-    socket.on("connect", () => {
-      console.log("dashboard connected");
-      socket.on("rank", (rank) => {
-        // console.log(localStorage.getItem("uid"))
+    var sockConn = socketIOClient(ENDPOINT);
+    console.log("in dashboard before make connection");
+    makeconnection();
+    console.log("in dashboard after make connection");
+
+    sockConn.on("connect", function() {
+      sockConn.emit("page", sendMessage);
+      sockConn.on("rank", (rank) => {
+        console.log(new Date());
+        console.log(localStorage.getItem("uid"))
         const allRank = rank.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         const userDetails = allRank.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
 
@@ -92,7 +107,7 @@ export default function Dashboard() {
 
       });
 
-      socket.on("maxRun", (maxRun) => {
+      sockConn.on("maxRun", (maxRun) => {
 
         const allMaxRun = maxRun.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         const runDetails = allMaxRun.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
@@ -103,7 +118,7 @@ export default function Dashboard() {
 
       });
 
-      socket.on("maxWicket", (maxWicket) => {
+      sockConn.on("maxWicket", (maxWicket) => {
         const allMaxWicket = maxWicket.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         const wicketDetails = allMaxWicket.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
         // console.log(wicketDetails);
@@ -113,18 +128,24 @@ export default function Dashboard() {
 
       });
     });
+    
+    return () => {
+      // componentwillunmount in functional component.
+      // Anything in here is fired on component unmount.
+      leavingDashboard(sockConn);
+  }
+   
 
-
-
-  }, [rankArray]);
+  }, []);
+// }, [rankArray]);
 
   function ShowUserBoard() {
     if (localStorage.getItem("ismember") === "true")
       return(
-      <GridContainer>
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="warning" stats icon>
+      <GridContainer key="db_gc_ub">
+        <GridItem key="db_gi_ub1" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub1">
+            <CardHeader key="db_chdr_ub1" color="warning" stats icon>
               <CardIcon color="warning">
                 <GroupIcon />
               </CardIcon>
@@ -133,7 +154,7 @@ export default function Dashboard() {
                 {rank}
               </h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub1" stats>
               <div className={classes.stats}>
                 <GroupIcon />
                 <a href="#pablo" onClick={e => e.preventDefault()}>
@@ -143,16 +164,16 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="success" stats icon>
+        <GridItem key="db_gi_ub2" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub2">
+            <CardHeader key="db_chdr_ub2" color="success" stats icon>
               <CardIcon color="success">
                 <TimelineIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Total Points</p>
               <h3 className={classes.cardTitle}>{score}</h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub2" stats>
               <div className={classes.stats}>
                 <Update />
                 {localStorage.getItem("tournament")}
@@ -160,16 +181,16 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="info" stats icon>
+        <GridItem key="db_gi_ub3" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub3">
+            <CardHeader key="db_chdr_ub3" color="info" stats icon>
               <CardIcon color="info">
                 <Accessibility />
               </CardIcon>
               <p className={classes.cardCategory}>Most Runs</p>
               <h3 className={classes.cardTitle}>{mostRuns ? mostRuns.maxRunPlayerName : ""}</h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub3" stats>
               <div className={classes.stats}>
                 <Accessibility />
                 {mostRuns ? mostRuns.maxRun : ""}
@@ -177,16 +198,16 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="danger" stats icon>
+        <GridItem key="db_gi_ub4" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub4">
+            <CardHeader key="db_chdr_ub4" color="danger" stats icon>
               <CardIcon color="danger">
                 <SportsHandballIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Most Wickets</p>
               <h3 className={classes.cardTitle}>{mostWickets ? mostWickets.maxWicketPlayerName : ""}</h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub4" stats>
               <div className={classes.stats}>
                 <SportsHandballIcon />
                 {mostWickets ? mostWickets.maxWicket : ""}
@@ -203,17 +224,16 @@ export default function Dashboard() {
   function ShowUserRank() {
     if ((localStorage.getItem("ismember") === "true") || (localStorage.getItem("admin") === "true"))
     return(
-    <GridContainer>
-      <GridItem xs={12} sm={12} md={12}>
-        <Card>
-          <CardHeader color="warning">
-
+    <GridContainer key="db_grid">
+      <GridItem key="db_gitem" xs={12} sm={12} md={12}>
+        <Card key="db_card">
+          <CardHeader key="db_cheader" color="warning">
             <h4 className={classes.cardTitleWhite}>Franchise Score Board</h4>
             <p className={classes.cardCategoryWhite}>
               {`Updated as of ${date}`}
             </p>
           </CardHeader>
-          <CardBody>
+          <CardBody key="db_cbody">
             <Table
               tableHeaderColor="warning"
               tableHead={["Rank", "Franchise", "Owner", "Score"]}
@@ -239,10 +259,15 @@ export default function Dashboard() {
   }
 
   const classes = useStyles();
+
+  
+
   return (
     <div>
       <ShowUserBoard />
       <ShowUserRank />
+      {/* <Beforeunload onBeforeunload={(event) => event.preventDefault()} /> */}
+      {/* <Beforeunload onBeforeunload={leavingDashboard} /> */}
     </div>
   );
 }

@@ -5,10 +5,14 @@ import { UserContext } from "./UserContext";
 import Admin from "layouts/Admin.js";
 // import RTL from "layouts/RTL.js";
 import SignIn from "views/SignIn/SignIn.js";
-import NewGroup from "views/NewGroup/NewGroup.js";
+// import NewGroup from "views/NewGroup/NewGroup.js";
 import "assets/css/material-dashboard-react.css?v=1.9.0";
+// import { DesktopWindows } from "@material-ui/icons";
+
+
 
 const hist = createBrowserHistory();
+
 function AppRouter() {
 
   const [user, setUser] = useState(null);
@@ -25,8 +29,7 @@ function AppRouter() {
       <UserContext.Provider value={value}>
         {!user && <Redirect from="/" to="/signIn" />}
         <Route path="/signIn" component={SignIn} />
-        <Route path="/admin/createnewgroup
-        " component={NewGroup} />
+        {/* <Route path="/admin/createnewgroup" component={NewGroup} /> */}
         <Route path="/admin" component={value ? Admin : SignIn} />
         <Redirect from="/" to="/signIn" />
       </UserContext.Provider>

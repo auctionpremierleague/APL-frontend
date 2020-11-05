@@ -31,15 +31,31 @@ const useStyles = makeStyles((theme) => ({
   }));
   
 
+function leavingStatistics(myConn) {
+  console.log("Leaving Statistics wah wah ");
+  myConn.disconnect();
+}
+
 export default function App() { 
   const classes = useStyles();
   const [teamArray, setTeamArray] = useState([]);
-  const socket = socketIOClient(ENDPOINT);
-  axios.get(`/stat/sendmystat/${localStorage.getItem("gid")}`);
+  // axios.get(`/stat/sendmystat/${localStorage.getItem("gid")}`);
 
   useEffect(() => {  
+
+    const makeconnection = async () => {
+      await socket.connect();
+    }
+
+    const socket = socketIOClient(ENDPOINT);
+
+    makeconnection();
+
     socket.on("connect", () => {
+      var sendMessage = {page: "STAT", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
+      socket.emit("page", sendMessage);
       console.log("stat connected")
+
       socket.on("brief", (stat) => {
         var gStat = stat.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         if (gStat.length > 0) {
@@ -48,7 +64,14 @@ export default function App() {
       })
     });
 
-  }, [teamArray])
+    return () => {
+      // componentwillunmount in functional component.
+      // Anything in here is fired on component unmount.
+      leavingStatistics(socket);
+    }
+  }, []);
+
+  // }, [teamArray])
 
 
   const [expandedPanel, setExpandedPanel] = useState(false);

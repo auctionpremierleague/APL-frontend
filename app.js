@@ -37,9 +37,38 @@ statRouter = require('./routes/playerstat');
 matchRouter = require('./routes/match');
 tournamentRouter = require('./routes/tournament');
 
+// maintaing list of all active client connection
+connectionArray  = [];
+CLIENTUPDATEINTERVAL=10;
+clientUpdateCount=0;
+clentData = [];
 
 io.on('connect', socket => {
   app.set("socket",socket);
+  socket.on("page", (pageMessage) => {
+    // console.log("page message from "+socket.id);
+    // console.log(pageMessage);
+    var myClient = _.find(connectionArray, x => x.socketId === socket.id);
+    if (pageMessage.page.toUpperCase().includes("DASH")) {
+      myClient.page = "DASH";
+      myClient.gid = parseInt(pageMessage.gid);
+      myClient.uid = parseInt(pageMessage.uid);
+      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+    } else if (pageMessage.page.toUpperCase().includes("STAT")) {
+      myClient.page = "STAT";
+      myClient.gid = parseInt(pageMessage.gid);
+      myClient.uid = parseInt(pageMessage.uid);
+      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+    }
+  });
+});
+
+io.sockets.on('connection', function(socket){
+  // console.log("Connected Socket = " + socket.id)
+  connectionArray.push({socketId: socket.id, page: "", gid: 0, uid: 0});
+  socket.on('disconnect', function(){
+    _.remove(connectionArray, {socketId: socket.id});
+  });
 });
 
 app.set('view engine', 'html');
@@ -236,6 +265,14 @@ AMPM = [
 "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM"
 ];
 
+// if match type not provided by cric api and
+// team1/team2 both contains any of these string then
+// set match type as T20 (used in playerstat)
+IPLSPECIAL = ["MUMBAI", "HYDERABAD", "CHENNAI", "RAJASTHAN",
+ "KOLKATA", "BANGALORE", "DELHI", "PUNJAB",
+ "VELOCITY", "SUPERNOVAS", "TRAILBLAZERS"
+];
+
 SENDRES = 1;        // send OK response
 SENDSOCKET = 2;     // send data on socket
 
@@ -292,7 +329,7 @@ cricTimer = 0;
 serverTimer = 0;
 
 // time interval for scheduler
-cricUpdateInterval = 60;    // in seconds. Interval after seconds fetch cricket match data from cricapi
+cricUpdateInterval = 15;    // in seconds. Interval after seconds fetch cricket match data from cricapi
 serverUpdateInterval = 10; // in seconds. INterval after which data to be updated to server
 
 // ----------------  end of globals

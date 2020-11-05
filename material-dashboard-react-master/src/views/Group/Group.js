@@ -106,7 +106,7 @@ export default function Group() {
         window.localStorage.setItem("gdGid", ggg.gid.toString());
         window.localStorage.setItem("gdName", ggg.groupName)
         window.localStorage.setItem("gdAdmin", ggg.admin.toString());
-        history.push("/admin/groupmember");        
+        history.push("/admin/memberlist");        
     };
 
     
@@ -160,8 +160,8 @@ export default function Group() {
                 className={classes.button} onClick={handleNewGroup}>Create Group
             </Button>
             <Switch> {/* The Switch decides which component to show based on the current URL.*/}
-                <Route exact path='/admin/groupmember' component={GroupMember}></Route>
-                <Route exact path='/admin/newgroup' component={NewGroup}></Route>
+                <Route  path='/admin/memberlist' component={GroupMember} key="MemberList"/>
+                <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route>
             </Switch>
         </div>
         );

@@ -63,9 +63,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default function GroupMember() {
     const classes = useStyles();
-    const location = useLocation();
+    // const location = useLocation();
     const history = useHistory();
     const [memberArray, setMemberArray] = useState([]);
+    const [tournamentStated, setTournamentStarted] = useState(false);
     // const { state } = this.props.history.location;
 
     useEffect(() => {
@@ -74,13 +75,18 @@ export default function GroupMember() {
             // console.log(state);
             try {
                 var response = await axios.get(`/user/group/${localStorage.getItem("gdGid")}`);
-                console.log(response.data);
+                // console.log(response.data);
                 setMemberArray(response.data);
+                var response1 = await axios.get(`/group/gamestarted/${localStorage.getItem("gid")}`);
+                var gameStarted = (response1.data.length > 0);
+                // gameStarted = false;
+                setTournamentStarted(gameStarted);
+    
             } catch (e) {
                 console.log(e)
             }
         }
-        console.log(`Is Admin: ${localStorage.getItem("gdAdmin")}`);
+        // console.log(`Is Admin: ${localStorage.getItem("gdAdmin")}`);
         fetchMember();
     }, []);
 
@@ -90,52 +96,36 @@ export default function GroupMember() {
 
 
     function ShowGmButtons() {
-        if (localStorage.getItem("gdAdmin") !== "") {
-            return (
-            <div align="center">
-                <Button variant="contained" color="primary" size="small"
-                    className={classes.button} onClick={addNewMember}>Add Member
-                </Button>
-                <Button variant="contained" color="primary" size="small"
-                    className={classes.button} onClick={() => { history.push("/admin/mygroup") }}>Back
-                </Button>
+        return (
+        <div align="center">
+            <Button variant="contained" color="primary" size="small"
+                disabled={tournamentStated || (localStorage.getItem("gdAdmin").length === 0)}
+                className={classes.button} onClick={addNewMember}>Add Member
+            </Button>
+            <Button variant="contained" color="primary" size="small"
+                className={classes.button} onClick={() => { history.push("/admin/mygroup") }}>Back
+            </Button>
 
-            </div>)
-        } else {
-            return (
-            <div align="center">
-                <Button variant="contained" color="secondary" size="small"
-                    className={classes.button} onClick={() => { history.push("/admin/mygroup") }}>Back
-                </Button>
-            </div>)
-        }
+        </div>)
     }
 
 
     return (
     <div key={localStorage.getItem("gdName")}>
-        <Grid container justify="center" alignItems="center" >
-            <GridItem xs={12} sm={12} md={12} lg={12} >
-                <Card profile>
-                    <CardBody profile>
-                    <h3 className={classes.cardTitle}>{localStorage.getItem("gdName")}</h3>
-                        <Table
-                            id={localStorage.getItem("gdName")}
-                            tableHeaderColor="warning"
-                            tableHead={["Owner", "Franchise"]}
-                            tableData={memberArray.map(x => {
-                                const arr = [x.userName, x.displayName]
-                                return { data: arr, collapse: [] }
-                            })}
-                        />
-                    </CardBody>
-                </Card>
-            </GridItem>
-        </Grid>
+        <h3 className={classes.cardTitle}>{localStorage.getItem("gdName")}</h3>
+        <Table
+            id={localStorage.getItem("gdName")}
+            tableHeaderColor="warning"
+            tableHead={["Owner", "Franchise"]}
+            tableData={memberArray.map(x => {
+            const arr = [x.userName, x.displayName]
+                return { data: arr, collapse: [] }
+            })}
+        />
         <h3></h3>
         <ShowGmButtons/>
     </div>
-    )
+    );
 };
 
 

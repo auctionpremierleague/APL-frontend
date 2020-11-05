@@ -104,7 +104,7 @@ export default function MatchInfo() {
 
     function ShowUpcomingMatch() {
         var myHeader = (upcomingArray.length > 0)
-            ? "Upcoming Matches" : "All Matches are over";
+            ? "Upcoming Matches" : "None found";
         return(
         <Grid container justify="center" alignItems="center" >
             <GridItem xs={12} sm={12} md={12} lg={12} >
