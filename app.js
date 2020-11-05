@@ -37,9 +37,41 @@ statRouter = require('./routes/playerstat');
 matchRouter = require('./routes/match');
 tournamentRouter = require('./routes/tournament');
 
+// maintain list of all active client connection
+connectionArray  = [];
+CLIENTUPDATEINTERVAL=7;
+clientUpdateCount=0;
+clentData = [];
+
+// io.on('connect', socket => {
+//   app.set("socket",socket);
+// });
 
 io.on('connect', socket => {
   app.set("socket",socket);
+  // handle paging message from server
+  socket.on("page", (pageMessage) => {
+    var myClient = _.find(connectionArray, x => x.socketId === socket.id);
+    if (pageMessage.page.toUpperCase().includes("DASH")) {
+      myClient.page = "DASH";
+      myClient.gid = parseInt(pageMessage.gid);
+      myClient.uid = parseInt(pageMessage.uid);
+      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+    } else if (pageMessage.page.toUpperCase().includes("STAT")) {
+      myClient.page = "STAT";
+      myClient.gid = parseInt(pageMessage.gid);
+      myClient.uid = parseInt(pageMessage.uid);
+      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+    }
+  });
+});
+
+// handle socket connection and disconnection
+io.sockets.on('connection', function(socket){
+  connectionArray.push({socketId: socket.id, page: "", gid: 0, uid: 0});
+  socket.on('disconnect', function(){
+    _.remove(connectionArray, {socketId: socket.id});
+  });
 });
 
 app.set('view engine', 'html');
@@ -87,15 +119,18 @@ UserSchema = mongoose.Schema({
   status: Boolean,
   defaultGroup: Number
 });
+
 IPLGroupSchema = mongoose.Schema({
   gid: Number,
   name: String,
   owner: Number,
   maxBidAmount: Number,
-  //tournamentOver:Boolean,
   tournament: String,
   auctionStatus: String,
   auctionPlayer: Number,
+  auctionBid: Number,
+  currentBidUid: Number,
+  currentBidUser: String,
   enable: Boolean
 });
 
@@ -224,13 +259,28 @@ connectRequest = true;
 // constant used by routers
 minutesIST = 330;    // IST time zone in minutes 330 i.e. GMT+5:30
 minutesDay = 1440;   // minutes in a day 24*60 = 1440
-weekDays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 IPL_Start_Date = new Date("2020-09-19");   // IPL Starts on this date
+MONTHNAME = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+weekDays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
+weekShortDays = new Array("Sun", "Mon", "Tue", "Wedn", "Thu", "Fri", "Sat");
+AMPM = [
+"AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM",
+"PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM"
+];
 
 UPCOMINGCOUNT = 5;     // number of upcoming matches to be shown
 
 SENDRES = 1;        // send OK response
 SENDSOCKET = 2;     // send data on socket
+
+// if match type not provided by cric api and
+// team1/team2 both contains any of these string then
+// set match type as T20 (used in playerstat)
+IPLSPECIAL = ["MUMBAI", "HYDERABAD", "CHENNAI", "RAJASTHAN",
+ "KOLKATA", "BANGALORE", "DELHI", "PUNJAB",
+ "VELOCITY", "SUPERNOVAS", "TRAILBLAZERS"
+];
+
 
 // Error messages
 DBERROR = 990;

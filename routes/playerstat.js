@@ -47,6 +47,16 @@ const cricapi_MatchDetails_prekey = "https://cricapi.com/api/fantasySummary?apik
 const cricapi_MatchDetails_postkey = "&unique_id=";
 
 
+// global var used for send socket data
+var g_groupRec;
+var g_captainlist;
+var g_gmembers;
+var g_allusers;
+var g_auctionList;
+var g_statList;
+var g_tournamentStat;
+
+
 /* GET all users listing. */
 router.use('/', async function(req, res, next) {
   PlayerStatRes = res;
@@ -136,6 +146,16 @@ router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   })
   sendok("OK");
 });
+
+router.use('/test/:myGroup', async function(req, res, next) {
+  PlayerStatRes = res;  
+  setHeader();
+  var {myGroup} = req.params;
+  var myData = await statCalculation(parseInt(myGroup));
+  console.log(myData);
+  sendok(myData.maxWicket);
+});
+
 
 router.use('/reread/:matchid', async function(req, res, next) {
   PlayerStatRes = res;  
@@ -294,7 +314,9 @@ router.use('/brief/:myuser', async function(req, res, next) {
     }
     iuser = parseInt(myuser);
   }
-  statBrief(iuser, SENDRES);
+  var myData = await statBrief(groupRec.gid, iuser, SENDRES);
+  sendok(myData);
+
 
 });
 
@@ -404,6 +426,54 @@ router.use('/updatemax', async function(req, res, next) {
   // allocate bonus points to player with maximum run and maximum wicket
 });
 
+async function getTournameDetails(igroup) {
+  // console.log(igroup);
+  var retVal = "";
+  if (igroup > 0) {
+    try {
+      g_groupRec = await IPLGroup.findOne({gid: igroup});
+      g_tournamentStat = mongoose.model(g_groupRec.tournament, StatSchema);
+      retVal = g_groupRec.tournament
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  return(retVal);
+}
+
+async function readDatabase(igroup) {
+  // console.log("read started");
+  try {
+  var PstatList = g_tournamentStat.find({});
+  } catch (err) {
+    // console.log("Stat read error");
+    return(false);
+  }
+  var PauctionList = Auction.find({gid: igroup});
+  var Pallusers = User.find({});
+  var Pgmembers = GroupMember.find({gid: igroup});
+  var Pcaptainlist = Captain.find({gid: igroup});
+
+  g_captainlist = await Pcaptainlist;
+  g_gmembers = await Pgmembers;
+  g_allusers = await Pallusers;
+  g_auctionList = await PauctionList;
+  g_statList = await PstatList;
+  // if (!g_statList)
+  //   console.log("Stat list in null");
+  // else {
+  //   console.log("Stat ok");
+    // console.log(g_statList);
+  // }
+
+  return  ( (g_captainlist) &&
+           (g_gmembers) &&
+           (g_allusers) && 
+           (g_auctionList) &&
+           (g_statList.length > 0))  ? true : false;
+}
+
+
 async function statBrief_working(iwhichuser, doWhatSend)
 {
   // Set collection name 
@@ -477,7 +547,7 @@ async function statBrief_working(iwhichuser, doWhatSend)
   }
 }
 
-async function statBrief(iwhichuser, doWhatSend)
+async function statBrief_org(iwhichuser, doWhatSend)
 {
   // Set collection name 
   var tournamentStat = mongoose.model(_tournament, StatSchema);
@@ -561,6 +631,70 @@ async function statBrief(iwhichuser, doWhatSend)
     socket.broadcast.emit('brief', userScoreList);    
   //   console.log(userScoreList);
   }
+}
+
+async function statBrief(igroup, iwhichuser, doWhatSend)
+{
+  var userScoreList = [];    
+  // now calculate score for each user
+  g_gmembers.forEach( gm  => {
+    var userPid = gm.uid;
+    var urec = _.find(g_allusers, x => x.uid == userPid);
+    // find out captain and vice captain selected by user
+    var capinfo = _.find(g_captainlist, x => x.uid == userPid);
+    if (capinfo === undefined)
+      capinfo = new Captain ({ gid: igroup, uid: userPid, captain: 0, viceCaptain: 0});
+
+    // find out players of this user
+    var myplayers = _.filter(g_auctionList, a => a.uid === userPid); 
+    var playerScoreList = [];
+    myplayers.forEach( p => {
+      var MF = 1;
+      var nameSufffix = "";
+      if (p.pid === capinfo.viceCaptain) {
+        MF = ViceCaptain_MultiplyingFactor;
+        nameSufffix = " (VC)";
+      } else if (p.pid === capinfo.captain) {
+        MF = Captain_MultiplyingFactor;
+        nameSufffix = " (C)";
+      }
+
+      // now get the statistics of this player in various maches
+      var myplayerstats = _.filter(g_statList, x => x.pid === p.pid);
+      //console.log(myplayerstats);
+      // var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
+      var myScore1 = _.sumBy(myplayerstats, x => x.score);
+      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
+      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myScore = myScore1 + myScore2 + myScore3;
+      // var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['mid', 'pid', 'score']));
+      var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['pid', 'score']));
+      var tmp = { 
+        // uid: userPid, 
+        // userName: urec.userName,
+        // displayName: urec.displayName,
+        pid: p.pid, 
+        playerName: p.playerName + nameSufffix,
+        playerScore: myScore
+        //matchStat: myplayerstats
+      };
+      playerScoreList.push(tmp);
+      // playerScoreList.push(_.sortBy(tmp, x => x.playerScore).reverse());
+    });
+    playerScoreList = _.sortBy(playerScoreList, x => x.playerScore).reverse();
+    var userScoreValue = _.sumBy(playerScoreList, x => x.playerScore);
+    userScoreList.push({uid: userPid, 
+      gid: igroup,
+      userName: urec.userName, 
+      displayName: urec.displayName, 
+      userScore: userScoreValue,
+      playerStat: playerScoreList});
+  })
+  if (iwhichuser != 0) {
+    userScoreList = _.filter(userScoreList, x => x.uid == iwhichuser);
+  }
+  userScoreList = _.sortBy(userScoreList, x => x.userScore).reverse();
+  return(userScoreList);
 }
 
 
@@ -875,6 +1009,159 @@ async function statMax(iwhichuser, doWhat, sendToWhom)
   }
 }
 
+
+
+async function statCalculation (igroup) {
+  var calStart = new Date();
+
+  // var dataRead = new Date();
+  // now calculate score for each user
+  var userRank = [];
+	var userMaxRunList = [];
+	var userMaxWicketList = [];
+
+  g_gmembers.forEach( gm => {
+    userPid = gm.uid; 
+    var urec = _.filter(g_allusers, u => u.uid === userPid);
+    var myplayers = _.filter(g_auctionList, a => a.uid === userPid); 
+	
+	// user name and dislay name from User record
+    var curruserName = (urec) ? urec[0].userName : "";
+    var currdisplayName = (urec) ? urec[0].displayName : "";
+
+    // find out captain and vice captain selected by user
+    var capinfo = _.find(g_captainlist, x => x.uid == userPid);
+    if (capinfo === undefined)
+      capinfo = new Captain ({ gid: igroup, uid: userPid, captain: 0, viceCaptain: 0});
+
+
+  var userScoreList = []; 
+	var userMaxList = [];
+	
+    myplayers.forEach( p => {
+
+      var MF = 1;
+      //console.log(capinfo);
+      if (p.pid === capinfo.viceCaptain) {
+        //console.log(`Vice Captain is ${capinfo.viceCaptain}`)
+        MF = ViceCaptain_MultiplyingFactor;
+      } else if (p.pid === capinfo.captain) {
+        //console.log(`Captain is ${capinfo.captain}`)
+        MF = Captain_MultiplyingFactor;
+      } else {
+        //console.log(`None of the above: ${p.pid}`);
+		MF = 1;
+      }
+      //console.log(`Mul factor: ${MF}`);
+
+      // now get the statistics of this player in various maches
+      var myplayerstats = _.filter(g_statList, x => x.pid === p.pid);
+      var myScore1 = _.sumBy(myplayerstats, x => x.score);
+      var myRunsBonus = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
+      var myWicketsBonus = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myScore = myScore1 + myRunsBonus + myWicketsBonus;
+      userScoreList.push({ uid: userPid, pid: p.pid, playerName: p.name, playerScore: myScore});
+
+		// now find out max of each player
+	  var totRun = _.sumBy(myplayerstats, x => x.run);
+      var totWicket = _.sumBy(myplayerstats, x => x.wicket);
+      var tmp = { 
+        gid: igroup,
+        uid: userPid, 
+        userName: urec.userName,
+        displayName: urec.displayName,
+        pid: p.pid, 
+        playerName: p.playerName,
+        playerScrore: myScore, 
+        totalRun: totRun,
+        totalWicket: totWicket
+      };
+      //console.log(tmp);
+      userMaxList.push(tmp);
+
+    });
+	
+	// calculation of player belonging to user is done.
+	// Now do total score, run and wicket
+    var totscore = _.sumBy(userScoreList, x => x.playerScore);
+    userRank.push({ 
+      uid: userPid, 
+      gid: igroup,
+      userName: curruserName, 
+      displayName: currdisplayName,
+      grandScore: totscore, 
+      rank: 0});
+
+	var tmpRun = _.maxBy(userMaxList, x => x.totalRun);
+	  if (tmpRun.totalRun === 0) {
+		userMaxRunList.push({ uid: gm.uid, gid: igroup, userName: "", displayName: "",
+		maxRunPlayerId: 0,  maxRunPlayerName: "", maxRun: 0});
+	  } else {
+		var maxRun = _.filter(userMaxList, x => x.totalRun == tmpRun.totalRun );
+		maxRun.forEach( runrec => {
+		  userMaxRunList.push({ 
+			uid: gm.uid, 
+			gid: igroup,
+			userName: runrec.userName,
+			displayName: runrec.displayName,
+			maxRunPlayerId: runrec.pid,
+			maxRunPlayerName: runrec.playerName,
+			maxRun: runrec.totalRun,
+		  });
+		});
+	  }
+
+    var tmpWicket = _.maxBy(userMaxList, x => x.totalWicket);
+      if (tmpWicket.totalWicket === 0) {
+        userMaxWicketList.push({ uid: gm.uid, gid: igroup, userName: "", displayName: "", maxWicketPlayerId: 0,
+        maxWicketPlayerName: "", maxWicket: 0});
+      } else {
+        var maxWicket = _.filter(userMaxList, x => x.totalWicket === tmpWicket.totalWicket );
+        maxWicket.forEach( wktrec => {
+          userMaxWicketList.push({ 
+            uid: gm.uid, 
+            gid: igroup,
+            userName: wktrec.userName,
+            displayName: wktrec.displayName,
+            maxWicketPlayerId: wktrec.pid,
+            maxWicketPlayerName: wktrec.playerName,
+            maxWicket: wktrec.totalWicket
+          });
+        });
+      }
+  });
+  
+  // assign ranking. Sort by score. Highest first
+  userRank = _.sortBy(userRank, 'grandScore').reverse();
+  var nextRank = 0;
+  var lastScore = 99999999999999999999999999999;  // OMG such a big number!!!! Can any player score this many points
+  userRank.forEach( x => {
+    if (x.grandScore < lastScore)
+      ++nextRank;
+    x.rank = nextRank;
+    lastScore = x.grandScore;
+  });
+
+  calcEnd = new Date();
+
+  var totDur = calcEnd.getTime() - calStart.getTime();
+  // var duration2 = beforeStat.getTime() - beforeAwait.getTime();
+  // var duration3 = dataRead.getTime() - beforeStat.getTime();
+  // var duration4 = calcEnd.getTime() - dataRead.getTime();
+  // var totDur = calcEnd.getTime() - calStart.getTime();
+
+  // console.log(`Start calc: ${calStart}`);
+  // console.log(`Beforeawai: ${beforeAwait} Duration: ${duration1}`);
+  // console.log(`BeforeStat: ${beforeStat}  Duration: ${duration2}`);
+  // console.log(`Read over : ${dataRead}  Duration: ${duration3}`);
+  // console.log(`End   calc: ${calcEnd}  Duration: ${duration4}`);
+  // console.log(`Total Time: ${totDur}`) 
+
+  return({rank: userRank, maxRun: userMaxRunList, maxWicket: userMaxWicketList});
+}
+
+
+
 async function update_cricapi_data_r1(logToResponse)
 {
     let myindex;
@@ -899,15 +1186,28 @@ async function update_cricapi_data_r1(logToResponse)
       var tournamentList = _.map(allTournament, 'name'); 
       var allTeams = await Team.find({tournament: {$in: tournamentList} });
 
+      
       // process each match found in cricapy
       matchesFromCricapi.matches.forEach(x => {
+        var matchTournament = '';
+        var mytype = x.type.toUpperCase();
         var myTeam1 = x['team-1'].toUpperCase();
         var myTeam2 = x['team-2'].toUpperCase();
+
         //console.log(`${myTeam1} ${myTeam2}`);
         if ((myTeam1 === "TBA") || (myTeam2 === "TBA")) return;
 
-        var matchTournament = '';
-        var mytype = x.type.toUpperCase();
+        // special case for IPL
+        if (mytype.length === 0) {
+          let xxxtmp = _.find(IPLSPECIAL,  x => myTeam1.includes(x));
+          if (xxxtmp) {
+            xxxtmp = _.find(IPLSPECIAL,  x => myTeam2.includes(x));
+            if (xxxtmp) { x.type = "T20";  mytype = "T20"; }
+          }
+        }
+        // console.log(`${myTeam1} ${myTeam2} Match type is ${mytype}`);
+        // ipl special offer complete
+
         allTournament.forEach(t => {
           var typeHasMatched = false;
           switch (t.type) {
@@ -1255,61 +1555,116 @@ async function sendMatchInfoToClient(doSendWhat) {
   }
 }
 
+async function sendDashboardData() {
+  var gidList = _.map(connectionArray, 'gid');
+  var gidList = _.uniqBy(gidList);
+  clientData = [];
+  var myDat1, myDat2;
+  var myTim;
+
+  // console.log(gidList);
+  for(i=0; i<gidList.length; ++i)  {
+    myDat1 = new Date();
+    var myTournament = await getTournameDetails(gidList[i]);
+    myDat2 = new Date();
+    myTim = myDat2.getTime() - myDat1.getTime();
+    console.log(`Tournament details fetch time ${myTim}`)
+    if (myTournament.length === 0) continue;
+    // console.log(myTournament);
+    var myData = _.find(clientData, x => x.tournament === myTournament);
+    var sts = false;
+    if (!myData) {
+      myDat1 = new Date();
+      sts = await readDatabase(gidList[i]);
+      myDat2 = new Date();
+      myTim = myDat2.getTime() - myDat1.getTime();
+      console.log(`read database details fetch time ${myTim}`)
+        // console.log(`Status is ${sts}`);
+      if (!sts) continue;
+      myDat1 = new Date();
+      let myDB_Data = await statCalculation(gidList[i]);
+      myDat2 = new Date();
+      myTim = myDat2.getTime() - myDat1.getTime();
+      console.log(`dash calculation  time ${myTim}`)
+      let mySTAT_Data = await statBrief(gidList[i], 0 , SENDSOCKET);
+      myDat1 = new Date();
+      myTim = myDat1.getTime() - myDat2.getTime();
+      console.log(`stat calculation  time ${myTim}`)
+
+      myData = {tournament: myTournament, dbData: myDB_Data, statData: mySTAT_Data}
+      clientData.push(myData);
+    }
+
+    let sockList = _.filter(connectionArray, x => x.page === "DASH" && x.gid === gidList[i]);
+    sockList.forEach(x => {
+      io.to(x.socketId).emit('maxRun', myData.dbData.maxRun);
+      io.to(x.socketId).emit('maxWicket', myData.dbData.maxWicket);
+      io.to(x.socketId).emit('rank', myData.dbData.rank);
+      console.log("Sendt data to " + x.socketId);
+    })
+
+    sockList = _.filter(connectionArray, x => x.page === "STAT" && x.gid === gidList[i]);
+    sockList.forEach(x => {
+      io.to(x.socketId).emit('brief', myData.statData);
+      console.log("Sent statistics to " + x.socketId);
+    })
+  }
+}
+
+
 // schedule task
-cron.schedule('*/5 * * * * *', () => {
+cron.schedule('*/1 * * * * *', () => {
   if (!db_connection) {
     console.log("============= No mongoose connection");
     return;
   }  
-  var count = 5;
+  // var count = 5;
 
   _group = 1;
   _tournament = "IPL2020"
 
-  cricTimer += count;
-  if (cricTimer >= cricUpdateInterval) {
+  // cricTimer += count;
+  if (++cricTimer >= cricUpdateInterval) {
     cricTimer = 0;
     console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);
   }
 
-  serverTimer += count;
-  if (serverTimer >= serverUpdateInterval) {
-    serverTimer = 0;
-    // console.log("Time toi send send to data to server")
-    statMax(0, doMaxRun, SENDSOCKET);
-    statMax(0, doMaxWicket, SENDSOCKET);
-    statRank(0, SENDSOCKET);
-    statBrief(0, SENDSOCKET);
-    // sendMatchInfoToClient(SENDSOCKET);
+  if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
+    // console.log("Updateing of these connection");
+    console.log(connectionArray);
+    sendDashboardData();
+    clientUpdateCount = 0;
   }
-  else {
+
+  // serverTimer += count;
+  // if (serverTimer >= serverUpdateInterval) {
+  //   serverTimer = 0;
+  //   // console.log("Time toi send send to data to server")
+  //   statMax(0, doMaxRun, SENDSOCKET);
+  //   statMax(0, doMaxWicket, SENDSOCKET);
+  //   statRank(0, SENDSOCKET);
+  //   statBrief(0, SENDSOCKET);
+  //   // sendMatchInfoToClient(SENDSOCKET);
+  // }
+  // else {
     
-    if (sendMyStat) {
-      // console.log(`send My stat ${sendMyStat}`)
-      sendMyStat = false;
-      statBrief(0, SENDSOCKET);
-    }
+  //   if (sendMyStat) {
+  //     // console.log(`send My stat ${sendMyStat}`)
+  //     sendMyStat = false;
+  //     statBrief(0, SENDSOCKET);
+  //   }
     
-    if (sendDashboard) {
-      // console.log(`send My Dashboard ${sendDashboard}`)
-      sendDashboard = false;
-      statMax(0, doMaxRun, SENDSOCKET);
-      statMax(0, doMaxWicket, SENDSOCKET);
-      statRank(0, SENDSOCKET);
-    }
-  }
+  //   if (sendDashboard) {
+  //     // console.log(`send My Dashboard ${sendDashboard}`)
+  //     sendDashboard = false;
+  //     statMax(0, doMaxRun, SENDSOCKET);
+  //     statMax(0, doMaxWicket, SENDSOCKET);
+  //     statRank(0, SENDSOCKET);
+  //   }
+  // }
 });
 
-// cron.schedule('*/2 * * * *', () => {
-//   console.log('==========running every 2 minute');
-//   _group = 1;
-//   _tournament = "IPL2020"
-//   if (db_connection) {
-//     update_cricapi_data_r1(false);
-//   } else
-//     console.log("============= No mongoose connection");
-// });
 
 
 // cron.schedule('*/15 * * * * * ', () => {

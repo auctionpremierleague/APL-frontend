@@ -255,6 +255,55 @@ router.get('/add/:groupid/:ownerid/:userid', function (req, res, next) {
   });
 }); // end of get
 
+// requred duting sign in
+// window.localStorage.setItem("uid", response.data)
+// window.localStorage.setItem("gid", "1");
+// window.localStorage.setItem("groupName", "Friends of Happy Home Society");
+// window.localStorage.setItem("tournament", "IPL2020");
+router.get('/default/:myUser', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {myUser}=req.params;
+
+  // get user rec
+  var userRec = await User.findOne({uid: myUser});
+  if (!userRec) { senderr(623, "Invalid user"); return; }
+
+  // currently set member of group 1
+  // var myGmRec = await GroupMember.find({uid: myUser}).limit(-1).sort({ "gid": -1 });
+  var ttt = await GroupMember.findOne({uid: myUser, gid: 1});
+  // console.log(ttt);
+  var myGmRec = [];
+  myGmRec.push(ttt);
+
+  var myData = {uid: myUser, gid: 0, displayName: "", groupName: "", tournament: "", ismember: false, admin: false};
+  if (myGmRec.length > 0) {
+    // console.log(myGmRec[0].gid);
+    var myGroup = await IPLGroup.findOne({gid: myGmRec[0].gid});
+    // console.log(myGroup);
+    // myData.uid = myGmRec[0].uid;
+    myData.gid = myGmRec[0].gid;
+    myData.displayName = myGmRec[0].displayName;
+    myData.groupName = myGroup.name;
+    myData.tournament = myGroup.tournament;
+    myData.admin = (myUser == myGroup.owner);
+    myData.ismember = true;
+  } else {
+    // not a member of any group. Just check if
+    var myGroup = await IPLGroup.find({owner: myUser}).limit(-1).sort({"gid": -1});
+    if (myGroup.length > 0) {
+      myData.gid = myGroup[0].gid
+      myData.displayName = myGroup[0].displayName;
+      myData.groupName = myGroup[0].name;
+      myData.tournament = myGroup[0].tournament;
+      myData.admin = true;
+      myData.ismember = false;    // owner but not member. Remember Apurva
+    }
+  }
+  sendok(myData);
+});
+
+
 router.get('/owner', function (req, res, next) {
   GroupRes = res;
   setHeader();
@@ -262,12 +311,6 @@ router.get('/owner', function (req, res, next) {
   owneradmin();
 });
 
-router.get('/owner', function (req, res, next) {
-  GroupRes = res;
-  setHeader();
-
-  owneradmin();
-});
 
 
 router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (req, res, next) {
@@ -312,7 +355,7 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
 // who is the owner of the group. Returns user record of the owner
 function owneradmin() {
   let igroup = 1;   // currently only group 1 supported
-  IPLGroup.findOne({ gid: 1 }, (err, grprec) => {
+  IPLGroup.findOne({ gid: igroup }, (err, grprec) => {
     if (!grprec) { senderr(621, "Invalid group"); return; }
     //console.log(grprec);
     User.findOne({ uid: grprec.owner }, (err, userrec) => {

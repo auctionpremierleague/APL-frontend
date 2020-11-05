@@ -79,15 +79,30 @@ export default function SignIn() {
     if (response.status === 200) {
 
       window.localStorage.setItem("uid", response.data)
+      var myUID = response.data;
+      response = await axios.get(`/group/default/${myUID}`);
+      // SAMPLE OUTPUT
+      // {"uid":"8","gid":2,"displayName":"Salgia Super Stars",
+      // "groupName":"Happy Home Society Grp 2","tournament":"ENGAUST20","ismember":true,"admin":true}
+      window.localStorage.setItem("uid", myUID)
+      window.localStorage.setItem("gid", response.data.gid);
+      window.localStorage.setItem("displayName", response.data.displayName);
+      window.localStorage.setItem("groupName", response.data.groupName);
+      window.localStorage.setItem("tournament", response.data.tournament);
+      window.localStorage.setItem("ismember", response.data.ismember);
+      window.localStorage.setItem("admin", response.data.admin)
+      setUser({ uid: myUID, admin: response.data.admin });
 
-      const admin = await axios.get(`/group/owner`);
-      if (admin.data.uid === response.data) {
-        window.localStorage.setItem("admin", true)
-        setUser({ uid: response.data, admin: true });
-      } else {
-        setUser({ uid: response.data, admin: false });
-        window.localStorage.setItem("admin", false)
-      }
+      // const admin = await axios.get(`/group/owner`);
+      // if (admin.data.uid === response.data) {
+      //   setUser({ uid: response.data, admin: true });
+      //   window.localStorage.setItem("admin", true)
+      //   window.localStorage.setItem("ismember", false)  // for apurva
+      // } else {
+      //   setUser({ uid: response.data, admin: false });
+      //   window.localStorage.setItem("admin", false)
+      //   window.localStorage.setItem("ismember", true)  // for users other than apurva
+      // }
       history.push("/admin")
 
     }

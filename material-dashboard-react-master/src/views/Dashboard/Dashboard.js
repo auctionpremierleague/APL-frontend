@@ -1,9 +1,9 @@
 import React from "react";
+import axios from "axios";
 // react plugin for creating charts
 
 // @material-ui/core
-import { useEffect, useState, useContext } from 'react';
-import axios from "axios";
+import { useEffect, useState } from 'react';
 import { makeStyles } from "@material-ui/core/styles";
 
 // @material-ui/icons
@@ -31,12 +31,20 @@ import CardFooter from "components/Card/CardFooter.js";
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
- const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// const ENDPOINT = "http://localhost:4000";
+//  const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+const ENDPOINT = "http://localhost:4000";
+
 
 
 
 const useStyles = makeStyles(styles);
+
+
+function leavingDashboard(myConn) {
+  console.log("Leaving Dashboard wah wah ");
+  myConn.disconnect();
+}
+
 
 
 export default function Dashboard() {
@@ -49,79 +57,95 @@ export default function Dashboard() {
   // const [mvp, SetMvp] = useState();
   // const { user } = useContext(UserContext);
   const date = new Date().toDateString() + " " + new Date().toLocaleTimeString();
-  const socket = socketIOClient(ENDPOINT);
-
+  
 
 
   const tableData = (rankDetails) => {
     const arr = rankDetails.map(element => {
-      // console.log(element)
       const { displayName, userName, grandScore, rank } = element;
       //const {rank,displayName,userName,grandScore}=element;
-      return { data: Object.values({ rank, displayName, userName, displayName, grandScore }), collapse: [] }
+      // return { data: Object.values({ rank, displayName, userName, displayName, grandScore }), collapse: [] }
+      return { data: Object.values({ rank, displayName, userName, grandScore }), collapse: [] }
     });
 
     return arr;
   }
+
+  // axios.get(`/stat/sendmydashboard/${localStorage.getItem("gid")}`);
   useEffect(() => {
+    var sendMessage = {page: "DASH", gid: '1', uid: localStorage.getItem("uid") };
 
-    socket.on("connect", () => {
-      console.log("dashboard connected");
-      socket.on("rank", (rank) => {
-        // console.log(rank)
-        const userDetails = rank.filter((element) => element.uid === parseInt(localStorage.getItem("uid")))
+    const makeconnection = async () => {
+      await sockConn.connect();
+      console.log("just after connect command");
+      sockConn.emit("page", sendMessage);
+    }
 
-        // if (userDetails) {
+    var sockConn = socketIOClient(ENDPOINT);
+    console.log("in dashboard before make connection");
+    makeconnection();
+    console.log("in dashboard after make connection");
 
-        //   setRank(userDetails[0].rank);
-        //   setScore(userDetails[0].grandScore)
-        //   setRankArray(tableData(rank));
-        // }
+    sockConn.on("connect", function() {
+      sockConn.emit("page", sendMessage);
+      sockConn.on("rank", (rank) => {
+        console.log(new Date());
+        console.log(localStorage.getItem("uid"))
+        const allRank = rank.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
+        const userDetails = allRank.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
+
         if (userDetails.length > 0) {
           // if details of current user found (current user is a member of group 1)
+          // console.log("Data available");
           setRank(userDetails[0].rank);
           setScore(userDetails[0].grandScore)
-          setRankArray(tableData(rank));
+          setRankArray(tableData(allRank));
         } else if (localStorage.getItem("admin") === "true") {
           // current user is not member of the group but is ADMIN. Thus show the rank details
-          setRankArray(tableData(rank));
+          setRankArray(tableData(allRank));
         }
 
       });
 
-      socket.on("maxRun", (maxRun) => {
+      sockConn.on("maxRun", (maxRun) => {
 
-        const runDetails = maxRun.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
-
+        const allMaxRun = maxRun.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
+        const runDetails = allMaxRun.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
         // console.log(runDetails)
-        if (runDetails) {
-
+        if (runDetails.length > 0) {
           setMostRuns(runDetails[0])
         }
 
       });
 
-      socket.on("maxWicket", (maxWicket) => {
-
-        const wicketDetails = maxWicket.filter((element) => element.uid === parseInt(localStorage.getItem("uid")));
-
-        if (wicketDetails) {
+      sockConn.on("maxWicket", (maxWicket) => {
+        const allMaxWicket = maxWicket.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
+        const wicketDetails = allMaxWicket.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
+        // console.log(wicketDetails);
+        if (wicketDetails.length > 0) {
           setMostwickets(wicketDetails[0]);
         }
 
       });
     });
+    
+    return () => {
+      // componentwillunmount in functional component.
+      // Anything in here is fired on component unmount.
+      leavingDashboard(sockConn);
+  }
+   
 
+  }, []);
+// }, [rankArray]);
 
-
-  }, [rankArray]);
-  const classes = useStyles();
-  return (
-    <div>
-      { localStorage.getItem("admin") === "false" ? <GridContainer>
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="warning" stats icon>
+  function ShowUserBoard() {
+    if (localStorage.getItem("ismember") === "true")
+      return(
+      <GridContainer key="db_gc_ub">
+        <GridItem key="db_gi_ub1" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub1">
+            <CardHeader key="db_chdr_ub1" color="warning" stats icon>
               <CardIcon color="warning">
                 <GroupIcon />
               </CardIcon>
@@ -130,44 +154,43 @@ export default function Dashboard() {
                 {rank}
               </h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub1" stats>
               <div className={classes.stats}>
                 <GroupIcon />
                 <a href="#pablo" onClick={e => e.preventDefault()}>
-                  IPL 2020
+                  {localStorage.getItem("groupName")}
                 </a>
               </div>
             </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="success" stats icon>
+        <GridItem key="db_gi_ub2" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub2">
+            <CardHeader key="db_chdr_ub2" color="success" stats icon>
               <CardIcon color="success">
                 <TimelineIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Total Points</p>
               <h3 className={classes.cardTitle}>{score}</h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub2" stats>
               <div className={classes.stats}>
                 <Update />
-                Just Updated
+                {localStorage.getItem("tournament")}
               </div>
             </CardFooter>
           </Card>
         </GridItem>
-
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="info" stats icon>
+        <GridItem key="db_gi_ub3" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub3">
+            <CardHeader key="db_chdr_ub3" color="info" stats icon>
               <CardIcon color="info">
                 <Accessibility />
               </CardIcon>
               <p className={classes.cardCategory}>Most Runs</p>
               <h3 className={classes.cardTitle}>{mostRuns ? mostRuns.maxRunPlayerName : ""}</h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub3" stats>
               <div className={classes.stats}>
                 <Accessibility />
                 {mostRuns ? mostRuns.maxRun : ""}
@@ -175,17 +198,16 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
-
-        <GridItem xs={12} sm={6} md={3}>
-          <Card>
-            <CardHeader color="danger" stats icon>
+        <GridItem key="db_gi_ub4" xs={12} sm={6} md={3}>
+          <Card key="db_card_ub4">
+            <CardHeader key="db_chdr_ub4" color="danger" stats icon>
               <CardIcon color="danger">
                 <SportsHandballIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Most Wickets</p>
               <h3 className={classes.cardTitle}>{mostWickets ? mostWickets.maxWicketPlayerName : ""}</h3>
             </CardHeader>
-            <CardFooter stats>
+            <CardFooter key="db_cftr_ub4" stats>
               <div className={classes.stats}>
                 <SportsHandballIcon />
                 {mostWickets ? mostWickets.maxWicket : ""}
@@ -193,29 +215,59 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
         </GridItem>
-      </GridContainer> : ""}
-
-
-      <GridContainer>
-
-        <GridItem xs={12} sm={12} md={12}>
-          <Card>
-            <CardHeader color="warning">
-              <h4 className={classes.cardTitleWhite}>Franchise Score Board</h4>
-              <p className={classes.cardCategoryWhite}>
-                {`Updated as of ${date}`}
-              </p>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="warning"
-                tableHead={["Rank", "Franchise", "Owner", "Score"]}
-                tableData={rankArray}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
       </GridContainer>
+      )
+    else
+        return(<div></div>);        // no display if not a member
+  } 
+
+  function ShowUserRank() {
+    if ((localStorage.getItem("ismember") === "true") || (localStorage.getItem("admin") === "true"))
+    return(
+    <GridContainer key="db_grid">
+      <GridItem key="db_gitem" xs={12} sm={12} md={12}>
+        <Card key="db_card">
+          <CardHeader key="db_cheader" color="warning">
+            <h4 className={classes.cardTitleWhite}>Franchise Score Board</h4>
+            <p className={classes.cardCategoryWhite}>
+              {`Updated as of ${date}`}
+            </p>
+          </CardHeader>
+          <CardBody key="db_cbody">
+            <Table
+              tableHeaderColor="warning"
+              tableHead={["Rank", "Franchise", "Owner", "Score"]}
+              tableData={rankArray}
+            />
+          </CardBody>
+        </Card>
+      </GridItem>
+    </GridContainer>
+    )
+    else 
+    return (
+      <GridContainer>
+      <GridItem xs={12} sm={12} md={12}>
+        <Card>
+          <CardHeader color="warning">
+            <h4 className={classes.cardTitleWhite}>Not a member of this group</h4>
+          </CardHeader>
+        </Card>
+      </GridItem>
+    </GridContainer>
+    )
+  }
+
+  const classes = useStyles();
+
+  
+
+  return (
+    <div>
+      <ShowUserBoard />
+      <ShowUserRank />
+      {/* <Beforeunload onBeforeunload={(event) => event.preventDefault()} /> */}
+      {/* <Beforeunload onBeforeunload={leavingDashboard} /> */}
     </div>
   );
 }
