@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from "axios";
 import { makeStyles } from '@material-ui/core/styles';
-import { Switch, Route, Link } from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 import Table from "components/Table/Table.js";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -17,8 +17,8 @@ import CardBody from "components/Card/CardBody.js";
 // import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useHistory } from "react-router-dom";
 import { UserContext } from "../../UserContext";
-import GroupMember from "views/GroupMember/GroupMember.js"
-import NewGroup from "views/NewGroup/NewGroup.js"
+import GroupMember from "views/Group/GroupMember.js"
+import NewGroup from "views/Group/NewGroup.js"
 
 // import { 
 //     BrowserRouter as Router, 
@@ -66,7 +66,7 @@ export default function Group() {
             window.localStorage.setItem("groupMember", "");
             var myUrl = `/group/memberof/${localStorage.getItem("uid")}`;
             const teamResponse = await axios.get(myUrl);
-            var hasgroup = false;
+            // var hasgroup = false;
             if (teamResponse.data[0].groups.length > 0) {
                 setMyGroupTableData(teamResponse.data[0].groups);
                 // console.log(teamResponse.data[0].groups);
@@ -100,15 +100,21 @@ export default function Group() {
         setUser({ uid: localStorage.getItem("uid"), admin: ggg.admin })    
     };
 
-    function ShowGroupMembers(grpName) {
-        // console.log(grpName);
+    function ShowGroupMembers() {
+        var grpName = localStorage.getItem("groupName");
         var ggg = myGroupTableData.find(x=> x.groupName === grpName);
+        console.log(ggg);
         window.localStorage.setItem("gdGid", ggg.gid.toString());
         window.localStorage.setItem("gdName", ggg.groupName)
         window.localStorage.setItem("gdAdmin", ggg.admin.toString());
-        history.push("/admin/memberlist");        
+        // console.log("abou to call /admin/membergroup ")
+        history.push("/admin/membergroup");        
     };
 
+    function EditGroupProfile() {
+        console.log("edit profile")
+    }   
+    
     
     function handleNewGroup() {
         history.push("/admin/newgroup");        
@@ -125,7 +131,7 @@ export default function Group() {
                             tableKey="t-group"
                             id="t-group"
                             tableHeaderColor="warning"
-                            tableHead={["Group Name", "Admin", "Current",  "Members"]}
+                            tableHead={["Group Name", "Admin", "Current"]}
                             tableData={myGroupTableData.map(x => {
                                 const arr = [
                                     x.groupName,
@@ -136,10 +142,7 @@ export default function Group() {
                                     value={x.groupName}    
                                     control={<Radio color="primary" key={rPrefix+x.groupName} id={rPrefix+x.groupName} defaultChecked={x.groupName === newCurrentGroup}/>}
                                     onClick={() => handleSelectGroup(x.groupName)}
-                                    />,
-                                    <Button key={"button-"+newCurrentGroup} variant="contained" color="primary" size="small"
-                                        className={classes.button} onClick={() => ShowGroupMembers(x.groupName)}>Member List
-                                    </Button>
+                                    />
                                 ]
                                 return { data: arr, collapse: [] }
                             })}
@@ -156,11 +159,17 @@ export default function Group() {
         <div className={classes.root} align="center" key="groupinfo">
             <h3 align="center">My Groups ({localStorage.getItem("displayName")})</h3>
             <ShowAllGroups/>
-            <Button key={"button-"+newCurrentGroup} variant="contained" color="primary" size="small"
-                className={classes.button} onClick={handleNewGroup}>Create Group
+            <Button key={"create"} variant="contained" color="primary" size="small"
+                className={classes.button} onClick={handleNewGroup}>Create
+            </Button>
+            <Button key={"members"} variant="contained" color="primary" size="small"
+               className={classes.button} onClick={ShowGroupMembers}>Members
+            </Button>
+            <Button key={"progile"} variant="contained" color="primary" size="small"
+               className={classes.button} onClick={EditGroupProfile}>Profile
             </Button>
             <Switch> {/* The Switch decides which component to show based on the current URL.*/}
-                <Route  path='/admin/memberlist' component={GroupMember} key="MemberList"/>
+                <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
                 <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route>
             </Switch>
         </div>

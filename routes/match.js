@@ -1,35 +1,35 @@
 var router = express.Router();
 var MatchRes;
 var _group;
-var _tournament;
+// var _tournament;
 
-/**
- * @param {Date} d The date
- */
-function cricDate(d)  {
-  var myHour = d.getHours();
-  // var amPm = (myHour < 12) ? "AM" : "PM";
-  if (myHour > 12) myHour -= 12;
-  var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
-      ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + AMPM[myHour];
-  return tmp;
-}
+// /**
+//  * @param {Date} d The date
+//  */
+// function cricDate(d)  {
+//   var myHour = d.getHours();
+//   var myampm = AMPM[myHour];
+//   if (myHour > 12) myHour -= 12;
+//   var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
+//       ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + myampm;
+//   return tmp;
+// }
 
-const notToConvert = ['XI', 'ARUN']
-/**
- * @param {string} t The date
- */
-function cricTeamName(t)  {
-  var tmp = t.split(' ');
-  for(i=0; i < tmp.length; ++i)  {
-    var x = tmp[i].trim().toUpperCase();
-    if (notToConvert.includes(x))
-      tmp[i] = x;
-    else
-      tmp[i] = x.substr(0, 1) + x.substr(1, x.length - 1).toLowerCase();
-  }
-  return tmp.join(' ');
-}
+// const notToConvert = ['XI', 'ARUN']
+// /**
+//  * @param {string} t The date
+//  */
+// function cricTeamName(t)  {
+//   var tmp = t.split(' ');
+//   for(i=0; i < tmp.length; ++i)  {
+//     var x = tmp[i].trim().toUpperCase();
+//     if (notToConvert.includes(x))
+//       tmp[i] = x;
+//     else
+//       tmp[i] = x.substr(0, 1) + x.substr(1, x.length - 1).toLowerCase();
+//   }
+//   return tmp.join(' ');
+// }
 
 /* GET all users listing. */
 router.use('/', function(req, res, next) {
@@ -41,7 +41,7 @@ router.use('/', function(req, res, next) {
   if (!["DATE"].includes(tmp[1].toUpperCase()))
   if (!["MATCHINFO"].includes(tmp[1].toUpperCase()))
   {
-    console.log("Hello")
+    // console.log("Hello")
     // take care of /list/csk  ,   /list/csk/rr,  /list
     switch (tmp.length)
     {
@@ -66,26 +66,26 @@ router.use('/', function(req, res, next) {
 
 
 /* GET all matches of given listing. */
-router.use('/list/:myteam1/:myteam2', function(req, res, next) {
-  MatchRes = res;
-  setHeader();
+// router.use('/list/:myteam1/:myteam2', function(req, res, next) {
+//   MatchRes = res;
+//   setHeader();
 
-  var {myteam1,myteam2} = req.params;
-  myteam1 = myteam1.toUpperCase();
-  myteam2 = myteam2.toUpperCase();
-  //console.log("Single entry " + myteam1);
-  //console.log("Single entry " + myteam2);
+//   var {myteam1,myteam2} = req.params;
+//   myteam1 = myteam1.toUpperCase();
+//   myteam2 = myteam2.toUpperCase();
+//   //console.log("Single entry " + myteam1);
+//   //console.log("Single entry " + myteam2);
 
-  let myfilter;
-  if (myteam1 == "ALL")  
-    myfilter = {tournament: _tournament};
-  else if (myteam2 == "NONE") 
-    myfilter = {tournament: _tournament, $or: [ {team1: myteam1}, {team2: myteam1} ]};
-  else
-    myfilter = {tournament: _tournament, team1: {$in: [myteam1, myteam2]}, team2: {$in: [myteam1, myteam2]} };
-    //console.log(myfilter);
-  publish_matches(myfilter);
-});
+//   let myfilter;
+//   if (myteam1 == "ALL")  
+//     myfilter = {tournament: _tournament};
+//   else if (myteam2 == "NONE") 
+//     myfilter = {tournament: _tournament, $or: [ {team1: myteam1}, {team2: myteam1} ]};
+//   else
+//     myfilter = {tournament: _tournament, team1: {$in: [myteam1, myteam2]}, team2: {$in: [myteam1, myteam2]} };
+//     //console.log(myfilter);
+//   publish_matches(myfilter);
+// });
 
 
 router.get('/matchinfo/:myGroup', async function(req, res, next) {
@@ -101,57 +101,57 @@ router.get('/matchinfo/:myGroup', async function(req, res, next) {
 });
 
 // GET all matches to be held on give date 
-router.get('/date/:mydate', function(req, res, next) {
-  MatchRes = res;
-  setHeader();
-  var {mydate} = req.params;
-  var todayDate = new Date();
+// router.get('/date/:mydate', function(req, res, next) {
+//   MatchRes = res;
+//   setHeader();
+//   var {mydate} = req.params;
+//   var todayDate = new Date();
 
-  var maxDayRange = 1;
-  switch (mydate.toUpperCase())
-  {
-    case "UPCOMING":
-      //todayDate.setDate(todayDate.getDate()-10);
-      mydate = todayDate.getFullYear().toString() + "-" +
-              (todayDate.getMonth()+1).toString() + "-" +
-              todayDate.getDate().toString() + " " +
-              todayDate.getHours().toString() + ":" +
-              todayDate.getMinutes().toString();
-      maxDayRange = 200;
-      break;
-    case "TODAY":
-      mydate = todayDate.getFullYear().toString() + "-" +
-              (todayDate.getMonth()+1).toString() + "-" +
-              todayDate.getDate().toString();
-      break;
-    case "YESTERDAY":
-      todayDate.setDate(todayDate.getDate()-1);
-      mydate = todayDate.getFullYear().toString() + "-" +
-              (todayDate.getMonth()+1).toString() + "-" +
-              todayDate.getDate().toString();
-      break;
-    case "TOMORROW":
-      todayDate.setDate(todayDate.getDate()+1);
-      mydate = todayDate.getFullYear().toString() + "-" +
-              (todayDate.getMonth()+1).toString() + "-" +
-              todayDate.getDate().toString();
-      break;
-  }
-  console.log(`Date: ${mydate} and Range ${maxDayRange}`)
-  var startDate, endDate;
-  startDate =   new Date(mydate);
-  if (isNaN(startDate)) { senderr(661, `Invalid date ${mydate}`); return; }
-  endDate = new Date(startDate.getTime());        // clone start date
-  endDate.setDate(startDate.getDate()+maxDayRange);
-  endDate.setHours(0);
-  endDate.setMinutes(0);
-  endDate.setSeconds(0);
+//   var maxDayRange = 1;
+//   switch (mydate.toUpperCase())
+//   {
+//     case "UPCOMING":
+//       //todayDate.setDate(todayDate.getDate()-10);
+//       mydate = todayDate.getFullYear().toString() + "-" +
+//               (todayDate.getMonth()+1).toString() + "-" +
+//               todayDate.getDate().toString() + " " +
+//               todayDate.getHours().toString() + ":" +
+//               todayDate.getMinutes().toString();
+//       maxDayRange = 200;
+//       break;
+//     case "TODAY":
+//       mydate = todayDate.getFullYear().toString() + "-" +
+//               (todayDate.getMonth()+1).toString() + "-" +
+//               todayDate.getDate().toString();
+//       break;
+//     case "YESTERDAY":
+//       todayDate.setDate(todayDate.getDate()-1);
+//       mydate = todayDate.getFullYear().toString() + "-" +
+//               (todayDate.getMonth()+1).toString() + "-" +
+//               todayDate.getDate().toString();
+//       break;
+//     case "TOMORROW":
+//       todayDate.setDate(todayDate.getDate()+1);
+//       mydate = todayDate.getFullYear().toString() + "-" +
+//               (todayDate.getMonth()+1).toString() + "-" +
+//               todayDate.getDate().toString();
+//       break;
+//   }
+//   console.log(`Date: ${mydate} and Range ${maxDayRange}`)
+//   var startDate, endDate;
+//   startDate =   new Date(mydate);
+//   if (isNaN(startDate)) { senderr(661, `Invalid date ${mydate}`); return; }
+//   endDate = new Date(startDate.getTime());        // clone start date
+//   endDate.setDate(startDate.getDate()+maxDayRange);
+//   endDate.setHours(0);
+//   endDate.setMinutes(0);
+//   endDate.setSeconds(0);
   
-  //var currdate = new Date();
-  //console.log(`Curr Date: ${currdate} Start Date: ${startDate}   End Date: ${endDate}`);
-  let myfilter = { tournament: _tournament, matchStartTime: { $gte: startDate, $lt: endDate } };
-  publish_matches(myfilter);
-});
+//   //var currdate = new Date();
+//   //console.log(`Curr Date: ${currdate} Start Date: ${startDate}   End Date: ${endDate}`);
+//   let myfilter = { tournament: _tournament, matchStartTime: { $gte: startDate, $lt: endDate } };
+//   publish_matches(myfilter);
+// });
 
 async function sendMatchInfoToClient(igroup, doSendWhat) {
   // var igroup = _group;
@@ -210,7 +210,7 @@ function setHeader() {
   MatchRes.header("Access-Control-Allow-Origin", "*");
   MatchRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   _group = defaultGroup;
-  _tournament = defaultTournament;
+  // _tournament = defaultTournament;
 }
 
 module.exports = router;

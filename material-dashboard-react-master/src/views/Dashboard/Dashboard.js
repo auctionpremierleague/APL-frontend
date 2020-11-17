@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "axios";
+// import axios from "axios";
 // react plugin for creating charts
 
 // @material-ui/core
@@ -31,8 +31,8 @@ import CardFooter from "components/Card/CardFooter.js";
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
-//  const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-const ENDPOINT = "http://localhost:4000";
+ const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// const ENDPOINT = "http://localhost:4000";
 
 
 
@@ -77,20 +77,20 @@ export default function Dashboard() {
 
     const makeconnection = async () => {
       await sockConn.connect();
-      console.log("just after connect command");
+      // console.log("just after connect command");
       sockConn.emit("page", sendMessage);
     }
 
     var sockConn = socketIOClient(ENDPOINT);
-    console.log("in dashboard before make connection");
+    // console.log("in dashboard before make connection");
     makeconnection();
-    console.log("in dashboard after make connection");
+    // console.log("in dashboard after make connection");
 
     sockConn.on("connect", function() {
       sockConn.emit("page", sendMessage);
       sockConn.on("rank", (rank) => {
         console.log(new Date());
-        console.log(localStorage.getItem("uid"))
+        // console.log(localStorage.getItem("uid"))
         const allRank = rank.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         const userDetails = allRank.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
 
@@ -224,8 +224,6 @@ export default function Dashboard() {
   function ShowUserRank() {
     if ((localStorage.getItem("ismember") === "true") || (localStorage.getItem("admin") === "true"))
     return(
-    <GridContainer key="db_grid">
-      <GridItem key="db_gitem" xs={12} sm={12} md={12}>
         <Card key="db_card">
           <CardHeader key="db_cheader" color="warning">
             <h4 className={classes.cardTitleWhite}>Franchise Score Board</h4>
@@ -241,33 +239,24 @@ export default function Dashboard() {
             />
           </CardBody>
         </Card>
-      </GridItem>
-    </GridContainer>
     )
     else 
     return (
-      <GridContainer>
-      <GridItem xs={12} sm={12} md={12}>
         <Card>
           <CardHeader color="warning">
             <h4 className={classes.cardTitleWhite}>Not a member of this group</h4>
           </CardHeader>
         </Card>
-      </GridItem>
-    </GridContainer>
     )
   }
 
   const classes = useStyles();
 
-  
 
   return (
     <div>
       <ShowUserBoard />
       <ShowUserRank />
-      {/* <Beforeunload onBeforeunload={(event) => event.preventDefault()} /> */}
-      {/* <Beforeunload onBeforeunload={leavingDashboard} /> */}
     </div>
   );
 }

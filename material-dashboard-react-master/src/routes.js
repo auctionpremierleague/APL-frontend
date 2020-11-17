@@ -17,7 +17,6 @@
 */
 // @material-ui/icons
 import Dashboard from "@material-ui/icons/Dashboard";
-
 // import BubbleChart from "@material-ui/icons/BubbleChart";
 import GroupIcon from '@material-ui/icons/Group';
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
@@ -27,17 +26,12 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 // core components/views for Admin layout
 import DashboardPage from "views/Dashboard/Dashboard.js";
 import Statistics from "views/Statistics/Statistics.js"
-import Logout from "views/Logout/Logout.js"
-
-
+import Logout from "views/Login/Logout.js"
 import Auction from "views/Auction/Auction.js";
 import MyTeam from "views/MyTeam/MyTeam.js"
 import Captain from "views/Captain/Captain.js"
 import Group from "views/Group/Group.js"
 import UpcomingMatch from "views/UpcomingMatch/UpcomingMatch.js"
-// testing
-// import NewGroup from "views/NewGroup/NewGroup.js"
-// import GroupMember from "views/GroupMember/GroupMember.js"
 
 
 const dashboardRoutes = [
@@ -97,22 +91,6 @@ const dashboardRoutes = [
     component: UpcomingMatch,
     layout: "/admin"
   },
-  // {
-  //   path: "/newgroup",
-  //   name: "NewGroup",
-  //   rtlName: "لوحة القيادة",
-  //   icon: Dashboard,
-  //   component: NewGroup,
-  //   layout: "/admin"
-  // },
-  // {
-  //   path: "/groupmember",
-  //   name: "GroupMember",
-  //   rtlName: "طباعة",
-  //   icon: TimelineIcon,
-  //   component: GroupMember,
-  //   layout: "/admin"
-  // },
   {
     path: "/Logout",
     name: "Logout",

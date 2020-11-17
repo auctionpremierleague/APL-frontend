@@ -3,9 +3,7 @@ import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { UserContext } from "./UserContext";
 import Admin from "layouts/Admin.js";
-// import RTL from "layouts/RTL.js";
-import SignIn from "views/SignIn/SignIn.js";
-// import NewGroup from "views/NewGroup/NewGroup.js";
+import SignIn from "views/Login/SignIn.js";
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 // import { DesktopWindows } from "@material-ui/icons";
 
@@ -29,7 +27,6 @@ function AppRouter() {
       <UserContext.Provider value={value}>
         {!user && <Redirect from="/" to="/signIn" />}
         <Route path="/signIn" component={SignIn} />
-        {/* <Route path="/admin/createnewgroup" component={NewGroup} /> */}
         <Route path="/admin" component={value ? Admin : SignIn} />
         <Redirect from="/" to="/signIn" />
       </UserContext.Provider>

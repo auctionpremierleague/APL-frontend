@@ -17,7 +17,7 @@ const doMaxWicket = 2;
 // ]; 
 
 // use for testing
-const keylist= [ "M3Fg7CfVEkXYSQvDRKP3NwgJIuv1" ];
+const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
 
 // const keylist = [
 // "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -88,6 +88,15 @@ router.use('/', async function(req, res, next) {
 });
 
 
+router.get('/updatebrieftable/:tournamnet', async function(req, res) {
+  PlayerStatRes = res;  
+  setHeader();
+  var {tournamnet} = req.params;
+
+  await check_all_tournaments();
+  sendok("OK");
+
+});
 
 router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   PlayerStatRes = res;  
@@ -137,13 +146,86 @@ router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   sendok("OK");
 });
 
-router.use('/test/:myGroup', async function(req, res, next) {
+router.get('/test/:myGroup', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
   var {myGroup} = req.params;
-  var myData = await statCalculation(parseInt(myGroup));
-  console.log(myData);
-  sendok(myData.maxWicket);
+  var myDate1, myDate2;
+  var duration;
+
+  var myDate1 = new Date();
+  var groupRec = await IPLGroup.findOne({gid: myGroup});
+  var tournamentStat = mongoose.model(groupRec.tournament, StatSchema);
+  // var auctionList = await Auction.find({gid: myGroup}).select(['uid', 'pid']);
+  // // console.log(auctionList[0]);
+  // var pidList = _.map(auctionList, 'pid');
+  // // console.log(pidList);
+  // var uidList = _.map(auctionList, 'uid');
+  // uidList = _.uniq(uidList)
+  // // console.log(uidList);
+  // myfilter = {pid: {$in: pidList} };
+
+  var matchList = await CricapiMatch.find({tournament: groupRec.tournament, matchEnded: true }).select(['mid']);
+  var midList = _.map(matchList, 'mid');
+  console.log(`Match count ${midList.length}`);
+
+  var BriefStat = mongoose.model(groupRec.tournament+BRIEFSUFFIX, BriefStatSchema);
+  var briefList = await BriefStat.find({});
+
+  myfilter = {mid: {$in: midList} };
+  var statList = await tournamentStat.find(myfilter);
+  console.log(`Rec count: ${statList.length}`)
+
+  var pidList = _.map(statList, 'pid');
+  pidList = _.uniq(pidList);
+
+  pidList.forEach( myPid => {
+    var playerList = _.filter(statList, x => x.pid === myPid);
+    if (playerList.length === 0) return;
+    console.log(`Player: ${playerList[0].playerName}. Matches played ${playerList.length}`)
+  /*
+{"_id":"5f6611380529c6001772ce89","mid":1216492,"pid":447261,"score":50,
+"inning":0,"playerName":"DL Chahar",
+"run":0,"four":0,"six":0,"fifty":0,
+"hundred":0,"ballsPlayed":0,"wicket":2,"wicket3":0,"wicket5":0,
+"hattrick":0,"maiden":0,"oversBowled":4,
+"maxTouramentRun":0,"maxTouramentWicket":0,
+"manOfTheMatch":false,"__v":0}
+  */
+    var briefRec = _.find(briefList, x => x.pid === myPid);
+    if (!briefRec) {
+      var briefRec = new BriefStat();
+      briefRec.sid = PROCESSOVER;
+      briefRec.pid = myPid;
+      briefRec.playerName = playerList[0].playerName;
+    }
+    briefRec.inning = _.sumBy(playerList, x => x.inning);
+    briefRec.score = _.sumBy(playerList, x => x.score);
+    // batting details
+    briefRec.run = _.sumBy(playerList, x => x.run);
+    briefRec.four = _.sumBy(playerList, x => x.four);
+    briefRec.six = _.sumBy(playerList, x => x.six);
+    briefRec.fifty = _.sumBy(playerList, x => x.fifty);
+    briefRec.hundred = _.sumBy(playerList, x => x.hundred);
+    briefRec.ballsPlayed = _.sumBy(playerList, x => x.ballsPlayed);
+    // bowling details
+    briefRec.wicket = _.sumBy(playerList, x => x.wicket);
+    briefRec.wicket3 = _.sumBy(playerList, x => x.wicket3);
+    briefRec.wicket5 = _.sumBy(playerList, x => x.wicket5);
+    briefRec.hattrick = _.sumBy(playerList, x => x.hattrick);
+    briefRec.maiden = _.sumBy(playerList, x => x.maiden);
+    briefRec.oversBowled = _.sumBy(playerList, x => x.oversBowled);
+    // overall performance
+    briefRec.maxTouramentRun = 0;
+    briefRec.maxTouramentWicket = 0;
+    briefRec.manOfTheMatch = _.filter(playerList, x => x.manOfTheMatch === true).length;
+    briefRec.save();
+  })
+
+  var myDate2 = new Date();
+  var duration = myDate2.getTime() - myDate1.getTime();
+  console.log(`Time for read ${duration}`);
+  sendok("OK")
 });
 
 
@@ -164,7 +246,7 @@ router.use('/reread/:matchid', async function(req, res, next) {
     sendok(cricData);
   else {
     var newstats = updateMatchStats_r1(mmm, cricData.data);
-    console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
+    // console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
     if (mmm.matchEndTime < new Date()) {
       mmm.matchEnded = true;
       mmm.save();
@@ -392,18 +474,21 @@ router.use('/rank/:myGroup/:myuser', async function(req, res, next) {
   sendok(statRank(groupRec.gid, iuser, SENDRES));
 });
 
-router.use('/updatemax', async function(req, res, next) {
+router.use('/updatemax/:tournamentName', async function(req, res, next) {
   PlayerStatRes = res;
   setHeader();
-
+  var {tournamentName} = req.params;
   // first check if tournament is over (END has been signalled)
-  var myTournament = await Tournament.findOne({name: _tournament});
+  var myTournament = await Tournament.findOne({name: tournamentName});
+  if (!myTournament) { senderr(723,"Invalid tournament"); return;}
   if (!myTournament.over) {
     senderr(723, "Tournament not yet over. Cannot assign Bonus point for Tournament Max Run and Wicket");
     return;
   }
 
-  var tournamentStat = mongoose.model(_tournament, StatSchema);
+  var tournamentStat = mongoose.model(tournamentName, StatSchema);
+  let BriefStat = mongoose.model(tournamentName+BRIEFSUFFIX, BriefStatSchema);
+
   var tdata = await tournamentStat.find({});
   var tmp = _.filter(tdata, x => x.mid == MaxRunMid);
   if (tmp.length > 0) {
@@ -442,8 +527,18 @@ router.use('/updatemax', async function(req, res, next) {
     myrec.score = bonusAmount;
     myrec.maxTouramentRun = mmm.totalRun;  
     myrec.save(); 
+
+    var mybrief = getBlankBriefRecord(BriefStat);
+    mybrief.sid = MaxRunMid;
+    mybrief.pid = mmm.pid;
+    mybrief.playerName = mmm.playerName;
+    mybrief.score = bonusAmount;
+    mybrief.maxTouramentRun = mmm.totalRun;  
+    mybrief.save(); 
+
   });
 
+  // getBlankBriefRecord
   // now get list of players who have taken max wickets (note there can be more than 1)
   var tmp = _.maxBy(sumList, x => x.totalWicket);
   //console.log(tmp);
@@ -457,6 +552,15 @@ router.use('/updatemax', async function(req, res, next) {
     myrec.score = bonusAmount;
     myrec.maxTouramentWicket = mmm.totalWicket;
     myrec.save(); 
+
+    var mybrief = getBlankBriefRecord(BriefStat);
+    mybrief.sid = MaxWicketMid;
+    mybrief.pid = mmm.pid;
+    mybrief.playerName = mmm.playerName;
+    mybrief.score = bonusAmount;
+    mybrief.maxTouramentRun = mmm.totalWicket;  
+    mybrief.save(); 
+
   });
   
   sendok("OK");
@@ -467,9 +571,10 @@ async function getTournameDetails(igroup) {
   var retVal = "";
   try {
     g_groupRec = await IPLGroup.findOne({gid: igroup});
-    g_tournamentStat = mongoose.model(g_groupRec.tournament, StatSchema);
+    g_tournamentStat = mongoose.model(g_groupRec.tournament+BRIEFSUFFIX, BriefStatSchema);
     retVal = g_groupRec.tournament
   } catch (err) {
+    g_tournamentStat = null;
     console.log(err);
   }
   return(retVal);
@@ -493,12 +598,7 @@ async function readDatabase(igroup) {
   g_allusers = await Pallusers;
   g_auctionList = await PauctionList;
   g_statList = await PstatList;
-  // if (!g_statList)
-  //   console.log("Stat list in null");
-  // else {
-  //   console.log("Stat ok");
-    // console.log(g_statList);
-  // }
+  console.log(g_statList.length);
 
   return  ( (g_captainlist) &&
            (g_gmembers) &&
@@ -1090,9 +1190,25 @@ async function statCalculation (igroup) {
   // console.log(`BeforeStat: ${beforeStat}  Duration: ${duration2}`);
   // console.log(`Read over : ${dataRead}  Duration: ${duration3}`);
   // console.log(`End   calc: ${calcEnd}  Duration: ${duration4}`);
-  console.log(`Total Time: ${totDur}`) 
+  // console.log(`Total Time: ${totDur}`) 
 
   return({rank: userRank, maxRun: userMaxRunList, maxWicket: userMaxWicketList});
+}
+
+// update list of matches that are running currently
+// func 1 ==> add match in the list when match running
+// func 2 ==> del match from the list once match is over
+// this list is used by schedule to do calc
+
+function addRunningMatch(mmm) {
+  let tmp = _.filter(runningMatchArray, x => x.mid === mmm.nid);
+  if (tmp.length === 0) {
+    runningMatchArray.push({tournament: mmm.tournament, mid: mmm.mid});
+  }
+}
+
+function delRunningMatch(mmm) {
+  _.remove(runningMatchArray, {mid: mmm.mid});
 }
 
 async function update_cricapi_data_r1(logToResponse)
@@ -1205,6 +1321,7 @@ async function update_cricapi_data_r1(logToResponse)
 
     // get stas of all these matches
     await matchesFromDB.forEach(async (mmm) => {
+      addRunningMatch(mmm);
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
       if (cricData != null)
       if (cricData.data != null) {
@@ -1213,6 +1330,7 @@ async function update_cricapi_data_r1(logToResponse)
         var currdate = new Date();
         console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
         if (mmm.matchEndTime < new Date()) {
+          delRunningMatch(mmm);
           mmm.matchEnded = true;
           mmm.save();
         }     
@@ -1224,11 +1342,12 @@ async function update_cricapi_data_r1(logToResponse)
 
 async function updateMatchStats_r1(mmm, cricdata)
 {
+  let briefIndex = -1;
   var currMatch = mmm.mid;
   console.log(`Match: ${currMatch} data update. Tournamen; ${mmm.tournament}`)  
   // from tournament name identify the name
   var tournamentStat = mongoose.model(mmm.tournament, StatSchema);
-
+  var briefStat = mongoose.model(mmm.tournament+BRIEFSUFFIX, BriefStatSchema);
   
   var bowlingArray;
   if (!(cricdata.bowling === undefined))
@@ -1247,9 +1366,12 @@ async function updateMatchStats_r1(mmm, cricdata)
   if (cricdata["man-of-the-match"].pid != undefined)
   if (cricdata["man-of-the-match"].pid.length > 0)
     manOfTheMatchPid = parseInt(cricdata["man-of-the-match"].pid);
-  console.log(`Man of the match is ${manOfTheMatchPid} as per cric api ${cricdata["man-of-the-match"]}`)
+  // console.log(`Man of the match is ${manOfTheMatchPid} as per cric api ${cricdata["man-of-the-match"]}`)
 
   var allplayerstats = await tournamentStat.find({mid: mmm.mid});
+  var allbriefstats = await briefStat.find({sid: mmm.mid});
+  // console.log(allbriefstats);
+  // console.log(allbriefstats.length);
   // update bowling details
   //console.log("Bowlong Started");
   // console.log(bowlingArray);
@@ -1263,7 +1385,7 @@ async function updateMatchStats_r1(mmm, cricdata)
         //console.log(`Invalid Over ${bowler.O}. Skipping this recird`);
         return;
       }
-
+      console.log(`Bowling of ${bowler.pid}`)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(bowler.pid)});
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
@@ -1273,6 +1395,17 @@ async function updateMatchStats_r1(mmm, cricdata)
         allplayerstats.push(tmp);
         myindex = allplayerstats.length - 1;
       }
+      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, pid: parseInt(bowler.pid)});
+      if (briefIndex < 0) {
+        var tmp = getBlankBriefRecord(briefStat);
+        tmp.sid = currMatch;
+        tmp.pid = bowler.pid;
+        tmp.playerName = bowler.bowler;
+        // console.log(`length is ${allbriefstats.length}`);
+        allbriefstats.push(tmp);
+        briefIndex = allbriefstats.length - 1;
+      }
+
       allplayerstats[myindex].wicket = (bowler.W === undefined) ? 0 : bowler.W;
       allplayerstats[myindex].wicket5 = (bowler.W >= 5) ? 1 : 0;
       allplayerstats[myindex].wicket3 = ((bowler.W >= 3) && (bowler.W < 5)) ? 1 : 0;
@@ -1280,7 +1413,16 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].maiden = (bowler.M === undefined) ? 0 : bowler.M
       allplayerstats[myindex].maxTouramentRun = 0;
       allplayerstats[myindex].maxTouramentWicket = 0;
-      console.log(`Wicket by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].wicket}`)
+
+      allbriefstats[briefIndex].wicket = (bowler.W === undefined) ? 0 : bowler.W;
+      allbriefstats[briefIndex].wicket5 = (bowler.W >= 5) ? 1 : 0;
+      allbriefstats[briefIndex].wicket3 = ((bowler.W >= 3) && (bowler.W < 5)) ? 1 : 0;
+      allbriefstats[briefIndex].hattrick = 0;
+      allbriefstats[briefIndex].maiden = (bowler.M === undefined) ? 0 : bowler.M
+      allbriefstats[briefIndex].maxTouramentRun = 0;
+      allbriefstats[briefIndex].maxTouramentWicket = 0;
+      
+      // console.log(`Wicket by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].wicket}`)
       if (!(bowler.O === undefined)) {
         var i = parseInt(bowler.O);
         if (isNaN(i))
@@ -1288,11 +1430,16 @@ async function updateMatchStats_r1(mmm, cricdata)
         else
           allplayerstats[myindex].oversBowled = bowler.O;
       }
-      if (allplayerstats[myindex].pid === manOfTheMatchPid)
+      allbriefstats[briefIndex].oversBowled = allplayerstats[myindex].oversBowled
+
+      if (allplayerstats[myindex].pid === manOfTheMatchPid) {
         allplayerstats[myindex].manOfTheMatch = true;
-      
+        allbriefstats[briefIndex].manOfTheMatch = 1;
+      }
+
       var myscore = calculateScore(allplayerstats[myindex]);
       allplayerstats[myindex].score = myscore;
+      allbriefstats[briefIndex].score = myscore;
     });
   });
 
@@ -1301,6 +1448,7 @@ async function updateMatchStats_r1(mmm, cricdata)
   // console.log(battingArray);
   battingArray.forEach( x => {
     x.scores.forEach(batsman => {
+      console.log(`batting of ${batsman.pid}`)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(batsman.pid)});
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
@@ -1310,6 +1458,15 @@ async function updateMatchStats_r1(mmm, cricdata)
         allplayerstats.push(tmp);
         myindex = allplayerstats.length - 1;
       }
+      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, pid: parseInt(batsman.pid)});
+      if (briefIndex < 0) {
+        var tmp = getBlankBriefRecord(briefStat);
+        tmp.sid = currMatch;
+        tmp.pid = batsman.pid;
+        tmp.playerName = batsman.batsman;
+        allbriefstats.push(tmp);
+        briefIndex = allbriefstats.length - 1;
+      }
       allplayerstats[myindex].run = (batsman.R === undefined) ? 0 : batsman.R;
       allplayerstats[myindex].fifty = ((batsman.R >= 50) && (batsman.R < 100)) ? 1 : 0;
       allplayerstats[myindex].hundred = (batsman.R >= 100) ? 1 : 0;
@@ -1318,7 +1475,15 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].maxTouramentRun = 0;
       allplayerstats[myindex].maxTouramentWicket = 0;
 
-      console.log(`Runs by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].run}`)
+      allbriefstats[briefIndex].run = (batsman.R === undefined) ? 0 : batsman.R;
+      allbriefstats[briefIndex].fifty = ((batsman.R >= 50) && (batsman.R < 100)) ? 1 : 0;
+      allbriefstats[briefIndex].hundred = (batsman.R >= 100) ? 1 : 0;
+      allbriefstats[briefIndex].four = (batsman["4s"] === undefined) ? 0 : batsman["4s"];
+      allbriefstats[briefIndex].six = (batsman["6s"] === undefined) ? 0 : batsman["6s"];
+      allbriefstats[briefIndex].maxTouramentRun = 0;
+      allbriefstats[briefIndex].maxTouramentWicket = 0;
+
+      // console.log(`Runs by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].run}`)
 
       if (!(batsman.B === undefined)) {
         var i = parseInt(batsman.B);
@@ -1327,13 +1492,17 @@ async function updateMatchStats_r1(mmm, cricdata)
         else
         allplayerstats[myindex].ballsPlayed = i;
       }
+      allbriefstats[briefIndex].ballsPlayed = allplayerstats[myindex].ballsPlayed;
+
       if (allplayerstats[myindex].pid === manOfTheMatchPid) {
         allplayerstats[myindex].manOfTheMatch = true;
+        allbriefstats[briefIndex].manOfTheMatch = 1;
         console.log(`Man of the match is ${allplayerstats[myindex].pid}`);
       }
 
       var myscore = calculateScore(allplayerstats[myindex]);
       allplayerstats[myindex].score = myscore;
+      allbriefstats[briefIndex].score = myscore;
       //console.log(`Score; ${myscore} `);
     });
   });
@@ -1342,6 +1511,9 @@ async function updateMatchStats_r1(mmm, cricdata)
   //console.log(allplayerstats.length);
   //console.log("Saveing statsu");
   allplayerstats.forEach(ps => {
+    ps.save();
+  })
+  allbriefstats.forEach(ps => {
     ps.save();
   })
 
@@ -1404,6 +1576,34 @@ function getBlankStatRecord(tournamentStat) {
     maxTouramentWicket: 0,
     // overall performance
     manOfTheMatch: false
+  });
+}
+
+function getBlankBriefRecord(tournamentStat) {
+  return new tournamentStat( {
+    sid: RUNNINGMATCH,
+    pid: 0,
+    playerName: "",
+    score: 0,
+    inning: 0,
+  // batting details
+    run: 0,
+    four: 0,
+    six: 0,
+    fifty: 0,
+    hundred:  0,
+    ballsPlayed: 0,
+    // bowling details
+    wicket: 0,
+    wicket3: 0,
+    wicket5: 0,
+    hattrick: 0,
+    maiden: 0,
+    oversBowled: 0,
+    // overall performance
+    manOfTheMatch: 0,
+    maxTouramentRun: 0,
+    maxTouramentWicket: 0,
   });
 }
 
@@ -1481,41 +1681,92 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   }
 }
 
-async function sendDashboardData() {
-  var gidList = _.map(connectionArray, 'gid');
-  var gidList = _.uniqBy(gidList);
-  clientData = [];
+async function processConnection(i) {
+  // just simple connection then nothing to do
+  if ((connectionArray[i].gid  <= 0)  || 
+      (connectionArray[i].uid  <= 0)  ||
+      (connectionArray[i].page.length  <= 0)) return;
+    
+  var myDate1 = new Date();
+  var myTournament = await getTournameDetails(connectionArray[i].gid);
+  if (myTournament.length === 0) return;
+  // valid tourament found
 
-  // console.log(gidList);
-  for(i=0; i<gidList.length; ++i)  {
-    var myTournament = await getTournameDetails(gidList[i]);
-    if (myTournament.length === 0) continue;
-    // console.log(myTournament);
-    var myData = _.find(clientData, x => x.tournament === myTournament);
-    var sts = false;
-    if (!myData) {
-      sts = await readDatabase(gidList[i]);
-      // console.log(`Status is ${sts}`);
-      if (!sts) continue;
-      let myDB_Data = await statCalculation(gidList[i]);
-      let mySTAT_Data = await statBrief(gidList[i], 0 , SENDSOCKET);
+  var arunTemp = _.filter(runningMatchArray, x => x.tournament === myTournament)
+  if (arunTemp.length === 0)
+    console.log(`No match currently running for ${myTournament}`)
+  else
+    console.log(`Currently match ${arunTemp[0].mid} running for ${myTournament}`)
+
+  var myData = _.find(clientData, x => x.tournament === myTournament);
+  let sts = false;
+  if (!myData) {
+    // no data of this tournament with us. Read database and do calculation
+    sts = await readDatabase(connectionArray[i].gid );
+    console.log(`Status is ${sts} for tournamenet data ${myTournament}`);
+    if (sts) {
+      // console.log(connectionArray[i].gid );
+      let myDB_Data = await statCalculation(connectionArray[i].gid );
+      let mySTAT_Data = await statBrief(connectionArray[i].gid , 0 , SENDSOCKET);
       myData = {tournament: myTournament, dbData: myDB_Data, statData: mySTAT_Data}
       clientData.push(myData);
+      var myDate2 = new Date();
+      var duration = myDate2.getTime() - myDate1.getTime();
+      console.log(`Total Time: ${duration}`)
     }
+  }
+  // console.log(clientData);
+  // console.log(myData);
+  // console.log(connectionArray[i].page);
+  switch(connectionArray[i].page.substr(0, 4).toUpperCase()) {
+    case "DASH":
+      if (myData) {
+        io.to(connectionArray[i].socketId).emit('maxRun', myData.dbData.maxRun);
+        io.to(connectionArray[i].socketId).emit('maxWicket', myData.dbData.maxWicket);
+        io.to(connectionArray[i].socketId).emit('rank', myData.dbData.rank);
+        console.log("sent Dash data to " + connectionArray[i].socketId);
+      }
+      break;
+    case "STAT":
+      if (myData) {
+          io.to(connectionArray[i].socketId).emit('brief', myData.statData);
+          console.log("Sent Stat data to " + connectionArray[i].socketId);
+      }
+      break
+    // case "AUCT":
+    //   console.log(auctioData);
+    //   var myRec = _.filter(auctioData, x => x.gid == connectionArray[i].gid);
+    //   console.log(myRec);
+    //   if (myRec.length > 0) {
+    //     io.to(connectionArray[i].socketId).emit('playerChange', 
+    //         myRec[0].player, myRec[0].balance );
+    //       console.log("Sent Auction data to " + connectionArray[i].socketId);          
+    //   }
+    //   break;
+  }
 
-    let sockList = _.filter(connectionArray, x => x.page === "DASH" && x.gid === gidList[i]);
-    sockList.forEach(x => {
-      io.to(x.socketId).emit('rank', myData.dbData.rank);
-      io.to(x.socketId).emit('maxRun', myData.dbData.maxRun);
-      io.to(x.socketId).emit('maxWicket', myData.dbData.maxWicket);
-      console.log("Sendt data to " + x.socketId);
-    })
+  return;
+}
 
-    sockList = _.filter(connectionArray, x => x.page === "STAT" && x.gid === gidList[i]);
-    sockList.forEach(x => {
-      io.to(x.socketId).emit('brief', myData.statData);
-      console.log("Sent statistics to " + x.socketId);
-    })
+async function sendDashboardData() {
+  // clientData = [];
+  // first cleanup data of tournament which has running matches
+  // this will force fresh calculation which inlcudes curret matches
+  connectionArray.forEach( ccc => {
+    _.remove(clientData, x => x.tournament === ccc.tournament);
+  });
+
+  // now process connection
+  for(i=0; i<connectionArray.length; ++i)  {
+    await processConnection(i);
+  }
+}
+
+async function updateTournamentBrief() {
+  var currDate = new Date();
+  if (true) { //(currDate.getHours() === 18) {
+    console.log(currDate);
+    await check_all_tournaments();
   }
 }
 
@@ -1525,59 +1776,24 @@ cron.schedule('*/1 * * * * *', () => {
     console.log("============= No mongoose connection");
     return;
   }   
-
+  // return;
+  
   if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
-    // console.log("Updateing of these connection");
-    console.log(connectionArray);
+    console.log("======== clinet update start");
+    // console.log(connectionArray);
     sendDashboardData();
     clientUpdateCount = 0;
+    console.log("client update over")
   }
 
-  // cricTimer += count;
-  // if (++cricTimer >= cricUpdateInterval) {
-  //   cricTimer = 0;
-  //   console.log("TIme to getch cric data");
-  //   update_cricapi_data_r1(false);
-  // }
-
-
-  // serverTimer += count;
-  // if (serverTimer >= serverUpdateInterval) {
-  //   serverTimer = 0;
-  //   console.log("Time toi send send to data to server")
-  //   console.log(myDashboardGroup);
-  //   // var x = 1;
-  //   myDashboardGroup.forEach( x => {
-  //     statMax(x, 0, doMaxRun, SENDSOCKET);
-  //     statMax(x, 0, doMaxWicket, SENDSOCKET);
-  //     statRank(x, 0, SENDSOCKET);
-  //     statBrief(x, 0, SENDSOCKET);
-  //     // sendMatchInfoToClient(x, SENDSOCKET);
-  //   })
-  // }
-  // else {    
-  //   sendMyStat = false;
-  //   sendDashboard = false;
-  //   if (sendMyStat) {
-  //     console.log(`send My stat ${sendMyStat}`)
-  //     sendMyStat = false;
-  //     myStatGroup.forEach( x => {
-  //       console.log(`Sending stat of group ${x}`)
-  //       statBrief(x, 0, SENDSOCKET);
-  //     })
-  //   }
-    
-  //   if (sendDashboard) {
-  //     sendDashboard = false;
-  //     myDashboardGroup.forEach( x => {
-  //       console.log(`Sending dashboard of group ${x}`)
-  //       statMax(x, 0, doMaxRun, SENDSOCKET);
-  //       statMax(x, 0, doMaxWicket, SENDSOCKET);
-  //       statRank(x, 0, SENDSOCKET);
-  //       // sendMatchInfoToClient(x, SENDSOCKET);
-  //     })
-  //   }
-  // }
+  if (++cricTimer >= CRICUPDATEINTERVAL) {
+    cricTimer = 0;
+    console.log("======== match update start");
+    // console.log("TIme to getch cric data");
+    // update_cricapi_data_r1(false);
+    // updateTournamentBrief();
+    console.log("match update over")
+  }
 });
 
 
@@ -1728,6 +1944,78 @@ async function get_userDisplayName(userId) {
     myuser = myrec.displayName;
   return myuser;
 }
+
+async function check_all_tournaments() {
+  let tmp = await Tournament.find({over: false});
+  let allTournaments = _.map(tmp, 'name');
+  // console.log(allTournaments);
+  for(i=0; i < allTournaments.length; ++i) {
+    await completePendingBrief(allTournaments[i]);
+  }
+}
+
+
+async function completePendingBrief(mytournament) {
+  // get match if the matches that are completed in this tournament
+  let ttt = mytournament.toUpperCase();
+  let completedMatchList = await CricapiMatch.find({tournament: ttt, matchEnded: true});
+  if (completedMatchList.length <= 0) return;
+  let midList = _.map(completedMatchList, 'mid');
+
+  // get gets record in brief table which are not yet merge
+  let BriefStat = mongoose.model(mytournament+BRIEFSUFFIX, BriefStatSchema);
+  var briefList = await BriefStat.find({ sid: { $in: midList } });
+  if (briefList.length === 0) return;
+  console.log("Pending procesing started");
+  // some pending reocrd to be update
+  sidList = _.map(briefList, 'sid');
+  sidList = _.uniq(sidList);
+  console.log(sidList);
+  // console.log( `Completed match is ${PROCESSOVER}`)
+  let masterList = await BriefStat.find({ sid: PROCESSOVER });
+  console.log(`Compltetd: ${masterList.length}    Pedning: ${briefList.length}`);
+  for(sidx=0; sidx < sidList.length; ++sidx) {
+    let myList = _.filter(briefList, x => x.sid === sidList[sidx]);
+    for(i=0; i<myList.length; ++i) {
+      var myMasterRec = _.find(masterList, x => x.pid === myList[i].pid);
+      if (!myMasterRec) {
+        myMasterRec = new getBlankBriefRecord(BriefStat);
+        myMasterRec.sid = PROCESSOVER;
+        myMasterRec.pid = myList[i].pid;
+        myMasterRec.playerName = myList[i].playerName;
+        masterList.push(myMasterRec);
+      }
+      myMasterRec.score += myList[i].score;
+      myMasterRec.inning += myList[i].inning;
+      // batting details
+      myMasterRec.run += myList[i].run;
+      myMasterRec.four += myList[i].four;
+      myMasterRec.six += myList[i].six;
+      myMasterRec.fifty += myList[i].fifty;
+      myMasterRec.hundred += myList[i].hundred;
+      myMasterRec.ballsPlayed += myList[i].ballsPlayed;
+      // bowling details
+      myMasterRec.wicket += myList[i].wicket;
+      myMasterRec.wicket3 += myList[i].wicket3;
+      myMasterRec.wicket5 + myList[i].wicket5;
+      myMasterRec.hattrick += myList[i].hattrick;
+      myMasterRec.maiden += myList[i].maiden;
+      // console.log(`${myMasterRec.pid} ${myMasterRec.playerName} ${myMasterRec.oversBowled}   ${myList[i].oversBowled}`);
+      myMasterRec.oversBowled += myList[i].oversBowled
+      // console.log("over bowled")
+      // overall performance
+      myMasterRec.manOfTheMatch += myList[i].manOfTheMatch;
+      myMasterRec.maxTouramentRun += myList[i].maxTouramentRun;
+      myMasterRec.maxTouramentWicket += myList[i].maxTouramentWicket;
+    }
+    console.log(`Now deleting recrods with sid ${sidList[sidx]}`)
+    await BriefStat.deleteMany({sid: sidList[sidx]})
+  }
+  masterList.forEach(x => {
+    x.save();
+  })
+}
+
 
 function sendok(usrmsg) { PlayerStatRes.send(usrmsg); }
 function senderr(errcode, errmsg) { PlayerStatRes.status(errcode).send(errmsg); }

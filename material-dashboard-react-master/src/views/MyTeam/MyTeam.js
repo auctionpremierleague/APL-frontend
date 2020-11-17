@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
-
-
 import Grid from "@material-ui/core/Grid";
 import Table from "components/Table/Table.js";
-
 import { makeStyles } from '@material-ui/core/styles';
-
 // import { UserContext } from "../../UserContext";
 // import { Typography } from '@material-ui/core';
 import GridItem from "components/Grid/GridItem.js";
@@ -14,6 +10,7 @@ import Card from "components/Card/Card.js";
 // import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
 import Avatar from "@material-ui/core/Avatar"
+import NoGroup from 'CustomComponents/NoGroup.js';
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -84,25 +81,29 @@ export default function App() {
 
     const classes = useStyles();
     const [teamArray, setTeamArray] = useState([]);
-
+    const [hasTeam, setHasTeam] = useState(true);
     useEffect(() => {
         const fetchTeam = async () => {
             try {
                 var myTeamUrl = "";
-                if (localStorage.getItem("admin") === "true")
-                    myTeamUrl = `/user/myteam/${localStorage.getItem("gid")}/all`;
-                else if (localStorage.getItem("ismember") === "true")
-                    myTeamUrl = `/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`;
-                
-                if (myTeamUrl.length > 0) {
-                    var response = await axios.get(myTeamUrl);
+                if ((localStorage.getItem("gid") !== "") && (localStorage.getItem("gid") !== "0"))
+                {
+                    // if (localStorage.getItem("admin") === "true")
+                    //     myTeamUrl = `/user/myteam/${localStorage.getItem("gid")}/all`;
+                    // else if (localStorage.getItem("ismember") === "true")
+                //     myTeamUrl = `/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`;                
+                // if (myTeamUrl.length > 0) {
+                    var response = await axios.get(`/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`);
                     // data = populateTable(response.data);
                     // console.log(response.data);
                     setTeamArray(response.data);
-                } else {
-                    var data = [{displayName: "Not a team member", players: [{playerName: "", team: "", bidAmount: ""}] }];
-                    setTeamArray(data);
+                // } else {
+                //     var data = [{displayName: "Not a team member", players: [{playerName: "", team: "", bidAmount: ""}] }];
+                //     setTeamArray(data);
+                // }
                 }
+                else
+                    setHasTeam(false);
             } catch (e) {
                 console.log(e)
             }
@@ -110,58 +111,30 @@ export default function App() {
         fetchTeam();
     }, []);
 
-
-
-
-    // return (
-    //     teamArray.map(team => 
-    //     <Grid container direction="row" justify="center" alignItems="center">
-    //         <Typography>{team.displayName}</Typography>
-    //         <Table
-    //             tableHeaderColor="warning"
-    //             tableHead={["Player Name", "Team", "Bid Amount"]}
-    //             tableData={team.players.map(team => {
-    //                 const arr = [team.playerName, team.team, team.bidAmount]
-    //                 return { data: arr, collapse: [] }
-    //             })}
-    //         />
-    //     </Grid>           
-    //     )
-
-    // )
-
-    // <Grid container justify="center" alignItems="center">
-    // <Grid item xs={12}>
-    //     <div key={team.displayName}>
-
-    return (
-        teamArray.map(team => 
-                    <Grid key={team.displayName} container justify="center" alignItems="center" >
-                        <GridItem key={team.displayName} xs={12} sm={12} md={12} lg={12} >
-                            <Card key={team.displayName} profile>
-                                <CardBody key={team.displayName} profile>
-                                    <h3 className={classes.cardTitle}>{team.displayName}</h3>
-                                    <Table
-                                        key={team.displayName}
-                                        id={team.displayName}
-                                        tableHeaderColor="warning"
-                                        tableHead={["Player Name", "Team", "Bid Amount"]}
-                                        tableData={team.players.map(team => {
-                                            const arr = [team.playerName, 
-                                                <Avatar variant="circle" src={`${process.env.PUBLIC_URL}/${team.team}.JPG`} className={classes.medium} />, 
-                                                team.bidAmount]
-                                            return { data: arr, collapse: [] }
-                                        })}
-                                    />
-                                </CardBody>
-                            </Card>
-                        </GridItem>
-                    </Grid>
+    if (hasTeam)
+        return (
+            teamArray.map(team => 
+            <div>
+                {/* <h3 className={classes.cardTitle}>{team.displayName}</h3> */}
+                <h3 align="center">My Team ({localStorage.getItem("tournament")})</h3>
+                <Table
+                    key={team.displayName}
+                    id={team.displayName}
+                    tableHeaderColor="warning"
+                    tableHead={["Player Name", "Team", "Bid Amount"]}
+                    tableData={team.players.map(team => {
+                        const arr = [team.playerName, 
+                            // <Avatar variant="circle" src={`${process.env.PUBLIC_URL}/${team.team}.JPG`} className={classes.medium} />, 
+                            team.team,                        
+                            team.bidAmount]
+                            return { data: arr, collapse: [] }
+                    })}
+                />
+            </div>
+            )
         )
-    )
+    else
+        return <NoGroup/>;
 };
-// </div>
-// </Grid>
-// </Grid>
 
 

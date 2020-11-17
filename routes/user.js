@@ -24,15 +24,6 @@ router.get('/', function (req, res, next) {
 });
 
 
-// get all user of group
-router.get('/group', async function (req, res, next) {
-  CricRes = res;
-  setHeader();
-  //_group = defaultGroup;
-  showGroupMembers(1);
-});
-
-
 // get users belonging to group "mygroup"
 router.get('/group/:mygroup', async function (req, res, next) {
   CricRes = res;
@@ -43,11 +34,46 @@ router.get('/group/:mygroup', async function (req, res, next) {
   showGroupMembers(parseInt(mygroup));
 });
 
+function getLoginName(name) {
+  return name.toLowerCase().replace(/\s/g, "");
+}
+
+function getDisplayName(name) {
+  var xxx = name.split(" ");
+  xxx.forEach( x => { 
+    x = x.trim()
+    x = x.substr(0,1).toUpperCase() +
+      (x.length > 1) ? x.substr(1, x.length-1).toLowerCase() : "";
+  });
+  return xxx.join(" ");
+}
+
+
 //=============== SIGNUP
-router.get('/signup/:userName/:userParam', function (req, res, next) {
-  req.url = "/internal" + req.url;
-  next('route');
-});
+router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var {uName, uPassword, uEmail } = req.params;
+  var isValid = false;
+  // if user name already used up
+  let myCount = await User.count({ userName: getLoginName(uName) });
+  if (myCount > 0) {senderr(602, "User name already used."); return; }
+  myCount = await User.count({ email: uEmail });
+  if (myCount > 0) {senderr(603, "Email already used."); return; }
+  uRec = await User.find().limit(1).sort({ "uid": -1 });
+  var user1 = new User({
+      uid: uRec[0].uid + 1,
+      userName: getLoginName(uName),
+      displayName: getDisplayName(uName),
+      password: uPassword,
+      email: uEmail,
+      defaultGroup: 0,
+      status: true
+    });
+  user1.save();
+  console.log(user1);
+  sendok("OK"); 
+})
 
 //=============== RESET
 router.get('/reset/:userName/:userParam', function (req, res, next) {
@@ -56,10 +82,66 @@ router.get('/reset/:userName/:userParam', function (req, res, next) {
 });
 
 //=============== LOGIN
-router.get('/login/:userName/:userParam', function (req, res, next) {
-  req.url = "/internal" + req.url;
-  next('route');
+router.get('/login/:uName/:uPassword', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var {uName, uPassword } = req.params;
+  var isValid = false;
+  let uRec = await User.findOne({ userName: getLoginName(uName) });
+  if (uRec) isValid = (uPassword === uRec.password);
+  if (isValid) sendok(uRec.uid.toString());
+  else         senderr(602, "Invalid User name or password");
 });
+
+//=============== forgot passord. email pwd to user
+router.get('/emailpassword/:mailid', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var {mailid} = req.params;
+  var isValid = false;
+  let uRec = await User.findOne({ email: mailid });
+  if (!uRec) {senderr(602, "Invalid email id"); return  }
+  
+  MYEMAILID='cricketpwd@gmail.com';
+
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: MYEMAILID,
+      pass: 'Anob@1989#93'
+    }
+  });
+
+  var mailOptions = {
+    from: MYEMAILID,
+    to: 'arunsalgia@gmail.com',
+    subject: 'User info from CricDream',
+    text: 'That was easy!'
+  };
+
+  mailOptions.to = uRec.email;
+  mailOptions.text = `Dear User,
+  
+    Greeting from CricDeam.
+
+    As request by you here is your password.
+
+    Password:  ${uRec.password}
+
+
+    Regards,
+    for Cricdream.`
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      senderr(603, error);
+    } else {
+      console.log('Email sent: ' + info.response);
+      sendok('Email sent: ' + info.response);
+    }
+  });
+}); 
 
 
 //==================== internally called for signup, login and reset
@@ -200,7 +282,6 @@ router.get('/vicecaptain/:myuser/:myplayer', async function (req, res, next) {
   });
 });
 
-// select caption for the user (currently only group 1 supported by default)
 router.get('/getcaptain/:mygroup/:myuser', async function (req, res, next) {
   CricRes = res;
   setHeader();
@@ -229,7 +310,7 @@ router.get('/balance/:mygroup/:myuser', async function (req, res, next) {
   var { mygroup, myuser } = req.params;
   var userFilter = (myuser.toUpperCase() !== "ALL") ? { gid: mygroup, uid: myuser }  : { gid: mygroup }
 
-  console.log(`hello ${myuser}`);
+  // console.log(`hello ${myuser}`);
   gmRec = await GroupMember.find(userFilter);
   // gmRec = _.sortBy(gmRec, 'uid');
 
@@ -255,39 +336,39 @@ router.get('/balance/:mygroup/:myuser', async function (req, res, next) {
 
 // get users balance
 // only group 1 supported which is default group
-router.get('/balance/:myuser', async function (req, res, next) {
-  CricRes = res;
-  setHeader();
+// router.get('/balance/:myuser', async function (req, res, next) {
+//   CricRes = res;
+//   setHeader();
 
-  var { myuser } = req.params;
-  var userFilter = { gid: _group };
-  if (myuser.toUpperCase() != "ALL") {
-    if (isNaN(myuser)) { senderr(605, "Invalid user " + myuser); return; }
-    userFilter = { gid: _group, uid: parseInt(myuser) };
-  }
-  //console.log(`hello ${iuser}`);
-  gmRec = await GroupMember.find(userFilter);
-  gmRec = _.sortBy(gmRec, 'uid');
+//   var { myuser } = req.params;
+//   var userFilter = { gid: _group };
+//   if (myuser.toUpperCase() != "ALL") {
+//     if (isNaN(myuser)) { senderr(605, "Invalid user " + myuser); return; }
+//     userFilter = { gid: _group, uid: parseInt(myuser) };
+//   }
+//   //console.log(`hello ${iuser}`);
+//   gmRec = await GroupMember.find(userFilter);
+//   gmRec = _.sortBy(gmRec, 'uid');
 
-  var auctionList = await Auction.find({ gid: _group });
-  var balanceDetails = [];
+//   var auctionList = await Auction.find({ gid: _group });
+//   var balanceDetails = [];
 
-  gmRec.forEach(gm => {
-    //console.log(gm);
-    myAuction = _.filter(auctionList, x => x.uid == gm.uid);
-    //console.log(myAuction);
-    var myPlayerCount = myAuction.length;
-    var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
-    balanceDetails.push({
-      uid: gm.uid,
-      userName: gm.userName,
-      gid: gm.gid,
-      playerCount: myPlayerCount,
-      balance: mybal
-    })
-  })
-  sendok(balanceDetails);
-})
+//   gmRec.forEach(gm => {
+//     //console.log(gm);
+//     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
+//     //console.log(myAuction);
+//     var myPlayerCount = myAuction.length;
+//     var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
+//     balanceDetails.push({
+//       uid: gm.uid,
+//       userName: gm.userName,
+//       gid: gm.gid,
+//       playerCount: myPlayerCount,
+//       balance: mybal
+//     })
+//   })
+//   sendok(balanceDetails);
+// })
 
 
 router.get('/myteam/:userGroup/:userid', function (req, res, next) {
@@ -508,6 +589,7 @@ async function publish_auctionedplayers(groupid, userid, withOrWithout)
       players: myplrs};
     grupdatalist.push(tmp);
   })
+  grupdatalist = _.sortBy(grupdatalist, 'bidAmount').reverse();
   // console.log(grupdatalist.length);
   sendok(grupdatalist);
 }

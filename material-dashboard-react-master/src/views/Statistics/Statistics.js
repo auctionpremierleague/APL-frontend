@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from "axios";
+// import axios from "axios";
 
 import Grid from "@material-ui/core/Grid";
 import Table from "components/Table/Table.js";
@@ -16,9 +16,9 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { makeStyles } from '@material-ui/core/styles';
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import socketIOClient from "socket.io-client";
-
-// const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-const ENDPOINT = "http://localhost:4000";
+import NoGroup from 'CustomComponents/NoGroup.js';
+const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// const ENDPOINT = "http://localhost:4000";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -36,7 +36,7 @@ function leavingStatistics(myConn) {
   myConn.disconnect();
 }
 
-export default function App() { 
+export default function Stats() { 
   const classes = useStyles();
   const [teamArray, setTeamArray] = useState([]);
   // axios.get(`/stat/sendmystat/${localStorage.getItem("gid")}`);
@@ -103,13 +103,15 @@ export default function App() {
       </Accordion>
       ))
   }
+  if (localStorage.getItem("tournament").length > 0)
   return (
     <div className={classes.root}>
-      <h3 align={"center"}>Statistics of IPL2020</h3> 
+      <h3 align="center">Statistics of {localStorage.getItem("tournament")}</h3> 
       <ShowStats/>
     </div>
   );
-
+  else
+    return <NoGroup/>;
 };
 
 

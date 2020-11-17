@@ -4,15 +4,16 @@ import { makeStyles } from '@material-ui/core/styles';
 // import { Switch, Route, Link } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 import Table from "components/Table/Table.js";
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from '@material-ui/core/TableCell';
+// import TableRow from '@material-ui/core/TableRow';
+// import TableCell from '@material-ui/core/TableCell';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
-import Grid from "@material-ui/core/Grid";
-import GridItem from "components/Grid/GridItem.js";
-import Card from "components/Card/Card.js";
-import CardBody from "components/Card/CardBody.js";
+// import Grid from "@material-ui/core/Grid";
+// import GridItem from "components/Grid/GridItem.js";
+// import Card from "components/Card/Card.js";
+// import CardBody from "components/Card/CardBody.js";
 import { UserContext } from "../../UserContext";
+import NoGroup from 'CustomComponents/NoGroup.js';
 
 // import GroupMember from "views/GroupMember/GroupMember.js"
 // import { 
@@ -91,11 +92,13 @@ export default function Group() {
 
    
     function handleSelectedCaptain(newCap) {
+        if (!tournamentStated)
         if (newCap !== selectedViceCaptain)
             SetSelectedCaptain(newCap);
     };
 
     function handleSelectedViceCaptain(newViceCap) {
+        if (!tournamentStated)
         if (newViceCap !== selectedCaptain)
             SetSelectedViceCaptain(newViceCap);
     };
@@ -134,7 +137,7 @@ export default function Group() {
                     control={<Radio color="primary" key={cPrefix+x.playerName} id={cPrefix+x.playerName} defaultChecked={x.playerName === selectedCaptain}/>}
                     onClick={() => handleSelectedCaptain(x.playerName)}
                     checked={selectedCaptain === x.playerName}
-                    disabled={tournamentStated}
+                    // disabled={tournamentStated}
                     />,
                     <FormControlLabel 
                     key={vcPrefix+x.playerName}
@@ -144,7 +147,7 @@ export default function Group() {
                     control={<Radio color="primary" key={vcPrefix+x.playerName} id={cPrefix+x.playerName} defaultChecked={x.playerName === selectedViceCaptain}/>}
                     onClick={() => handleSelectedViceCaptain(x.playerName)}
                     checked={selectedViceCaptain === x.playerName}
-                    disabled={tournamentStated}
+                    // disabled={tournamentStated}
                     />
                 ]
                 return { data: arr, key: "pid", collapse: [] }
@@ -153,7 +156,7 @@ export default function Group() {
         );
     };
 
-    if ((localStorage.getItem("gid") !== "") || (localStorage.getItem("gid") !== "0"))
+    if ((localStorage.getItem("gid") !== "") && (localStorage.getItem("gid") !== "0"))
         return (
         <div className={classes.root} key="cpataininfo">
             <h3 align="center">Captain and Vice Captain ({localStorage.getItem("tournament")})</h3>
@@ -162,5 +165,5 @@ export default function Group() {
         </div>
         );
     else
-        return(<div><h3>Not a member of any group</h3></div>)
+        return <NoGroup/>;
 }

@@ -7,19 +7,18 @@ import "perfect-scrollbar/css/perfect-scrollbar.css";
 import { makeStyles } from "@material-ui/core/styles";
 // core components
 import Navbar from "components/Navbars/Navbar.js";
-
 import Sidebar from "components/Sidebar/Sidebar.js";
-
-
 import routes from "routes.js";
-
 import styles from "assets/jss/material-dashboard-react/layouts/adminStyle.js";
-
 import bgImage from "assets/img/sidebar-2.jpg";
 // import logo from "assets/img/reactlogo.png";
 import logo from "assets/img/cricdream2.png";
-import GroupMember from "views/GroupMember/GroupMember.js"
-import NewGroup from "views/NewGroup/NewGroup.js"
+import SignUp from "views/Login/SignUp.js";
+import SignIn from "views/Login/SignIn.js";
+import EmailPassword from "views/Login/GetEmail.js";
+import AddGroupMember from "views/Group/AddGroupMember.js"
+import GroupMember from "views/Group/GroupMember.js"
+import NewGroup from "views/Group/NewGroup.js"
 
 
 let ps;
@@ -38,8 +37,12 @@ const switchRoutes = (
       }
       return null;
     })}
-    <Route  path='/admin/memberlist' component={GroupMember} key="MemberList"/>
+    <Route  path='/admin/addgroupmember' component={AddGroupMember} key="MemberList"/>
+    <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
     <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route>
+    <Route  path='/admin/register' component={SignUp} key="NewGroup"></Route>
+    <Route  path='/admin/emailpassword' component={EmailPassword} key="NewGroup"></Route>
+    <Route  path='/signin' component={SignIn} key="signin"></Route>
     <Redirect from="/" to="/admin/mygroup" />
   </Switch>
 );
@@ -78,6 +81,8 @@ export default function Admin({ ...rest }) {
       });
       document.body.style.overflow = "hidden";
     }
+    // set user name
+    // localStorage.setItem("currentUser", "CricDream");
     window.addEventListener("resize", resizeFunction);
     // Specify how to clean up after this effect:
     return function cleanup() {
@@ -91,7 +96,7 @@ export default function Admin({ ...rest }) {
     <div className={classes.wrapper}>
       <Sidebar
         routes={routes}
-        logoText={"CricDream"}
+        logoText={localStorage.getItem("userName")}           //{"CricDream"}
         logo={logo}
         image={image}
         handleDrawerToggle={handleDrawerToggle}

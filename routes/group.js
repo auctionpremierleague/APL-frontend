@@ -1,3 +1,5 @@
+const { ConnectionBase } = require("mongoose");
+
 var router = express.Router();
 var GroupRes;
 var _group = 1;
@@ -104,7 +106,18 @@ router.get('/gettournamentmax/:groupid', async function (req, res, next) {
   // });
 });
 
-router.get('/getauctionstatus/:groupid', function (req, res, next) {
+
+function sendDataToClient(groupid, player, balance) {
+  var myList = _.filter(connectionArray, x => x.gid == groupid && x.page === "AUCT");
+  console.log(myList);
+  myList.forEach(x => {
+    io.to(x.socketId).emit('playerChange', player, balance);
+  });
+}
+
+
+
+router.get('/getauctionstatus/:groupid', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
@@ -112,14 +125,18 @@ router.get('/getauctionstatus/:groupid', function (req, res, next) {
   // groupAction = groupAction.toLowerCase();
   // if (groupid != "1") { senderr(621, "Invalid Group"); return; }
 
-  IPLGroup.findOne({ gid: groupid }, (err, gdoc) => {
-    if (!gdoc) senderr(DBFETCHERR, "Could not fetch Group record");
-    else {
-      console.log(gdoc);
+    var gdoc = await IPLGroup.findOne({ gid: groupid });  
+    if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+    // if ((gdoc.auctionStatus === "RUNNING")) {
+      const playerList = await Player.find({pid: gdoc.auctionPlayer});
+      const balanceDetails = await fetchBalance(groupid);
+      console.log(`In Get Status: length is ${playerList.length}`);
+      sendDataToClient(groupid, playerList[0], balanceDetails);
       sendok(gdoc.auctionStatus);
-    }
+    // } else 
   });
-});
+
+
 
 router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, next) {
   GroupRes = res;
@@ -133,6 +150,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
     return 
   }
 
+
   // console.log(gdoc);
   var aplayer = gdoc.auctionPlayer;
   switch (gdoc.auctionStatus) {
@@ -144,11 +162,24 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
       newstate = "RUNNING";
 
       const playerList = await Player.find({});
-      const socket = app.get("socket");
       const balanceDetails = await fetchBalance(groupid);
+      // const socket = app.get("socket");
       // console.log(playerList[0]);
-      socket.emit("playerChange",   playerList[0], balanceDetails )
-      socket.broadcast.emit('playerChange', playerList[0], balanceDetails );
+      // socket.emit("playerChange",   playerList[0], balanceDetails )
+      // socket.broadcast.emit('playerChange', playerList[0], balanceDetails );
+      // var aucDataRec = _.find(auctioData, x => x.gid == groupid);
+      // if (!aucDataRec) {
+      //   aucDataRec = {gid: groupid, player: playerList[0], balance: balanceDetails };
+      sendDataToClient(groupid, playerList[0], balanceDetails);
+      //   auctioData.push(aucDataRec);
+      // } else {
+      //   aucDataRec.player = playerList[0];
+      //   aucDataRec.balance = balanceDetails;
+      // }
+      // console.log("Hello1=============== Start")
+      // console.log(auctioData);
+      // console.log("Hello1--------------End")
+      // clientUpdateCount = CLIENTUPDATEINTERVAL+1;
       aplayer = playerList[0].pid;
       break;
     case "RUNNING":
@@ -384,6 +415,7 @@ router.get('/default/:myUser', async function (req, res, next) {
     // console.log(myGroup);
     // myData.uid = myGmRec[0].uid;
     myData.gid = myGmRec[0].gid;
+    myData.userName = userRec.displayName;
     myData.displayName = myGmRec[0].displayName;
     myData.groupName = myGroup.name;
     myData.tournament = myGroup.tournament;
@@ -402,8 +434,6 @@ router.get('/default/:myUser', async function (req, res, next) {
     }
   }
   sendok(myData);
-  // var msg = await tournament_started(igroup);
-  // sendok(msg);
 });
 
 
@@ -465,16 +495,21 @@ router.get('/memberof/:userid', async function(req, res, next) {
     ufilter = {uid: iuser}
     gfilter = {uid: iuser, enable: true};
   }
+  console.log(`${userid} is valid`)
   var myUsers = await User.find(ufilter)
   var myGmRec = await GroupMember.find (gfilter);
   var allGroups = await IPLGroup.find({});
-  // console.log(myGroups);
+  console.log(allGroups);
   var groupData = [];
-  myUsers.forEach(u => {
+  let uidx;
+  for(uidx=0; uidx < myUsers.length; ++uidx) {
+    let u = myUsers[uidx];
     // console.log(u);
     var gData = [];
     var tmp = _.filter(myGmRec, x => x.uid === u.uid);
-    tmp.forEach( gm => {
+    let i;
+    for(i=0; i<tmp.length; ++i) {
+      let gm = tmp[i];
       var grp = _.find(allGroups, x => x.gid === gm.gid);
       var xxx =  { gid: gm.gid, displayName: gm.displayName, 
         groupName: grp.name, tournament: grp.tournament, 
@@ -485,15 +520,10 @@ router.get('/memberof/:userid', async function(req, res, next) {
       if (gm.uid === grp.owner)  xxx.admin = "Admin";
       // if (gm.gid === u.defaultGroup) xxx.default = "Default";
       gData.push(xxx)
-    })
-    // if (gData.length > 0) {
-    //   if (u.defaultGroup > 0) {
-    //     var idx = _.findIndex(gData, (x) => { return x.gid === u.defaultGroup} );
-    //     gData[idx].default = "Default";
-    //   }
-    // }
+    }
     groupData.push({ uid: u.uid, userName: u.userName, displayName: u.displayName, groups: gData});
-  });
+  }
+  console.log("about to send ok")
   sendok(groupData);
 });
 
@@ -540,14 +570,14 @@ async function tournament_started(mygroup) {
   var groupRec = await IPLGroup.findOne({gid: mygroup})
   if (!groupRec) return("Invalid Group");
   var mymatch = await CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
-
-  // console.log(mymatch[0]);
+  // console.log(mymatch.length);
   var difference = 1;   // make it positive if no match schedule
   if (mymatch.length > 0) {
     var firstMatchStart = mymatch[0].matchStartTime;  
     firstMatchStart.setHours(firstMatchStart.getHours() - 1)
     difference = firstMatchStart - justnow;
   }
+  // console.log(difference);
   return (difference <= 0) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
 }
 

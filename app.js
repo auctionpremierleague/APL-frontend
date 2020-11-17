@@ -7,6 +7,7 @@ cors = require('cors');
 fetch = require('node-fetch');
 _ = require("lodash");
 cron = require('node-cron');
+nodemailer = require('nodemailer');
 app = express();
 
 PORT = process.env.PORT || 4000;
@@ -39,25 +40,39 @@ tournamentRouter = require('./routes/tournament');
 
 // maintaing list of all active client connection
 connectionArray  = [];
+clientData = [];
 CLIENTUPDATEINTERVAL=10;
 clientUpdateCount=0;
+CRICUPDATEINTERVAL = 15;    // in seconds. Interval after seconds fetch cricket match data from cricapi
+cricTimer = 0;
+// maintain list of runnning matches
+runningMatchArray = [];
 clentData = [];
+auctioData = [];
 
 io.on('connect', socket => {
   app.set("socket",socket);
   socket.on("page", (pageMessage) => {
-    // console.log("page message from "+socket.id);
-    // console.log(pageMessage);
+    console.log("page message from "+socket.id);
+    console.log(pageMessage);
     var myClient = _.find(connectionArray, x => x.socketId === socket.id);
     if (pageMessage.page.toUpperCase().includes("DASH")) {
       myClient.page = "DASH";
       myClient.gid = parseInt(pageMessage.gid);
       myClient.uid = parseInt(pageMessage.uid);
+      myClient.firstTime = true;
       clientUpdateCount = CLIENTUPDATEINTERVAL+1;
     } else if (pageMessage.page.toUpperCase().includes("STAT")) {
       myClient.page = "STAT";
       myClient.gid = parseInt(pageMessage.gid);
       myClient.uid = parseInt(pageMessage.uid);
+      myClient.firstTime = true;
+      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+    } else if (pageMessage.page.toUpperCase().includes("AUCT")) {
+      myClient.page = "AUCT";
+      myClient.gid = parseInt(pageMessage.gid);
+      myClient.uid = parseInt(pageMessage.uid);
+      myClient.firstTime = true;
       clientUpdateCount = CLIENTUPDATEINTERVAL+1;
     }
   });
@@ -68,6 +83,7 @@ io.sockets.on('connection', function(socket){
   connectionArray.push({socketId: socket.id, page: "", gid: 0, uid: 0});
   socket.on('disconnect', function(){
     _.remove(connectionArray, {socketId: socket.id});
+    
   });
 });
 
@@ -81,10 +97,8 @@ app.use(express.json());
 
 
 app.use((req, res, next) => {
-
   if (req.url.includes("admin")||req.url.includes("signIn")||req.url.includes("Logout")) {
     req.url = "/";
-
     res.redirect('/');
   }
   else {
@@ -114,7 +128,8 @@ UserSchema = mongoose.Schema({
   displayName: String,
   password: String,
   status: Boolean,
-  defaultGroup: Number
+  defaultGroup: Number,
+  email: String
 });
 IPLGroupSchema = mongoose.Schema({
   gid: Number,
@@ -231,6 +246,38 @@ CricapiMatchSchema = mongoose.Schema({
   matchEndTime: Date,
   squad: Boolean
 })
+BriefStatSchema = mongoose.Schema({
+  sid: Number,    // 0 => data, 1 => maxRUn, 2 => maxWick
+  pid: Number,
+  playerName: String,
+  inning: Number,
+  score: Number,
+  // batting details
+  run: Number,
+  four: Number,
+  six: Number,
+  fifty: Number,
+  hundred: Number,
+  ballsPlayed: Number,
+  // bowling details
+  wicket: Number,
+  wicket3: Number,
+  wicket5: Number,
+  hattrick: Number,
+  maiden: Number,
+  oversBowled: Number,
+  // overall performance
+  maxTouramentRun: Number,
+  maxTouramentWicket: Number,
+  manOfTheMatch: Number
+});  
+// table name will be <tournament Name>_brief r.g. IPL2020_brief
+BRIEFSUFFIX = "_brief";
+RUNNINGMATCH=1;
+PROCESSOVER=0;
+AUCT_RUNNING="RUNNING";
+AUCT_PENING="PENDING";
+AUCT_OEVR="OVER";
 
 // models
 User = mongoose.model("users", UserSchema);
@@ -247,7 +294,6 @@ Tournament = mongoose.model("tournaments", TournamentSchema);
 
 CricapiMatch = mongoose.model("cricApiMatch", CricapiMatchSchema)
 
-
 nextMatchFetchTime = new Date();
 router = express.Router();
 
@@ -260,10 +306,6 @@ MONTHNAME = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct
 weekDays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 weekShortDays = new Array("Sun", "Mon", "Tue", "Wedn", "Thu", "Fri", "Sat");
 // IPL_Start_Date = new Date("2020-09-19");   // IPL Starts on this date
-AMPM = [
-"AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM",
-"PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM"
-];
 
 // if match type not provided by cric api and
 // team1/team2 both contains any of these string then
@@ -325,11 +367,9 @@ sendDashboard = false;
 sendMyStat = false;
 myStatGroup = [];
 myDashboardGroup = [];
-cricTimer = 0;
 serverTimer = 0;
 
 // time interval for scheduler
-cricUpdateInterval = 15;    // in seconds. Interval after seconds fetch cricket match data from cricapi
 serverUpdateInterval = 10; // in seconds. INterval after which data to be updated to server
 
 // ----------------  end of globals
@@ -385,4 +425,45 @@ cron.schedule('*/15 * * * * *', () => {
 httpServer.listen(PORT, () => {
   console.log("Server is running on Port: " + PORT);
 });
+
+
+// global functions
+
+const AMPM = [
+  "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM",
+  "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM"
+];
+  /**
+ * @param {Date} d The date
+ */
+cricDate = function (d)  {
+  var myHour = d.getHours();
+  var myampm = AMPM[myHour];
+  if (myHour > 12) myHour -= 12;
+  var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
+      ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + myampm;
+  return tmp;
+}
+
+const notToConvert = ['XI', 'ARUN']
+/**
+ * @param {string} t The date
+ */
+cricTeamName = function (t)  {
+  var tmp = t.split(' ');
+  for(i=0; i < tmp.length; ++i)  {
+    var x = tmp[i].trim().toUpperCase();
+    if (notToConvert.includes(x))
+      tmp[i] = x;
+    else
+      tmp[i] = x.substr(0, 1) + x.substr(1, x.length - 1).toLowerCase();
+  }
+  return tmp.join(' ');
+}
+
+
+
+
 // module.exports = app;
+
+

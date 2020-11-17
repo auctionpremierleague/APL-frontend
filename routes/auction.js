@@ -86,10 +86,6 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   AuctionRes = res;
   setHeader();
   var {igroup,iuser,iplayer,ibid}=req.params;
-
-  // if (isNaN(groupId)) { senderr(702, `Invalid Group ${groupId}`); return; }
-  // var igroup = parseInt(groupId);
-  
   var PallPlayers = Player.find({});
   var PauctionList = Auction.find({gid: igroup});
   var Pgmembers = GroupMember.findOne({gid: igroup, uid: iuser});
@@ -202,15 +198,61 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   sendok(allPlayers[myindex]);
 });
 
+function sendNewBidToClient(groupRec) {
+  var myList = _.filter(connectionArray, x => x.gid == groupRec.gid && x.page === "AUCT");
+  console.log(myList);
+  myList.forEach(x => {
+    io.to(x.socketId).emit('newBid', groupRec);
+  });
+}
+
 router.get('/nextbid/:groupId/:userId/:bidAmount', async function(req, res, next) {
   AuctionRes = res;
   setHeader();
   var {groupId,userId,bidAmount}=req.params;
+  if (isNaN(bidAmount)) { senderr(710, `Invalid Group ${groupId}`); return; }   
+  let iamount = parseInt(bidAmount);
   var tmp = await GroupMember.findOne({gid: groupId, uid: userId});
-  if (!tmp) { senderr(702, `Invalid Group ${groupId}`); return; }    
-  // if 
-
+  if (!tmp) { senderr(711, `Invalid Group ${groupId}`); return; }   
+  var groupRec = await IPLGroup.findOne({gid: groupId});
+  var userRec = await User.findOne({uid: userId})
+  /*
+   auctionStatus: String,
+  auctionPlayer: Number,
+  auctionBid: Number,
+  currentBidUid: Number,
+  currentBidUser: String,
+  */
+ console.log(iamount);
+ console.log(groupRec);
+  if ((groupRec.auctionStatus === AUCT_RUNNING) && (iamount > groupRec.auctionBid) &&
+      (groupRec.maxBidAmount >= iamount)) {
+        groupRec.auctionBid = iamount;
+        groupRec.currentBidUid = userRec.uid;
+        groupRec.currentBidUser = userRec.displayName;
+        groupRec.save();
+        sendNewBidToClient(groupRec);
+        sendok("OK");
+  } else {
+    senderr(712,"Invalid bid amount")
+  }
 });
+
+
+router.get('/getbid/:groupId', async function(req, res, next) {
+  AuctionRes = res;
+  setHeader();
+  var {groupId}=req.params;
+  var groupRec = await IPLGroup.findOne({gid: groupId});
+  if (!groupRec) { senderr(702, `Invalid Group ${groupId}`); return; }   
+  if ((groupRec.auctionStatus === AUCT_RUNNING)) {
+        // sendNewBidToClient(groupRec);
+        sendok(groupRec);
+  } else {
+    senderr(702,"Invalid bid amount")
+  }
+});
+
 
 
 // to provide next player available for auction
