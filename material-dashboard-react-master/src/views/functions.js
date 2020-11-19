@@ -1,6 +1,6 @@
 
-// const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-export const ENDPOINT = "http://localhost:4000";
+export const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// export const ENDPOINT = "http://localhost:4000";
 
 export function socketPoint() {
 	return ENDPOINT;
