@@ -3,51 +3,45 @@ import axios from "axios";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
-
-import MenuItem from '@material-ui/core/MenuItem';
-
-import FormControl from '@material-ui/core/FormControl';
-
-
-import DoneIcon from '@material-ui/icons/Done';
-
 import Typography from '@material-ui/core/Typography';
-
-import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
-//import Container from "@material-ui/core/Container";
-
-import Select from "@material-ui/core/Select";
 import Table from "components/Table/Table.js";
 import Grid from "@material-ui/core/Grid";
-import Button from '@material-ui/core/Button';
-
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import GridItem from "components/Grid/GridItem.js";
-import Drawer from '@material-ui/core/Drawer';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import IconButton from '@material-ui/core/IconButton';
-import CheckSharpIcon from '@material-ui/icons/CheckSharp';
-import ClearSharpIcon from '@material-ui/icons/ClearSharp';
+import Button from '@material-ui/core/Button';
+// import MenuItem from '@material-ui/core/MenuItem';
+// import FormControl from '@material-ui/core/FormControl';
+// import DoneIcon from '@material-ui/icons/Done';
+// import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
+// import NavigateNextIcon from '@material-ui/icons/NavigateNext';
+//import Container from "@material-ui/core/Container";
+// import Select from "@material-ui/core/Select";
+// import DialogActions from '@material-ui/core/DialogActions';
+// import DialogContent from '@material-ui/core/DialogContent';
+// import DialogContentText from '@material-ui/core/DialogContentText';
+// import Drawer from '@material-ui/core/Drawer';
+// import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+// import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+// import IconButton from '@material-ui/core/IconButton';
+// import CheckSharpIcon from '@material-ui/icons/CheckSharp';
+// import ClearSharpIcon from '@material-ui/icons/ClearSharp';
+// import Input from '@material-ui/core/Input';
 import Avatar from "@material-ui/core/Avatar"
 import Card from "components/Card/Card.js";
 import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
-import Input from '@material-ui/core/Input';
-import NoGroup from 'CustomComponents/NoGroup.js';
+import { NoGroup } from 'CustomComponents/CustomComponents.js';
 import { UserContext } from "../../UserContext";
 import socketIOClient from "socket.io-client";
+import { ENDPOINT, hasGroup } from 'views/functions';
 
-const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// const ENDPOINT = "http://localhost:4000";
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
     infoButton: {
-        backgroundColor: '#FCDC00'
+        backgroundColor: '#FCDC00',
+        ":disabled": {
+            backgroundColor: '#cddc39',
+        }
     },
     margin: {
         margin: theme.spacing(1),
@@ -131,32 +125,36 @@ export default function Auction() {
     const [role, setRole] = useState("");
     const [battingStyle, setBattingStyle] = useState("");
     const [bowlingStyle, setBowlingStyle] = useState("");
-    const [open, setOpen] = useState(false);
+    // const [open, setOpen] = useState(false);
 
     const [bidAmount, setBidAmount] = useState(0);
     const [bidUser, setBidUser] = useState("");
-
-    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
-    const [selectedOwner, setSelectedOwner] = useState(null);
-
+    const [bidUid, setBidUid] = useState(0);
+    // const [bidOverMsg, setBidOverMsg] = useState("");
+    // const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+    // const [selectedOwner, setSelectedOwner] = useState(null);
     const [backDropOpen, setBackDropOpen] = useState(false);
     const [playerStatus, setPlayerStatus] = useState();
     const [AuctionTableData, setAuctionTableData] = useState([]);
+    const [myBalanceAmount, setMyBalanceAmount] = useState(0);
 
+    // const handleDrawerClose = () => {
+    //     setOpen(false);
+    // };
+    // const handleModalClose = () => {
+    //     setConfirmDialogOpen(false);
+    // };
 
-    const handleDrawerClose = () => {
-        setOpen(false);
-    };
+    function DisplayBidOverMsg(msg) {
+        setPlayerStatus(msg);
+        // setConfirmDialogOpen(false);
+        setBackDropOpen(true);        
+    }
 
-
-
-    const handleModalClose = () => {
-        setConfirmDialogOpen(false);
-    };
-
-    console.log(`Dangerous ${playerId}`)
+    // console.log(`Dangerous ${playerId}`)
     useEffect(() => {
         var sendMessage = {page: "AUCT", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
+
         const makeconnection = async () => {
           await sockConn.connect();
           sockConn.emit("page", sendMessage);
@@ -165,111 +163,98 @@ export default function Auction() {
         var sockConn = socketIOClient(ENDPOINT);
         makeconnection();
         sockConn.on("connect", () => {
-            console.log("client connected");
             sockConn.emit("page", sendMessage);
+
+            sockConn.on("bidOver", (myrec) => {
+                console.log("bid over reveived");
+                console.log(myrec);
+                DisplayBidOverMsg(`${myrec.playerName} successfully purchsed by ${myrec.userName}`);
+            });
             sockConn.on("newBid", (grec) => {
                 console.log("new bid reveived");
+                console.log(grec);
                 setBidAmount(grec.auctionBid);
                 setBidUser(grec.currentBidUser);
+                setBidUid(grec.currentBidUid);
             });
             sockConn.on("playerChange", async (newPlayerDetails, balanceDetails) => {
-                console.log("Player Changed");
-                console.log(`New: ${newPlayerDetails.pid}  Old: ${playerId} `)
-                if (newPlayerDetails.pid != playerId) {
+                // console.log("Player Changed");
+                // console.log(`New: ${newPlayerDetails.pid}  Old: ${playerId} `)
+                // if (newPlayerDetails.pid != playerId) {
                     setAuctionStatus("RUNNING");
-                    let userBalance = [];
                     // const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
                     // first set PID so that display is better
                     setPid(newPlayerDetails.pid)
-                    // console.log(balanceDetails);
-                    if (localStorage.getItem("admin") === "false") {
-                        userBalance = balanceDetails.filter(balance => balance.uid === parseInt(localStorage.getItem("uid"), 10))
-                    }
-                    else {
-                        userBalance = balanceDetails
-                    }
-                    setAuctionTableData(userBalance);
+                    let ourBalance = balanceDetails.filter(balance => balance.uid == localStorage.getItem("uid"))
+                    setMyBalanceAmount(ourBalance[0].balance);
+                    let allUserBalance = (localStorage.getItem("admin") === "false") ? ourBalance : balanceDetails;
+                    setAuctionTableData(allUserBalance);
                     // console.log(userBalance);
                     setRole(newPlayerDetails.role)
                     setTeam(newPlayerDetails.Team)
                     setBattingStyle(newPlayerDetails.battingStyle)
                     setBowlingStyle(newPlayerDetails.bowlingStyle)
                     setPlayerName(newPlayerDetails.fullName)
-                    console.log("player change")
-                    console.log(`finally New player is ${newPlayerDetails.pid}`)
+                    // console.log("player change")
+                    // console.log(`finally New player is ${newPlayerDetails.pid}`)
                     let tmp = `${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`
                     if (playerImage != tmp) {
-                        console.log("Different image")
+                        // console.log("Different image")
                         setPlayerImage(`${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`);
                     } else
                         console.log("Same player image")
-                }
+                // }
             });
         })
 
         const a = async () => {
-            console.log("Calling get auction status");
+            if (!hasGroup()) return;
+            // console.log("Calling get auction status");
             const response = await axios.get(`/group/getauctionstatus/${localStorage.getItem("gid")}`);
-            console.log(response.data)
+            // console.log(response.data)
             setAuctionStatus(response.data);
             const response1 = await axios.get(`/auction/getbid/${localStorage.getItem("gid")}`);
-            console.log("GETBID");
-            console.log(response1.data)
+            // console.log("GETBID");
+            // console.log(response1.data)
             if (response1.status === 200) {
                 setBidAmount(response1.data.auctionBid)
                 setBidUser(response1.data.currentBidUser);
+                setBidUid(response1.data.currentBidUid);            
             }
-            // setAuctionStatus(response.data);
-            // if (response.data === "RUNNING") {
-            //     await startAuction(response.data);
-            // }
         }
         a();
+
         return () => {
-            // componentwillunmount in functional component.
-            // Anything in here is fired on component unmount.
             leavingAuction(sockConn);
         }
     }, []);
 
 
-    const org_startAuction = async (status) => {
-        if (status === "PENDING") {
-            const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/RUNNING`);
-            if (response.data) {
-                setAuctionStatus("RUNNING");
-            }
-        } else if (status === "RUNNING") {
-            const response = await axios.get(`/group/getauctionplayer/${localStorage.getItem("gid")}`);
-            // console.log(response);
-        }
-    }
-
-    const handleOwnerChange = (event) => {
-        setSelectedOwner(event.target.value);
-    };
+    // const handleOwnerChange = (event) => {
+    //     setSelectedOwner(event.target.value);
+    // };
 
 
     async function sellPlayer() {
-        const amount = document.getElementById("standard-required").value;
-        console.log(amount);
-        let response = await fetch(`/auction/add/${localStorage.getItem("gid")}/${selectedOwner}/${playerId}/${bidAmount}`);
-        var msg;
-        switch (response.status) { 
-            case 707: msg = "Already Purchased"; break;
-            case 706: msg = "User does not belong to this group"; break;
-            case 704: msg = "Invalid Player"; break;
-            case 708: msg = "Insufficient Balance"; break;
-            case 200: msg = "Sold"; break;
-            default:  msg = `unknown error ${response.status}`; break;
-        }
-        setPlayerStatus(msg);
-        if (response.status === 200) {
+        let myUrl = `/auction/add/${localStorage.getItem("gid")}/${bidUid}/${playerId}/${bidAmount}`
+        console.log(myUrl);
+        let response = await fetch(myUrl);
+        if (response.status == 200) {
+            console.log("getting balance");
             const balance = await axios.get(`/user/balance/${localStorage.getItem("gid")}/all`);
             setAuctionTableData(balance.data);
+        } else {
+            var msg;
+            switch (response.status) { 
+                case 707: msg = "Already Purchased"; break;
+                case 706: msg = "User does not belong to this group"; break;
+                case 704: msg = "Invalid Player"; break;
+                case 708: msg = "Insufficient Balance"; break;
+                // case 200: msg = `${playerName} purchsed by ${bidUser} by bid amount ${bidAmount}`; break;
+                default:  msg = `unknown error ${response.status}`; break;
+            }
+            DisplayBidOverMsg(msg);
         }
-        setConfirmDialogOpen(false);
-        setBackDropOpen(true);
     }
 
     async function skipPlayer() {
@@ -277,9 +262,9 @@ export default function Auction() {
     }
 
     function AdminAuction() {
-        console.log(`Pid from admin auction ${playerId}`)
+        // console.log(`Pid from admin auction ${playerId}`)
         return (<div className={classes.root}>
-            <ShowGroupName/>
+            <h3 align="center">Auction ({localStorage.getItem("groupName")})</h3>
             <Grid container justify="center" alignItems="center" >
                 <GridItem xs={12} sm={12} md={12} lg={12} >
                     <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 
@@ -289,71 +274,23 @@ export default function Auction() {
             </Grid>
             <ShowBalance/>
             <ShowDialog/>
-            <Drawer
-                variant="persistent"
-                anchor="right"
-                open={open}
-                classes={{
-                    paper: classes.drawerPaper,
-                }}
-            >
-                <IconButton onClick={handleDrawerClose}>
-                    {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-                <div>
-                    <FormControl className={classes.formControl}>
-                    <SelctNewOwner/>
-
-                    </FormControl>
-                    <Input key="hi" id="standard-required" label="Bid Amount" type="number" />
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        size="small"
-                        className={classes.button}
-                        startIcon={<DoneIcon />}
-                        onClick={() => { setBidAmount(document.getElementById("standard-required").value); setConfirmDialogOpen(true) }}>
-                        Confirm
-</Button>
-                </div>
-
-            </Drawer>
-
-            <Dialog
-                open={confirmDialogOpen}
-                onClose={handleModalClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{`Are you sure you want to sell ${playerName} in ${bidAmount}`}</DialogTitle>
-
-                <DialogActions>
-
-                    <Button onClick={handleModalClose} color="primary" autoFocus>
-                        Cancel
-          </Button>
-                    <Button onClick={sellPlayer} color="primary">
-                        Sell
-          </Button>
-                </DialogActions>
-            </Dialog>
         </div>
         );
     }
 
-    function AdminPending() {
-        return <Button variant="contained"
-            color="secondary"
-            size="small"
-            className={classes.button}
-            startIcon={<NavigateBeforeIcon />}
-            onClick={() => startAuction("PENDING")}>Start Auction</Button>
-    }
+    // function AdminPending() {
+    //     return <Button variant="contained"
+    //         color="secondary"
+    //         size="small"
+    //         className={classes.button}
+    //         startIcon={<NavigateBeforeIcon />}
+    //         onClick={() => startAuction("PENDING")}>Start Auction</Button>
+    // }
 
-    function UserAuctionPending() {
+    // function UserAuctionPending() {
         
-        return auctionStatus==="PENDING"? <Typography>Auction has not been started by Admin! <br /> Auction is Coming !!</Typography>:<Typography>Auction has ended</Typography>
-    }
+    //     return auctionStatus==="PENDING"? <Typography>Auction has not been started by Admin! <br /> Auction is Coming !!</Typography>:<Typography>Auction has ended</Typography>
+    // }
 
     function ShowPlayerAvatar(props) {
         return (
@@ -393,7 +330,6 @@ export default function Auction() {
     }
 
     async function handleMyBid(newBid) {
-        // /nextbid/:groupId/:userId/:bidAmount
         var value = parseInt(newBid) + parseInt(bidAmount);
 
         console.log(localStorage.getItem("gid"));
@@ -418,7 +354,7 @@ export default function Auction() {
             btnSize = "medium";
         } else {
             let newValue = parseInt(bidAmount) + parseInt(props.value);
-            if (newValue <= 1000) {
+            if (newValue < parseInt(myBalanceAmount)) {
                 btnMsg = newValue.toString();
                 btnDisable = false;
             } else {
@@ -427,35 +363,24 @@ export default function Auction() {
             }
             btnSize = "small";
         }
-        if (btnDisable)
+        if (btnDisable) {
             return (
-            <Button variant="contained"  size="small" 
+            <Button variant="contained"  size={btnSize}
             className={classes.infoButton}
-            disabled={true}
+            disabled>
+            {btnMsg}
+            </Button>
+            );
+        } else {
+            return (
+            <Button variant="contained"  size={btnSize}
+            className={classes.infoButton}
             onClick={() => { handleMyBid(props.value); }}>
             {btnMsg}
             </Button>
             );
-        else
-        return (
-            <Button variant="contained" color="primary" size="small" 
-            className={classes.button}
-            // disabled={btnDisable}
-            onClick={() => { handleMyBid(props.value); }}>
-            {btnMsg}
-            </Button>
-            );
-
+        }
     }
-
-    // function ShowCurrentBid() {
-    //     return (
-    //         <div align ="center">
-    //             <Typography>Current Bid Amount: {bidAmount}</Typography>
-    //             <DisplayPendingButton/>
-    //         </div>
-    //     );
-    // }
 
     function ShowValueButtons() {
         if (auctionStatus === "RUNNING")
@@ -487,7 +412,7 @@ export default function Auction() {
     }
 
     function ShowAdminButtons() {
-        if (localStorage.getItem("admin").toLocaleLowerCase() === "true")
+        if (localStorage.getItem("admin").toLowerCase() === "true")
             return(
             <div align="center" key="playerAuctionButton">
                 <Button
@@ -497,7 +422,7 @@ export default function Auction() {
                     className={classes.button}
                     // startIcon={<CheckSharpIcon />}
                     disabled={bidAmount === 0}
-                    onClick={() => { setOpen(true); }}>
+                    onClick={sellPlayer}>
                     SOLD
                 </Button>
                 <Button
@@ -525,37 +450,37 @@ export default function Auction() {
         );
     }
 
-    function SelctNewOwner() {
-        return (
-        <Select labelId="demo-simple-select-label" id="demo-simple-select"
-            value={selectedOwner}
-            displayEmpty
-            onChange={handleOwnerChange}>
-            {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
-        </Select>
-        );
-    }
+    // function SelctNewOwner() {
+    //     return (
+    //     <Select labelId="demo-simple-select-label" id="demo-simple-select"
+    //         value={selectedOwner}
+    //         displayEmpty
+    //         onChange={handleOwnerChange}>
+    //         {AuctionTableData.map(item => <MenuItem key={item.uid} value={item.uid}>{item.userName}</MenuItem>)}
+    //     </Select>
+    //     );
+    // }
 
-    function ShowGroupName() {
-        return(
-            <div>
-                <h3 align="center">Auction ({localStorage.getItem("groupName")})</h3>
-                <br/>
-            </div>
-        );
-    }
+    // function ShowGroupName() {
+    //     return(
+    //         <div>
+    //             <h3 align="center">Auction ({localStorage.getItem("groupName")})</h3>
+    //             <br/>
+    //         </div>
+    //     );
+    // }
 
-    function UserAuction() {
-        return (
-        <Grid container justify="center" alignItems="center" >
-        <ShowGroupName/>
-        <GridItem xs={12} sm={12} md={4} >
-            <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 
-            <ShowBalance/>
-        </GridItem>
-        </Grid>
-        );
-    }
+    // function UserAuction() {
+    //     return (
+    //     <Grid container justify="center" alignItems="center" >
+    //     <ShowGroupName/>
+    //     <GridItem xs={12} sm={12} md={4} >
+    //         <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 
+    //         <ShowBalance/>
+    //     </GridItem>
+    //     </Grid>
+    //     );
+    // }
 
     const startAuction = async () => {
         const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/RUNNING`);
@@ -567,13 +492,19 @@ export default function Auction() {
     function DisplayPendingButton() {
         /* if current starting pending.
         */ 
-        return <Button variant="contained"
-            color="primary"
-            size="small"
-            className={classes.button}
-            disabled={localStorage.getItem("admin") !== "true"}            
-            // startIcon={<NavigateBeforeIcon />}
-            onClick={() => startAuction("PENDING")}>Start Auction</Button>
+        if (localStorage.getItem("admin") === "true")
+            return ( 
+                <Button variant="contained"
+                color="primary"
+                size="small"
+                className={classes.button}
+                // disabled={localStorage.getItem("admin") !== "true"}            
+                // startIcon={<NavigateBeforeIcon />}
+                onClick={() => startAuction("PENDING")}>Start Auction
+                </Button>
+            );
+        else
+            return <div></div>;
     }
 
     function DisplayPending() {
@@ -585,7 +516,7 @@ export default function Auction() {
         );
     }
 
-    if ((localStorage.getItem("gid") !== "") && (localStorage.getItem("gid") !== "0")) {
+    if (hasGroup()) {
         if ( auctionStatus === "PENDING") {
             return <DisplayPending/>
         } else if (auctionStatus === "OVER") {

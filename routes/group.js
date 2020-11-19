@@ -2,8 +2,8 @@ const { ConnectionBase } = require("mongoose");
 
 var router = express.Router();
 var GroupRes;
-var _group = 1;
-var _tournament = "";
+// var _group = 1;
+// var _tournament = "";
 /* GET users listing. */
 
 const fetchBalance = async (groupid) => {
@@ -39,24 +39,26 @@ router.use('/', function (req, res, next) {
     next('route');
 });
 
-router.get('/close/:groupid/:ownerid', function (req, res, next) {
+router.get('/close/:groupid/:ownerid', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
   var { groupid, ownerid } = req.params;
   // groupAction = groupAction.toLowerCase();
-  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-  if (ownerid != "9") { senderr(624, `User ${ownerid} is not owner of Group 1`); return; }
+  // if (groupid != "1") { senderr(621, "Invalid Group"); return; }
+  // if (ownerid != "9") { senderr(624, `User ${ownerid} is not owner of Group 1`); return; }
 
-  IPLGroup.findOne({ gid: 1 }, (err, gdoc) => {
-    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
-    else {
-      console.log(gdoc);
-      gdoc.tournamentOver = true;
-      gdoc.save();
-      sendok(true);
-    }
-  });
+  gdoc = await IPLGroup.findOne({ gid: groupid });
+  if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+
+  if (gdoc.owner == ownerid) { 
+    // console.log(gdoc);
+    gdoc.tournamentOver = true;
+    gdoc.save();
+    sendok(true);
+  } else {
+    
+  }
 });
 
 router.get('/gettournamentmax/:groupid', async function (req, res, next) {
@@ -96,14 +98,6 @@ router.get('/gettournamentmax/:groupid', async function (req, res, next) {
     maxRec.maxWicketValue = myData[0].totalWicket;
   }
   sendok(maxRec);
-
-  // , (err, gdoc) => {
-  //   if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
-  //   else {
-  //     console.log(gdoc);
-  //     sendok(gdoc.auctionStatus);
-  //   }
-  // });
 });
 
 
@@ -161,7 +155,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
       }
       newstate = "RUNNING";
 
-      const playerList = await Player.find({});
+      const playerList = await Player.find({tournament: gdoc.tournament});
       const balanceDetails = await fetchBalance(groupid);
       // const socket = app.get("socket");
       // console.log(playerList[0]);
@@ -270,53 +264,50 @@ router.get('/setauctionplayer/:groupid/:playerId', function (req, res, next) {
   });
 });
 
-router.get('/add/:groupid/:ownerid/:userid', function (req, res, next) {
+router.get('/add/:groupid/:ownerid/:userid', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
   var { groupid, ownerid, userid } = req.params;
-  // groupAction = groupAction.toLowerCase();
-  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-  if (ownerid != "9") { senderr(624, `User ${ownerid} is not owner of Group 1`); return; }
+  // igroup = parseInt(groupid);
+  // if (isNaN(igroup)) { senderr(621, "Invalid group"); return; }
+  // iowner = parseInt(ownerid);
+  // if (isNaN(iowner)) { senderr(622, "Invalid owner"); return; }
+  // iuser = parseInt(userid);
+  // if (isNaN(iuser)) { senderr(623, "Invalid user"); return; }
 
-  igroup = parseInt(groupid);
-  if (isNaN(igroup)) { senderr(621, "Invalid group"); return; }
-  iowner = parseInt(ownerid);
-  if (isNaN(iowner)) { senderr(622, "Invalid owner"); return; }
-  iuser = parseInt(userid);
-  if (isNaN(iuser)) { senderr(623, "Invalid user"); return; }
+  var gdoc = await IPLGroup({gid: groupid});
+  if (!gdoc)  { senderr(621, "Invalid group"); return; }
+  if (gdoc.owner !== ownerid) { senderr(624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
 
-  User.findOne({ uid: iuser }, (err, udoc) => {
-    if (err)
-      senderr(DBFETCHERR, err);
-    else if (!udoc)
-      senderr(623, "Invalid user");
-    else {
-      GroupMember.findOne({ gid: 1, uid: iuser }, (err, gmdoc) => {
-        if (err)
-          senderr(DBFETCHERR, err);
-        else if (gmdoc)
-          senderr(624, "User already added to group 1");
-        else {
-          //console.log("Valid USer");              
-          //  confirmed that Group 1 exists
-          //  confirmed that owner of the group is correct
-          //  confirmed that new user is correct                        
-          //var myamount = 1000;
-          var gmrec = new GroupMember({
-            gid: 1,
-            uid: iuser,
-            userName: udoc.userName,
-            balanceAmount: GROUP1_MAXBALANCE
-          });
-          gmrec.save(function (err) {
-            if (err) { senderr(DBFETCHERR, "Unable to added user to Group 1"); }
-            else { sendok(`Added user ${iuser} to Group 1`); }
-          });
-        }
-      });
-    }
+  var udoc = await User.findOne({ uid: userid });
+  if (!uoc) { senderr(623, "Invalid user"); return; };
+
+  var gmdoc = await GroupMember.findOne({ gid: gdoc.gid, uid: udoc.uid });
+  if (gmdoc) {senderr(624, `User already member to group ${groupid}`); return; }
+
+  //console.log("Valid USer;");              
+  //  confirmed that Group  exists
+  //  confirmed that owner of the group is correct
+  //  confirmed that new user is correct                        
+  //var myamount = 1000;
+  // gid: Number,
+  // uid: Number,
+  // userName: String,
+  // balanceAmount: Number,        // balance available to be used for bid
+  // displayName: String,
+  // enable: Boolean
+
+  var gmrec = new GroupMember({
+    gid: gdoc.gid,
+    uid: udoc.uid,
+    userName: udoc.displayName,
+    balanceAmount: GROUP1_MAXBALANCE,
+    displayName: udoc.displayName,      // franchise name as per user
+    enable: true
   });
+  gmrec.save();
+  sendok(`Added user ${userid}; to Group ${groupid}`);
 }); // end of get
 
 router.get('/owner', function (req, res, next) {
@@ -344,16 +335,16 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
   var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
   if (tmp.length > 0) { senderr(629, `Duplicate Group name ${groupName}`); return; }
 
-  var iowner = 0;
-  if (!isNaN(iowner)) {
-    iowner = parseInt(ownerid);
-    var tmp = await User.find({ uid: iowner });
-    if (tmp.length === 0) iowner = 0;
-  }
-  if (iowner === 0) { senderr(622, `Invalid owner ${ownerid}`); return; }
-
+  // var iowner = 0;
+  // if (!isNaN(iowner)) {
+  //   iowner = parseInt(ownerid);
+  //   var tmp = await User.find({ uid: iowner });
+  //   if (tmp.length === 0) iowner = 0;
+  // }
   if (isNaN(maxbid)) { senderr(627, `Invalid max bid amount ${maxbid}`); return; }
-  var imaxbid = parseInt(maxbid);
+
+  var ownerRec = await User.findOne({uid: ownerid});
+  if (!ownerRec) { senderr(622, `Invalid owner ${ownerid}`); return; }
 
   var tmp = await Tournament.find({ name: mytournament.toUpperCase() })
   if (tmp.length === 0) { senderr(628, `Invalid tournament ${mytournament}`); return; }
@@ -362,13 +353,28 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
   var maxGid = await IPLGroup.find({}).sort({ gid: -1 }).limit(1);
   var myRec = new IPLGroup();
   //console.log(maxGid);
+  // gid: Number,
+  // name: String,
+  // owner: Number,
+  // maxBidAmount: Number,
+  // tournament: String,
+  // auctionStatus: String,
+  // auctionPlayer: Number,
+  // auctionBid: Number,
+  // currentBidUid: Number,
+  // currentBidUser: String,
+  // enable: Boolean
   myRec.gid = maxGid[0].gid + 1;
   myRec.name = groupName;
-  myRec.owner = iowner;
-  myRec.maxBidAmount = imaxbid;
+  myRec.owner = ownerRec.uid;
+  myRec.maxBidAmount = maxbid;
   myRec.tournament = mytournament;
   myRec.auctionStatus = "PENDING";
   myRec.auctionPlayer = 0;
+  myRec.auctionBid = 0;
+  myRec.currentBidUid = 0;
+  myRec.currentBidUser = 0;
+  myRec.enable = true;
   myRec.save();
   sendok(myRec);
 }); // end of get
@@ -421,17 +427,18 @@ router.get('/default/:myUser', async function (req, res, next) {
     myData.tournament = myGroup.tournament;
     myData.admin = (myUser == myGroup.owner);
     myData.ismember = true;
+    // console.log(myData);
   } else {
     // not a member of any group. Just check if
-    var myGroup = await IPLGroup.find({owner: myUser}).limit(-1).sort({"gid": -1});
-    if (myGroup.length > 0) {
-      myData.gid = myGroup[0].gid
-      myData.displayName = myGroup[0].displayName;
-      myData.groupName = myGroup[0].name;
-      myData.tournament = myGroup[0].tournament;
-      myData.admin = true;
-      myData.ismember = false;    // owner but not member. Remember Apurva
-    }
+    // myData.ismember = false;    // owner but not member. Remember Apurva
+    // var myGroup = await IPLGroup.find({owner: myUser}).limit(-1).sort({"gid": -1});
+    // if (myGroup.length > 0) {
+    //   myData.gid = myGroup[0].gid
+    //   myData.displayName = myGroup[0].displayName;
+    //   myData.groupName = myGroup[0].name;
+    //   myData.tournament = myGroup[0].tournament;
+    //   myData.admin = true;
+    // }
   }
   sendok(myData);
 });
@@ -495,11 +502,11 @@ router.get('/memberof/:userid', async function(req, res, next) {
     ufilter = {uid: iuser}
     gfilter = {uid: iuser, enable: true};
   }
-  console.log(`${userid} is valid`)
+  // console.log(`${userid} is valid`)
   var myUsers = await User.find(ufilter)
   var myGmRec = await GroupMember.find (gfilter);
   var allGroups = await IPLGroup.find({});
-  console.log(allGroups);
+  // console.log(allGroups);
   var groupData = [];
   let uidx;
   for(uidx=0; uidx < myUsers.length; ++uidx) {
@@ -523,7 +530,7 @@ router.get('/memberof/:userid', async function(req, res, next) {
     }
     groupData.push({ uid: u.uid, userName: u.userName, displayName: u.displayName, groups: gData});
   }
-  console.log("about to send ok")
+  // console.log("about to send ok")
   sendok(groupData);
 });
 
@@ -545,7 +552,7 @@ async function update_tournament_max(groupno) {
     if ((myruns + mywkt) === 0) return;
     maxStat.push({ pid: mypid, run: myruns, wicket: mywkt });
   });
-  console.log(maxStat);
+  // console.log(maxStat);
   // we now have players total of run an wickets.  Get max run and wicket
   var maxRunRec = _.maxBy(maxStat, o => o.run);
   var maxWicketRec = _.maxBy(maxStat, o => o.wicket);

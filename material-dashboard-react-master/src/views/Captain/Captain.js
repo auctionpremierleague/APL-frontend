@@ -13,7 +13,8 @@ import Radio from '@material-ui/core/Radio';
 // import Card from "components/Card/Card.js";
 // import CardBody from "components/Card/CardBody.js";
 import { UserContext } from "../../UserContext";
-import NoGroup from 'CustomComponents/NoGroup.js';
+import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import { hasGroup } from 'views/functions';
 
 // import GroupMember from "views/GroupMember/GroupMember.js"
 // import { 
@@ -61,16 +62,17 @@ export default function Group() {
       
     useEffect(() => {
         const a = async () => {
-            // get start of tournamnet (i.e. start of 1st match)
-            var gameStarted = false;  
-            var mygroup  = localStorage.getItem("gid")
-            if  ((mygroup === "") || (mygroup === "0")) {
+            if  (!hasGroup()) {
                 // handle if not a member of any group
                 return;
             }
 
             // console.log("Calling getcaptain")
+            // get start of tournamnet (i.e. start of 1st match)
+            var gameStarted = false;  
+            var mygroup  = localStorage.getItem("gid")
             var response = await axios.get(`/user/getcaptain/${mygroup}/${localStorage.getItem("uid")}`);
+            // console.log(response.data[0]);
             if (response.data.length > 0) {
                 SetSelectedCaptain(response.data[0].captainName);
                 SetSelectedViceCaptain(response.data[0].viceCaptainName)
@@ -156,7 +158,7 @@ export default function Group() {
         );
     };
 
-    if ((localStorage.getItem("gid") !== "") && (localStorage.getItem("gid") !== "0"))
+    if (hasGroup())
         return (
         <div className={classes.root} key="cpataininfo">
             <h3 align="center">Captain and Vice Captain ({localStorage.getItem("tournament")})</h3>

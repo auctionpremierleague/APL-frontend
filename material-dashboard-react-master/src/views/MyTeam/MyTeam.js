@@ -10,7 +10,8 @@ import Card from "components/Card/Card.js";
 // import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
 import Avatar from "@material-ui/core/Avatar"
-import NoGroup from 'CustomComponents/NoGroup.js';
+import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import { hasGroup } from 'views/functions';
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -81,29 +82,15 @@ export default function App() {
 
     const classes = useStyles();
     const [teamArray, setTeamArray] = useState([]);
-    const [hasTeam, setHasTeam] = useState(true);
     useEffect(() => {
         const fetchTeam = async () => {
             try {
                 var myTeamUrl = "";
-                if ((localStorage.getItem("gid") !== "") && (localStorage.getItem("gid") !== "0"))
+                if (hasGroup())
                 {
-                    // if (localStorage.getItem("admin") === "true")
-                    //     myTeamUrl = `/user/myteam/${localStorage.getItem("gid")}/all`;
-                    // else if (localStorage.getItem("ismember") === "true")
-                //     myTeamUrl = `/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`;                
-                // if (myTeamUrl.length > 0) {
                     var response = await axios.get(`/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`);
-                    // data = populateTable(response.data);
-                    // console.log(response.data);
                     setTeamArray(response.data);
-                // } else {
-                //     var data = [{displayName: "Not a team member", players: [{playerName: "", team: "", bidAmount: ""}] }];
-                //     setTeamArray(data);
-                // }
                 }
-                else
-                    setHasTeam(false);
             } catch (e) {
                 console.log(e)
             }
@@ -111,7 +98,7 @@ export default function App() {
         fetchTeam();
     }, []);
 
-    if (hasTeam)
+    if (hasGroup())
         return (
             teamArray.map(team => 
             <div>

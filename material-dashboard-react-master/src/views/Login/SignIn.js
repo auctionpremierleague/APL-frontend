@@ -5,8 +5,8 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
 import { Switch, Route } from 'react-router-dom';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
+// import Dialog from '@material-ui/core/Dialog';
+// import DialogTitle from '@material-ui/core/DialogTitle';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -97,6 +97,7 @@ export default function SignIn() {
     if (response.status === 200) {
       var myUID = response.data;
       response = await axios.get(`/group/default/${myUID}`);
+      console.log(response.data);
       // SAMPLE OUTPUT
       // {"uid":"8","gid":2,"displayName":"Salgia Super Stars",
       // "groupName":"Happy Home Society Grp 2","tournament":"ENGAUST20","ismember":true,"admin":true}
@@ -106,7 +107,7 @@ export default function SignIn() {
       window.localStorage.setItem("userName", response.data.userName);
       window.localStorage.setItem("groupName", response.data.groupName);
       window.localStorage.setItem("tournament", response.data.tournament);
-      window.localStorage.setItem("ismember", response.data.ismember);
+      // window.localStorage.setItem("ismember", response.data.ismember);
       window.localStorage.setItem("admin", response.data.admin)
       setUser({ uid: myUID, admin: response.data.admin });
       history.push("/admin")

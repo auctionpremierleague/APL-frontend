@@ -17,19 +17,9 @@ import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
 import SignIn from "./SignIn.js";
+import {BlankArea} from "CustomComponents/CustomComponents.js"
+import {validateSpecialCharacters, validateEmail} from "views/functions.js";
 
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        CricDream
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -66,21 +56,14 @@ const useStyles = makeStyles((theme) => ({
 class ChildComp extends React.Component {
 
   componentDidMount()  {
-    // // custom rule will have name 'isPasswordMatch'
-    // ValidatorForm.addValidationRule('isPasswordMatch', (value) => {
-    //   return (this.props.p1 === this.props.p2)
-    // });
 
     ValidatorForm.addValidationRule('isEmailOK', (value) => {
-      if (this.props.em.length > 0)
-        return (this.props.em.includes(".") && this.props.em.includes("@"))
-      else
-        return(true);
+      return validateEmail(value);
     });
 
   }
 
-  
+
   componentWillUnmount() {
     // remove rule when it is not needed
     ValidatorForm.removeValidationRule('isEmailOK');
@@ -150,9 +133,6 @@ export default function SignUp() {
     )
   }
 
-  function BlankArea() {
-    return(<h3></h3>)
-  }
 
   return (
     <Container component="main" maxWidth="xs">

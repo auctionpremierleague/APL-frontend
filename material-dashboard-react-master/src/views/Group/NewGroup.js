@@ -17,7 +17,8 @@ import { UserContext } from "../../UserContext";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
-// import SignIn from "./SignIn.js";
+import {validateSpecialCharacters, validateEmail} from "views/functions.js";
+import {BlankArea} from "CustomComponents/CustomComponents.js"
 
 function Copyright() {
   return (
@@ -76,25 +77,8 @@ class ChildComp extends React.Component {
     });
 
     ValidatorForm.addValidationRule('noSpecialCharacters', (value) => {
-      // var re = new RegExp('^\\/~');
-      var sts = false;
-      if (!value.includes("\\"))
-      if (!value.includes("^"))
-      if (!value.includes("~"))
-      if (!value.includes("/"))
-        sts = true;
-      return sts;
-    });
-    
-    // ValidatorForm.addValidationRule('isEmailOK', (value) => {
-    //   let sts = false;
-    //   let xxx = props.p3.split("@");
-    //   if (xxx.length === 2) {
-    //     if (xxx[1].includes(".")) 
-    //       sts = true;
-    //   }
-    //   return sts;
-    // });
+      return validateSpecialCharacters(value);
+    });    
   }
 
   
@@ -193,10 +177,7 @@ export default function CreateGroup() {
     )
   }
 
-  function BlankArea() {
-    return(<h3></h3>)
-  }
-
+  
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />

@@ -97,7 +97,10 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   // var iplayer = parseInt(playerId);
   // if (isNaN(bidValue)) { senderr(705, "Invalid bid amount"); return;} 
   // var ibid = parseInt(bidValue);
- 
+
+  // Step 0: validate user
+  var uRec = await User.findOne({uid: iuser});
+  if (!uRec) { senderr(701, `Invalid user ${iuser}`); return; }
   // Step 1: validate group number
   var gRec = await PgRec;
   if (!gRec) { senderr(702, `Invalid Group ${igroup}`); return; }
@@ -150,7 +153,8 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
     gid: igroup,
     bidAmount: ibid 
   });
-  //console.log(bidrec);
+
+  var bidOVerData = {gid: igroup, uid: iuser, bidAmount: ibid, userName: uRec.displayName, playerName: myplayer.name}
   bidrec.save();
 
   // now find all unsold players
@@ -166,8 +170,11 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   ++myindex;
   if (myindex === allPlayers.length) myindex = 0;
 
-  // update new player in Group auction player field and save
+  // update new player in Group auction player and reset bid details
   gRec.auctionPlayer = allPlayers[myindex].pid;
+  gRec.auctionBid = 0;
+  gRec.currentBidUid = 0;
+  gRec.currentBidUser = '';
   gRec.save();
   
   // calculate fresh balance for all users to be submitted to caller
@@ -195,8 +202,18 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   const socket = app.get("socket");
   socket.emit("playerChange", allPlayers[myindex], balanceDetails)
   socket.broadcast.emit('playerChange', allPlayers[myindex], balanceDetails);
+  sendNewBidToClient(gRec);
+  sendBidOverToClient(bidOVerData);
   sendok(allPlayers[myindex]);
 });
+
+function sendBidOverToClient(bidData) {
+  var myList = _.filter(connectionArray, x => x.gid == bidData.gid && x.page === "AUCT");
+  console.log(myList);
+  myList.forEach(x => {
+    io.to(x.socketId).emit('bidOver', bidData);
+  });
+}
 
 function sendNewBidToClient(groupRec) {
   var myList = _.filter(connectionArray, x => x.gid == groupRec.gid && x.page === "AUCT");

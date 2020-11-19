@@ -16,9 +16,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { makeStyles } from '@material-ui/core/styles';
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import socketIOClient from "socket.io-client";
-import NoGroup from 'CustomComponents/NoGroup.js';
-const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// const ENDPOINT = "http://localhost:4000";
+import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import {ENDPOINT, socketPoint} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
     root: {

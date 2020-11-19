@@ -461,6 +461,20 @@ cricTeamName = function (t)  {
   return tmp.join(' ');
 }
 
+getLoginName = function (name) {
+  return name.toLowerCase().replace(/\s/g, "");
+}
+
+getDisplayName = function (name) {
+  var xxx = name.split(" ");
+  xxx.forEach( x => { 
+    x = x.trim()
+    x = x.substr(0,1).toUpperCase() +
+      (x.length > 1) ? x.substr(1, x.length-1).toLowerCase() : "";
+  });
+  return xxx.join(" ");
+}
+
 
 
 

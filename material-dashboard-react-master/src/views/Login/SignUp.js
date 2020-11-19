@@ -17,19 +17,8 @@ import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
 import SignIn from "./SignIn.js";
+import {validateSpecialCharacters, validateEmail} from "views/functions.js";
 
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        CricDream
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -72,24 +61,11 @@ class ChildComp extends React.Component {
     });
 
     ValidatorForm.addValidationRule('noSpecialCharacters', (value) => {
-      // var re = new RegExp('^\\/~');
-      var sts = false;
-      if (!value.includes("\\"))
-      if (!value.includes("^"))
-      if (!value.includes("~"))
-      if (!value.includes("/"))
-        sts = true;
-      return sts;
+      return validateSpecialCharacters(value);
     });
 
     ValidatorForm.addValidationRule('isEmailOK', (value) => {
-      let sts = false;
-      let xxx = value.split("@");
-      if (xxx.length === 2) {
-        if (xxx[1].includes(".")) 
-          sts = true;
-      }
-      return sts;
+      return validateEmail(value);
     });
   }
 

@@ -30,10 +30,8 @@ import CardFooter from "components/Card/CardFooter.js";
 
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-
- const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// const ENDPOINT = "http://localhost:4000";
-
+import {ENDPOINT, hasGroup} from "views/functions.js";
+import { NoGroup } from 'CustomComponents/CustomComponents.js';
 
 
 
@@ -54,8 +52,6 @@ export default function Dashboard() {
   const [score, setScore] = useState(0);
   const [mostRuns, setMostRuns] = useState({});
   const [mostWickets, setMostwickets] = useState({});
-  // const [mvp, SetMvp] = useState();
-  // const { user } = useContext(UserContext);
   const date = new Date().toDateString() + " " + new Date().toLocaleTimeString();
   
 
@@ -71,7 +67,6 @@ export default function Dashboard() {
     return arr;
   }
 
-  // axios.get(`/stat/sendmydashboard/${localStorage.getItem("gid")}`);
   useEffect(() => {
     var sendMessage = {page: "DASH", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
 
@@ -140,7 +135,7 @@ export default function Dashboard() {
 // }, [rankArray]);
 
   function ShowUserBoard() {
-    if (localStorage.getItem("ismember") === "true")
+    // if (localStorage.getItem("ismember") === "true")
       return(
       <GridContainer key="db_gc_ub">
         <GridItem key="db_gi_ub1" xs={12} sm={6} md={3}>
@@ -217,12 +212,11 @@ export default function Dashboard() {
         </GridItem>
       </GridContainer>
       )
-    else
-        return(<div></div>);        // no display if not a member
+    // else
+    //     return(<div></div>);        // no display if not a member
   } 
 
   function ShowUserRank() {
-    if ((localStorage.getItem("ismember") === "true") || (localStorage.getItem("admin") === "true"))
     return(
         <Card key="db_card">
           <CardHeader key="db_cheader" color="warning">
@@ -240,23 +234,24 @@ export default function Dashboard() {
           </CardBody>
         </Card>
     )
-    else 
-    return (
-        <Card>
-          <CardHeader color="warning">
-            <h4 className={classes.cardTitleWhite}>Not a member of this group</h4>
-          </CardHeader>
-        </Card>
-    )
+    // else 
+    // return (
+    //     <Card>
+    //       <CardHeader color="warning">
+    //         <h4 className={classes.cardTitleWhite}>Not a member of this group</h4>
+    //       </CardHeader>
+    //     </Card>
+    // )
   }
 
   const classes = useStyles();
-
-
-  return (
-    <div>
-      <ShowUserBoard />
-      <ShowUserRank />
-    </div>
-  );
+    if (hasGroup())
+      return (
+      <div>
+        <ShowUserBoard />
+        <ShowUserRank />
+      </div>
+      );
+    else
+        return <NoGroup/>  
 }

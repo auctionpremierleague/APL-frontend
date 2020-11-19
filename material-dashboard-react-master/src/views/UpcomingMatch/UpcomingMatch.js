@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
-import NoGroup from 'CustomComponents/NoGroup.js';
+import { NoGroup } from 'CustomComponents/CustomComponents.js';
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -112,6 +112,7 @@ export default function MatchInfo() {
             <CardBody profile>
                 <h4 className={classes.cardTitle}>{myHeader}</h4>
                 <Table
+                    alignment="center"
                     tableHeaderColor="warning"
                     tableHead={["Team1", "Team2", "Match Start Time"]}
                     tableData={upcomingArray.map(x => {
