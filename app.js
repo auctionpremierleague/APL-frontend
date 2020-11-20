@@ -440,8 +440,9 @@ cricDate = function (d)  {
   var myHour = d.getHours();
   var myampm = AMPM[myHour];
   if (myHour > 12) myHour -= 12;
-  var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' . ' + 
-      ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + myampm;
+  // var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' ' + 
+  //     ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + myampm;
+  var tmp = `${MONTHNAME[d.getMonth()]} ${("0" + d.getDate()).slice(-2)} ${("0" + myHour).slice(-2)}:${("0" +  d.getMinutes()).slice(-2)}${myampm}`
   return tmp;
 }
 

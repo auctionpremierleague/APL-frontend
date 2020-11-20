@@ -564,6 +564,7 @@ async function publish_auctionedplayers(groupid, userid, withOrWithout)
     var userRec = _.filter(allUsers, x => x.uid == myuser.uid);
     //console.log(`${userRec}`);
     var myplrs = _.filter(datalist, x => x.uid === myuser.uid);
+    myplrs = _.sortBy(myplrs, x => x.playerName);
     // set captain and vice captain
     var caprec = _.find(allCaptains, x => x.uid == myuser.uid);
     if (withOrWithout === WITH_CVC) {

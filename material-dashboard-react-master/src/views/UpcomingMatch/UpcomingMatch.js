@@ -79,6 +79,21 @@ export default function MatchInfo() {
     }, []);
 
 
+    function MatchTable(props) {
+        if (props.myTable.length > 0)
+            return (
+            <Table
+            tableHeaderColor="warning"
+            tableHead={["Team1", "Team2", "Start Time"]}
+            tableData={props.myTable.map(x => {
+                const arr = [x.team1, x.team2, x.matchTime]
+                return { data: arr, collapse: [] }
+            })}
+            />);
+        else
+            return (<div></div>);
+    }
+
     function ShowCurrentMatch() {
         var myHeader = (currentArray.length > 0)
             ? "Match running just now" : "Currently No Matches running";
@@ -88,14 +103,7 @@ export default function MatchInfo() {
             <Card profile>
             <CardBody profile>
             <h4 className={classes.cardTitle}>{myHeader}</h4>
-                <Table
-                    tableHeaderColor="warning"
-                    tableHead={["Team1", "Team2", "Match Start Time"]}
-                    tableData={currentArray.map(x => {
-                        const arr = [x.team1, x.team2, x.matchTime]
-                        return { data: arr, collapse: [] }
-                    })}
-                />
+                <MatchTable myTable={currentArray}/>
             </CardBody>
             </Card>
             </GridItem>
@@ -111,15 +119,7 @@ export default function MatchInfo() {
             <Card profile>
             <CardBody profile>
                 <h4 className={classes.cardTitle}>{myHeader}</h4>
-                <Table
-                    alignment="center"
-                    tableHeaderColor="warning"
-                    tableHead={["Team1", "Team2", "Match Start Time"]}
-                    tableData={upcomingArray.map(x => {
-                        const arr = [x.team1, x.team2, x.matchTime]
-                        return { data: arr, collapse: [] }
-                    })}
-                />
+                <MatchTable myTable={upcomingArray}/>
             </CardBody>
             </Card>
             </GridItem>
@@ -130,7 +130,8 @@ export default function MatchInfo() {
     if (localStorage.getItem("tournament").length > 0)
         return (
             <div>
-                <h3 align="center">Tournament ({localStorage.getItem("tournament")})</h3>
+                {/* <h3 align="center">Tournament ({localStorage.getItem("tournament")})</h3> */}
+                <h3 align="center">Matches</h3>
                 <ShowCurrentMatch/>
                 <ShowUpcomingMatch/>
             </div>

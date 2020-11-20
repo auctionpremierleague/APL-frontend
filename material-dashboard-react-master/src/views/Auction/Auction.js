@@ -46,6 +46,15 @@ const useStyles = makeStyles((theme) => ({
     margin: {
         margin: theme.spacing(1),
     },
+    hdrText:  {
+        // right: 0,
+        // fontSize: '12px',
+        // color: red[700],
+        // // position: 'absolute',
+        align: 'center',
+        marginTop: '0px',
+        marginBottom: '0px',
+    },
     image: {
         height: "200px"
     },
@@ -166,13 +175,13 @@ export default function Auction() {
             sockConn.emit("page", sendMessage);
 
             sockConn.on("bidOver", (myrec) => {
-                console.log("bid over reveived");
+                // console.log("bid over reveived");
                 console.log(myrec);
                 DisplayBidOverMsg(`${myrec.playerName} successfully purchsed by ${myrec.userName}`);
             });
             sockConn.on("newBid", (grec) => {
-                console.log("new bid reveived");
-                console.log(grec);
+                // console.log("new bid reveived");
+                // console.log(grec);
                 setBidAmount(grec.auctionBid);
                 setBidUser(grec.currentBidUser);
                 setBidUid(grec.currentBidUid);
@@ -198,11 +207,11 @@ export default function Auction() {
                     // console.log("player change")
                     // console.log(`finally New player is ${newPlayerDetails.pid}`)
                     let tmp = `${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`
-                    if (playerImage != tmp) {
+                    // if (playerImage != tmp) {
                         // console.log("Different image")
                         setPlayerImage(`${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`);
-                    } else
-                        console.log("Same player image")
+                    // } else
+                    //     console.log("Same player image")
                 // }
             });
         })
@@ -300,19 +309,17 @@ export default function Auction() {
                         <img src={props.pImage} alt="..." />
                     </CardAvatar>
                     <CardBody profile>
-                        <h6 className={classes.cardTitle}>{props.pName}</h6>
+                        {/* <h6 className={classes.cardTitle}>{props.pName}</h6> */}
+                        <h6 className={classes.hdrText}>{props.pName}</h6>
                         <Grid container justify="center" alignItems="center">
                             <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.pTeamLogo}.JPG`} className={classes.medium} />
-                        {/* <h4 className={classes.cardCategory}>{role}</h4> */}
                         </Grid>
-                        <div align="center">
-                            <h6 align="center">
+                        <div align="center"><h6 className={classes.hdrText} align="center">
                             {role}<br/>
                             {battingStyle}<br />
                             {bowlingStyle}
                         </h6></div>
                     </CardBody>
-                    {/* <Typography>Current Bid Amount: {bidAmount}</Typography> */}
                 </Card>
             </div>
         );
@@ -338,7 +345,7 @@ export default function Auction() {
         let myURL=`/auction/nextbid/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${value}`;
         console.log(myURL);
         var resp = await axios(myURL);
-        console.log(`Bid for value ${newBid}`)
+        // console.log(`Bid for value ${newBid}`)
         // setBidAmount();
     }
 
@@ -353,15 +360,15 @@ export default function Auction() {
             btnDisable = true;
             btnSize = "medium";
         } else {
+            btnMsg = "+"+props.value;
             let newValue = parseInt(bidAmount) + parseInt(props.value);
-            if (newValue < parseInt(myBalanceAmount)) {
-                btnMsg = newValue.toString();
-                btnDisable = false;
-            } else {
-                btnMsg = "---"
-                btnDisable = true;
-            }
-            btnSize = "small";
+            btnDisable = (newValue > parseInt(myBalanceAmount));
+            //     btnDisable = false;
+            // } else {
+            //     btnMsg = "---"
+            //     btnDisable = true;
+            // }
+            // btnSize = "small";
         }
         if (btnDisable) {
             return (
@@ -393,16 +400,24 @@ export default function Auction() {
                     <BidButton value="NAME"/>
                 </div>
                 <div align="center">
+                    {/* <BidButton value="1" />
+                    <BidButton value="2" />
+                    <BidButton value="3" />
+                    <BidButton value="4" />
+                    <BidButton value="5" /> */}
                     <BidButton value="1" />
                     <BidButton value="2" />
                     <BidButton value="3" />
                     <BidButton value="4" />
-                    <BidButton value="5" />
                 </div>
                 <div align="center">
-                    <BidButton value="10" />
+                    {/* <BidButton value="10" />
                     <BidButton value="15" />
                     <BidButton value="20" />
+                    <BidButton value="25" />
+                    <BidButton value="50" /> */}
+                    <BidButton value="5" />
+                    <BidButton value="10" />
                     <BidButton value="25" />
                     <BidButton value="50" />
                 </div>
@@ -412,7 +427,9 @@ export default function Auction() {
     }
 
     function ShowAdminButtons() {
-        if (localStorage.getItem("admin").toLowerCase() === "true")
+        // console.log("admin buttons")
+        // console.log(localStorage.getItem("admin").toLowerCase());
+        if (localStorage.getItem("admin").toLowerCase() === "admin")
             return(
             <div align="center" key="playerAuctionButton">
                 <Button

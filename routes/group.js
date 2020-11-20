@@ -528,6 +528,7 @@ router.get('/memberof/:userid', async function(req, res, next) {
       // if (gm.gid === u.defaultGroup) xxx.default = "Default";
       gData.push(xxx)
     }
+    gData = _.sortBy(gData, x => x.gid).reverse();
     groupData.push({ uid: u.uid, userName: u.userName, displayName: u.displayName, groups: gData});
   }
   // console.log("about to send ok")

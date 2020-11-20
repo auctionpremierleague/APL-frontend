@@ -157,7 +157,8 @@ export default function Group() {
 
     return (
         <div className={classes.root} align="center" key="groupinfo">
-            <h3 align="center">My Groups ({localStorage.getItem("displayName")})</h3>
+            {/* <h3 align="center">My Groups ({localStorage.getItem("displayName")})</h3> */}
+            <h3 align="center">My Groups</h3>
             <ShowAllGroups/>
             <Button key={"create"} variant="contained" color="primary" size="small"
                 className={classes.button} onClick={handleNewGroup}>Create

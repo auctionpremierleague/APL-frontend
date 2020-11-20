@@ -103,7 +103,8 @@ export default function App() {
             teamArray.map(team => 
             <div>
                 {/* <h3 className={classes.cardTitle}>{team.displayName}</h3> */}
-                <h3 align="center">My Team ({localStorage.getItem("tournament")})</h3>
+                {/* <h3 align="center">My Team ({localStorage.getItem("tournament")})</h3> */}
+                <h3 align="center">My Team</h3>
                 <Table
                     key={team.displayName}
                     id={team.displayName}
