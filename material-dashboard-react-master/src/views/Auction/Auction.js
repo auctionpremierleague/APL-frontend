@@ -59,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
         height: "200px"
     },
     container: {
-        backgroundImage: "url(\"./sample.JPG\")",
+        backgroundImage: `url(${process.env.PUBLIC_URL}/0.JPG)`,
         backgroundSize: 'cover'
     }, drawer: {
         width: drawerWidth,
@@ -153,7 +153,6 @@ export default function Auction() {
     // const handleModalClose = () => {
     //     setConfirmDialogOpen(false);
     // };
-
     function DisplayBidOverMsg(msg) {
         setPlayerStatus(msg);
         // setConfirmDialogOpen(false);
@@ -163,14 +162,42 @@ export default function Auction() {
     // console.log(`Dangerous ${playerId}`)
     useEffect(() => {
         var sendMessage = {page: "AUCT", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
+        var sockConn = socketIOClient(ENDPOINT);
 
         const makeconnection = async () => {
           await sockConn.connect();
           sockConn.emit("page", sendMessage);
         }
-    
-        var sockConn = socketIOClient(ENDPOINT);
-        makeconnection();
+
+        function updatePlayerChange(newPlayerDetails, balanceDetails) {
+            // console.log("Player Changed");
+            // console.log(`New: ${newPlayerDetails.pid}  Old: ${playerId} `)
+            // const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
+            // first set PID so that display is better
+            setPid(newPlayerDetails.pid)
+            let ourBalance = balanceDetails.filter(balance => balance.uid == localStorage.getItem("uid"))
+            setMyBalanceAmount(ourBalance[0].balance);
+            let allUserBalance = (localStorage.getItem("admin") === "false") ? ourBalance : balanceDetails;
+            setAuctionTableData(allUserBalance);
+            // console.log(userBalance);
+            setRole(newPlayerDetails.role)
+            setTeam(newPlayerDetails.Team)
+            setBattingStyle(newPlayerDetails.battingStyle)
+            setBowlingStyle(newPlayerDetails.bowlingStyle)
+            setPlayerName(newPlayerDetails.fullName)
+            // console.log("player change")
+            // console.log(`finally New player is ${newPlayerDetails.pid}`)
+            let tmp = `${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`
+            if (playerImage != tmp) {
+                // console.log("Different image")
+                setPlayerImage(`${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`);
+            } else {
+                // console.log("Same player image")
+            }
+            setAuctionStatus("RUNNING");
+        }
+
+        makeconnection();    
         sockConn.on("connect", () => {
             sockConn.emit("page", sendMessage);
 
@@ -181,38 +208,13 @@ export default function Auction() {
             });
             sockConn.on("newBid", (grec) => {
                 // console.log("new bid reveived");
-                // console.log(grec);
+                console.log(grec);
                 setBidAmount(grec.auctionBid);
                 setBidUser(grec.currentBidUser);
                 setBidUid(grec.currentBidUid);
             });
             sockConn.on("playerChange", async (newPlayerDetails, balanceDetails) => {
-                // console.log("Player Changed");
-                // console.log(`New: ${newPlayerDetails.pid}  Old: ${playerId} `)
-                // if (newPlayerDetails.pid != playerId) {
-                    setAuctionStatus("RUNNING");
-                    // const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
-                    // first set PID so that display is better
-                    setPid(newPlayerDetails.pid)
-                    let ourBalance = balanceDetails.filter(balance => balance.uid == localStorage.getItem("uid"))
-                    setMyBalanceAmount(ourBalance[0].balance);
-                    let allUserBalance = (localStorage.getItem("admin") === "false") ? ourBalance : balanceDetails;
-                    setAuctionTableData(allUserBalance);
-                    // console.log(userBalance);
-                    setRole(newPlayerDetails.role)
-                    setTeam(newPlayerDetails.Team)
-                    setBattingStyle(newPlayerDetails.battingStyle)
-                    setBowlingStyle(newPlayerDetails.bowlingStyle)
-                    setPlayerName(newPlayerDetails.fullName)
-                    // console.log("player change")
-                    // console.log(`finally New player is ${newPlayerDetails.pid}`)
-                    let tmp = `${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`
-                    // if (playerImage != tmp) {
-                        // console.log("Different image")
-                        setPlayerImage(`${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`);
-                    // } else
-                    //     console.log("Same player image")
-                // }
+                updatePlayerChange(newPlayerDetails, balanceDetails);
             });
         })
 
@@ -222,13 +224,20 @@ export default function Auction() {
             const response = await axios.get(`/group/getauctionstatus/${localStorage.getItem("gid")}`);
             // console.log(response.data)
             setAuctionStatus(response.data);
-            const response1 = await axios.get(`/auction/getbid/${localStorage.getItem("gid")}`);
-            // console.log("GETBID");
-            // console.log(response1.data)
-            if (response1.status === 200) {
-                setBidAmount(response1.data.auctionBid)
-                setBidUser(response1.data.currentBidUser);
-                setBidUid(response1.data.currentBidUid);            
+            if (response.data === "RUNNING") {
+                // get current player details
+                //same as when data rcvd in socket msg playerChange
+                const response2 = await axios.get(`/auction/current/${localStorage.getItem("gid")}`)
+                updatePlayerChange(response2.data.a, response2.data.b);
+                // get whi has bidded
+                const response1 = await axios.get(`/auction/getbid/${localStorage.getItem("gid")}`);
+                // console.log("GETBID");
+                // console.log(response1.data)
+                if (response1.status === 200) {
+                    setBidAmount(response1.data.auctionBid)
+                    setBidUser(response1.data.currentBidUser);
+                    setBidUid(response1.data.currentBidUid);            
+                }
             }
         }
         a();
@@ -429,7 +438,7 @@ export default function Auction() {
     function ShowAdminButtons() {
         // console.log("admin buttons")
         // console.log(localStorage.getItem("admin").toLowerCase());
-        if (localStorage.getItem("admin").toLowerCase() === "admin")
+        if (localStorage.getItem("admin").toLowerCase() === "true")
             return(
             <div align="center" key="playerAuctionButton">
                 <Button

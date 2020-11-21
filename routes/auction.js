@@ -1,3 +1,5 @@
+const { multiply } = require("lodash");
+
 var router = express.Router();
 let AuctionRes;
 var _group;
@@ -342,6 +344,61 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
   sendok(allPlayers[myindex]);
 });
 
+router.get('/current/:groupId', async function(req, res, next) {
+  AuctionRes = res;
+  setHeader();
+  var {groupId}=req.params;
+
+  var myGroup = await IPLGroup.findOne({gid: groupId});
+  if (!myGroup) { senderr(702, `Invalid Group ${groupId}`); return; }
+  var igroup = myGroup.gid;
+  var playerId = myGroup.auctionPlayer;
+  if (playerId === 0) { senderr(704, "Invalid Player"); return;}
+
+  var PauctionList = Auction.find({gid: igroup});
+  var Pgmembers = GroupMember.find({gid: igroup});
+
+
+  // make sold player list pid
+  var auctionList = await PauctionList;
+  // var soldPlayerId = _.map(auctionList, 'pid');
+
+  var myplayer = await Player.findOne({tournament: myGroup.tournament, pid: playerId});
+  if (!myplayer) {
+    senderr(704, `Invalid player ${iplayer}`);
+    return
+  }
+  // console.log(myplayer);
+  // calculate fresh balance for all users
+  var gmembers = await Pgmembers;
+  gmembers = _.sortBy(gmembers, 'uid');
+  var balanceDetails = [];
+  gmembers.forEach(gm => {
+    myAuction = _.filter(auctionList, x => x.uid == gm.uid);
+    var myPlayerCount = myAuction.length;
+    var mybal = myGroup.maxBidAmount - _.sumBy(myAuction, 'bidAmount');
+    balanceDetails.push({
+      uid: gm.uid,
+      userName: gm.userName,
+      gid: gm.gid,
+      playerCount: myPlayerCount,
+      balance: mybal
+    });
+  });
+  /*
+  cannot send data over socket since when called. Auction view
+  has not made the socket connection with server
+  */
+  // console.log(balanceDetails);
+  // const socket = app.get("socket");
+  // console.log(connectionArray);
+  // socket.emit("playerChange", myplayer, balanceDetails)
+  // socket.broadcast.emit('playerChange', myplayer, balanceDetails);
+  // sendok(myplayer);
+  // console.log("Current Sent");
+  sendok({a: myplayer, b: balanceDetails});
+});
+
 async function publish_auctions(auction_filter)
 {
   auctionList = await Auction.find(auction_filter); 
@@ -377,7 +434,7 @@ function fetchBalance(gmembers, auctionList, maxBidAmount, iuser, ibid) {
 }
 
 function senderr(errcode, msg)  { AuctionRes.status(errcode).send(msg); }
-function sendok(msg)   { AuctionRes.send(msg); }
+function sendok(msg)   { console.log("in sendok"); AuctionRes.send(msg); }
 function setHeader() {
   AuctionRes.header("Access-Control-Allow-Origin", "*");
   AuctionRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
