@@ -78,7 +78,7 @@ export default function Group() {
 
 
     function handleGroupDetails(grpName) {
-        console.log(`Show group details of ${grpName}`)
+        // console.log(`Show group details of ${grpName}`)
         var ggg = myGroupTableData.find(x => x.groupName === grpName);
         window.localStorage.setItem("gdGid", ggg.gid.toString());
         window.localStorage.setItem("gdName", ggg.groupName)

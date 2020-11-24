@@ -9,6 +9,7 @@ import { Route } from 'react-router-dom';
 // import Box from '@material-ui/core/Box';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import Switch from '@material-ui/core/Switch';
 import { makeStyles } from '@material-ui/core/styles';
@@ -144,42 +145,10 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
   }
 
   const handleSubmit = async() => {
-    console.log("Submit command provided");
-
-    if (masterDisplayName != myDisplayName) {
-      console.log(`New display name ${myDisplayName}`);
-      await updateFranchiseName(localStorage.getItem("gdGid"), myDisplayName)
-    }
-    if (masterCurrentSwitch != myCurrentSwitch) {
-      console.log("New Current");
-        // var myElement;
-        // window.localStorage.setItem("gdGid", ggg.gid.toString());
-        // window.localStorage.setItem("gdName", ggg.groupName)
-        // window.localStorage.setItem("gdDisplay", ggg.displayName)
-        // window.localStorage.setItem("gdAdmin", ggg.admin.toString());
-        // window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
-        // window.localStorage.setItem("gdDefault", ggg.defaultGroup.toString());
-        // window.localStorage.setItem("gdTournament", ggg.tournament);
-        localStorage.setItem("gid", localStorage.getItem("gdGid"));
-        localStorage.setItem("groupName", localStorage.getItem("gdName"));
-        localStorage.setItem("displayName", myDisplayName);
-        localStorage.setItem("tournament", localStorage.getItem("gdTournament"));
-        localStorage.setItem("admin", localStorage.getItem("gdAdmin"))
-        setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "admin")})    
-    }
-
-    if (masterDefaultSwitch != myDefaultSwitch) {
-      console.log("New Default");
-      await updateDefaultGroup(localStorage.getItem("gdGid"));
-    }
-    // all done
-    history.push("/admin/mygroup")
-
   }
 
 
   function ShowResisterStatus() {
-    // console.log(`Status is ${registerStatus}`);
     let myMsg;
     switch (registerStatus) {
       case 200:
@@ -206,49 +175,54 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
 
   function AdminSwitch() {
     return (
-        <Typography component="div">IsGroupAdmin : 
-         <Switch color="secondary" checked={myAdminSwitch} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
+        <Typography component="div">GroupAdmin: 
+         <Switch color="primary" checked={myAdminSwitch} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
         </Typography>
     )
   }
 
   function handleCurrent() {
     //   console.log(myCurrentSwitch);
-      setMyCurrentSwitch(!myCurrentSwitch);
+    if (!myCurrentSwitch) {
+        // var myElement;
+        // window.localStorage.setItem("gdGid", ggg.gid.toString());
+        // window.localStorage.setItem("gdName", ggg.groupName)
+        // window.localStorage.setItem("gdDisplay", ggg.displayName)
+        // window.localStorage.setItem("gdAdmin", ggg.admin.toString());
+        // window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
+        // window.localStorage.setItem("gdDefault", ggg.defaultGroup.toString());
+        // window.localStorage.setItem("gdTournament", ggg.tournament);
+        localStorage.setItem("gid", localStorage.getItem("gdGid"));
+        localStorage.setItem("groupName", localStorage.getItem("gdName"));
+        localStorage.setItem("displayName", myDisplayName);
+        localStorage.setItem("tournament", localStorage.getItem("gdTournament"));
+        localStorage.setItem("admin", localStorage.getItem("gdAdmin"))
+        setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "admin")})    
+        setMyCurrentSwitch(true);
+    }
   }
 
   function CurrentSwitch() {
-    if (masterCurrentSwitch)
-      return (
-        <Typography component="div">Current Group: 
-        <Switch color="secondary" checked={myCurrentSwitch} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
+    return (
+        <Typography component="div">Set Current : 
+        <Switch color="primary" checked={myCurrentSwitch} onChange={handleCurrent} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
         </Typography>
-      )
-    else
-      return (
-          <Typography component="div">Set Current : 
-          <Switch color="primary" checked={myCurrentSwitch} onChange={handleCurrent} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
-          </Typography>
-      )
+    )
   }
 
-  function handleDefault() {
-    setMyDefaultSwitch(!myDefaultSwitch);
+  async function handleDefault() {
+    if (!myDefaultSwitch) {
+      await updateDefaultGroup(localStorage.getItem("gdGid"));
+      setMyDefaultSwitch(true);
+    }
   }
 
   function DefaultSwitch() {
-    if (masterDefaultSwitch)
       return (
-          <Typography component="div">Default Group : 
-          <Switch color="secondary" checked={myDefaultSwitch} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
+          <Typography component="div">Set Default : 
+          <Switch color="primary" checked={myDefaultSwitch} onChange={handleDefault} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
           </Typography>
-      )
-  else 
-    return (
-        <Typography component="div">Set Default : 
-        <Switch color="primary" checked={myDefaultSwitch} onChange={handleDefault} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
-        </Typography>
-    )
+      );
 }
 
   function DisplaySwitch() {
@@ -262,23 +236,16 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
   }
 
   function ShowGroupMembers() {
-    // var grpName = localStorage.getItem("groupName");
-    // var ggg = myGroupTableData.find(x=> x.groupName === grpName);
-    // console.log(ggg);
-    // window.localStorage.setItem("gdGid", ggg.gid.toString());
-    // window.localStorage.setItem("gdName", ggg.groupName)
-    // window.localStorage.setItem("gdAdmin", ggg.admin.toString());
-    // console.log("abou to call /admin/membergroup ")
     history.push("/admin/membergroup");        
-};
+  };
 
   function DisplayButtons() {
     return (
     <div>
-      <Button variant="contained" color="primary" className={classes.button}
+      {/* <Button variant="contained" color="primary" className={classes.button}
         type="submit">
         Update
-      </Button>
+      </Button> */}
       <Button key={"members"} variant="contained" color="primary"
             className={classes.button} onClick={ShowGroupMembers}>Members
       </Button>
@@ -301,6 +268,25 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
     );
   }
 
+  async function SetFranchiseName() {
+    const newName = document.getElementById("franchise").value;
+    if (newName !== myDisplayName) {
+      // console.log(`New display name ${newName}`);
+      await updateFranchiseName(localStorage.getItem("gdGid"), newName);
+    }
+  }
+
+  function DisplayFranchise() {
+    return (
+      <div className={classes.filter} align="left">
+        <TextField className={classes.filter} id="franchise" margin="none" size="small" defaultValue={myDisplayName}/>        
+        <Button key="filterbtn" variant="contained" color="primary" size="small"
+          className={classes.button} onClick={SetFranchiseName}>Update
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -308,15 +294,8 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
         <DisplayHeader/>
         <BlankArea/>
     <ValidatorForm className={classes.form} onSubmit={handleSubmit}>
+      <DisplayFranchise/>
       {/* <TextValidator
-          variant="outlined"
-          fullWidth      
-          label="Group Name (Read-Only)"
-          readOnly
-          value={myGroupName}
-        />
-      <BlankArea/> */}
-      <TextValidator
           variant="outlined"
         //   required
           fullWidth      
@@ -326,7 +305,7 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
           validators={['noSpecialCharacters']}
           errorMessages={['Special characters not permitted']}
           value={myDisplayName}
-      />
+      /> */}
       <BlankArea/>
       <DisplaySwitch/>
       <BlankArea/>
@@ -334,7 +313,7 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
       <DisplayButtons/>
     </ValidatorForm>
     </div>
-    <ChildComp />    
+    {/* <ChildComp />     */}
     </Container>
   );
 }

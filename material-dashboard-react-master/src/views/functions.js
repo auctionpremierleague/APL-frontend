@@ -1,10 +1,6 @@
-// export const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-export const ENDPOINT = "http://localhost:4000";
+export const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+// export const ENDPOINT = "http://localhost:4000";
 
-
-
-
-const TerroristCharacters = [];
 
 export function cdCurrent() {
   return " " + String.fromCharCode(169);
@@ -16,6 +12,7 @@ export function cdDefault() {
 
 export function validateSpecialCharacters(sss) {
     var sts = false;
+    const TerroristCharacters = [];
 
     if (!sss.includes("\\"))
     if (!sss.includes("\""))
