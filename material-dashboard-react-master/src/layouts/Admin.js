@@ -19,6 +19,7 @@ import EmailPassword from "views/Login/GetEmail.js";
 import AddGroupMember from "views/Group/AddGroupMember.js"
 import GroupMember from "views/Group/GroupMember.js"
 import NewGroup from "views/Group/NewGroup.js"
+import GroupDetails from "views/Group/GroupDetails.js"
 
 
 let ps;
@@ -39,6 +40,8 @@ const switchRoutes = (
     })}
     <Route  path='/admin/addgroupmember' component={AddGroupMember} key="MemberList"/>
     <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
+    {/* <Route  path='/admin/groupdetails/:groupName' component={GroupDetails} key="MemberList"/> */}
+    <Route  path='/admin/groupdetails' component={GroupDetails} key="MemberList"/>
     <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route>
     <Route  path='/admin/register' component={SignUp} key="NewGroup"></Route>
     <Route  path='/admin/emailpassword' component={EmailPassword} key="NewGroup"></Route>

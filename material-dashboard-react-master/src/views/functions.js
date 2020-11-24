@@ -1,17 +1,29 @@
-export const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// export const ENDPOINT = "http://localhost:4000";
+// export const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
+export const ENDPOINT = "http://localhost:4000";
 
-export function socketPoint() {
-  let x = 0;
-	return ENDPOINT;
-}
+
+
 
 const TerroristCharacters = [];
+
+export function cdCurrent() {
+  return " " + String.fromCharCode(169);
+}
+
+export function cdDefault() {
+  return " " + String.fromCharCode(9745);
+}
 
 export function validateSpecialCharacters(sss) {
     var sts = false;
 
     if (!sss.includes("\\"))
+    if (!sss.includes("\""))
+    if (!sss.includes("\'"))
+    if (!sss.includes("\`"))
+    if (!sss.includes("\+"))
+    if (!sss.includes("\%"))
+    if (!sss.includes("\&"))
     if (!sss.includes("^"))
     if (!sss.includes("~"))
     if (!sss.includes("/"))

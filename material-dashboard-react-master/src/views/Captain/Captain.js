@@ -177,6 +177,8 @@ export default function Group() {
         else
             return(<div></div>);
     }
+
+
     if (hasGroup())
         return (
         <div className={classes.root} key="cpataininfo">

@@ -404,6 +404,39 @@ router.get('/test', function (req, res, next) {
 // window.localStorage.setItem("gid", "1");
 // window.localStorage.setItem("groupName", "Friends of Happy Home Society");
 // window.localStorage.setItem("tournament", "IPL2020");
+
+router.get('/setdefaultgroup/:myUser/:myGroup', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {myUser, myGroup}=req.params;
+
+  var userRec = await User.findOne({uid: myUser});
+  if (!userRec) { senderr(623, "Invalid user"); return; }
+
+  // var gmRec = await IPLGroup.findOne({gid: 2, uid: 8});
+  var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
+  if (!gmRec) { senderr(624, "Invalid Group"); return; }
+
+  userRec.defaultGroup = myGroup;
+  userRec.save();
+  sendok("OK");
+});
+
+router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {myUser, myGroup, myDisplayName}=req.params;
+
+  var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
+  if (gmRec) {
+    gmRec.displayName = myDisplayName
+    gmRec.save();
+    sendok("OK");
+  } else { 
+    senderr(624, "Invalid Group"); 
+  }
+});
+
 router.get('/default/:myUser', async function (req, res, next) {
   GroupRes = res;
   setHeader();
@@ -413,13 +446,15 @@ router.get('/default/:myUser', async function (req, res, next) {
   var userRec = await User.findOne({uid: myUser});
   if (!userRec) { senderr(623, "Invalid user"); return; }
 
-  var myGmRec = await GroupMember.find({uid: myUser}).limit(-1).sort({ "gid": -1 });
+  var myGmRec;
+  if (userRec.defaultGroup > 0)
+    myGmRec = await GroupMember.find({uid: userRec.uid, gid: userRec.defaultGroup});
+  else
+    myGmRec = await GroupMember.find({uid: myUser}).limit(-1).sort({ "gid": -1 });
   var myData = {uid: myUser, gid: 0, displayName: "", groupName: "", tournament: "", ismember: false, admin: false};
   if (myGmRec.length > 0) {
     // console.log(myGmRec[0].gid);
     var myGroup = await IPLGroup.findOne({gid: myGmRec[0].gid});
-    // console.log(myGroup);
-    // myData.uid = myGmRec[0].uid;
     myData.gid = myGmRec[0].gid;
     myData.userName = userRec.displayName;
     myData.displayName = myGmRec[0].displayName;
@@ -427,19 +462,8 @@ router.get('/default/:myUser', async function (req, res, next) {
     myData.tournament = myGroup.tournament;
     myData.admin = (myUser == myGroup.owner);
     myData.ismember = true;
-    // console.log(myData);
-  } else {
-    // not a member of any group. Just check if
-    // myData.ismember = false;    // owner but not member. Remember Apurva
-    // var myGroup = await IPLGroup.find({owner: myUser}).limit(-1).sort({"gid": -1});
-    // if (myGroup.length > 0) {
-    //   myData.gid = myGroup[0].gid
-    //   myData.displayName = myGroup[0].displayName;
-    //   myData.groupName = myGroup[0].name;
-    //   myData.tournament = myGroup[0].tournament;
-    //   myData.admin = true;
-    // }
-  }
+  } 
+  // console.log(myData);
   sendok(myData);
 });
 
@@ -518,13 +542,14 @@ router.get('/memberof/:userid', async function(req, res, next) {
     for(i=0; i<tmp.length; ++i) {
       let gm = tmp[i];
       var grp = _.find(allGroups, x => x.gid === gm.gid);
+      var isDefault = gm.gid === u.defaultGroup;
+      var adminSts = (gm.uid === grp.owner) ? "Admin" : "";
       var xxx =  { gid: gm.gid, displayName: gm.displayName, 
         groupName: grp.name, tournament: grp.tournament, 
-        admin: ""};
+        admin: adminSts, defaultGroup: isDefault};
       // console.log(grp);
       // console.log(gm);
       // console.log(xxx);
-      if (gm.uid === grp.owner)  xxx.admin = "Admin";
       // if (gm.gid === u.defaultGroup) xxx.default = "Default";
       gData.push(xxx)
     }

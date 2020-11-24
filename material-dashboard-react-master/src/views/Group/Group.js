@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from "axios";
 import { makeStyles } from '@material-ui/core/styles';
 import { Switch, Route } from 'react-router-dom';
+import Link from '@material-ui/core/Link';
 import Button from '@material-ui/core/Button';
 import Table from "components/Table/Table.js";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -13,25 +14,25 @@ import CardBody from "components/Card/CardBody.js";
 // import Accordion from '@material-ui/core/Accordion';
 // import AccordionSummary from '@material-ui/core/AccordionSummary';
 // import AccordionDetails from '@material-ui/core/AccordionDetails';
-// import Typography from '@material-ui/core/Typography';
+import Typography from '@material-ui/core/Typography';
 // import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useHistory } from "react-router-dom";
 import { UserContext } from "../../UserContext";
 import GroupMember from "views/Group/GroupMember.js"
 import NewGroup from "views/Group/NewGroup.js"
-
-// import { 
-//     BrowserRouter as Router, 
-//     Route, 
-//     Link, 
-//     Switch 
-// } from 'react-router-dom'; 
+import GroupDetails from "views/Group/GroupDetails.js"
+import { cdCurrent, cdDefault } from "views/functions.js"
+import green from '@material-ui/core/colors/green';
 
 const rPrefix = "radio-";
 
 const useStyles = makeStyles((theme) => ({
     root: {
       width: '100%',
+    },
+    symbolText: {
+        color: '#4CC417',
+        // backgroundColor: green[700],
     },
     button: {
         margin: theme.spacing(0, 1, 0),
@@ -75,6 +76,19 @@ export default function Group() {
         a();
     }, [])
 
+
+    function handleGroupDetails(grpName) {
+        console.log(`Show group details of ${grpName}`)
+        var ggg = myGroupTableData.find(x => x.groupName === grpName);
+        window.localStorage.setItem("gdGid", ggg.gid.toString());
+        window.localStorage.setItem("gdName", ggg.groupName)
+        window.localStorage.setItem("gdDisplay", ggg.displayName)
+        window.localStorage.setItem("gdAdmin", ggg.admin.toString());
+        window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
+        window.localStorage.setItem("gdDefault", ggg.defaultGroup.toString());
+        window.localStorage.setItem("gdTournament", ggg.tournament);
+        history.push(`/admin/groupdetails`);
+    }
 
     function handleSelectGroup(grpName) {
         // var myId;
@@ -131,18 +145,28 @@ export default function Group() {
                             tableKey="t-group"
                             id="t-group"
                             tableHeaderColor="warning"
-                            tableHead={["Group Name", "Admin", "Current"]}
+                            tableHead={["Group Name","", "Admin"]}
                             tableData={myGroupTableData.map(x => {
+                                var myName = x.groupName;
+                                var currentChar = "";
+                                if (newCurrentGroup === x.groupName) currentChar = cdCurrent();
+                                if (x.defaultGroup) currentChar =  currentChar + cdDefault();
+                                // console.log(x);
                                 const arr = [
-                                    x.groupName,
-                                    (x.admin.toLowerCase() === "admin") ? "Admin" : "",
-                                    <FormControlLabel 
-                                    key={"fc-"+x.groupName}
-                                    className={classes.groupName} 
-                                    value={x.groupName}    
-                                    control={<Radio color="primary" key={rPrefix+x.groupName} id={rPrefix+x.groupName} defaultChecked={x.groupName === newCurrentGroup}/>}
-                                    onClick={() => handleSelectGroup(x.groupName)}
-                                    />
+                                    // <Text >I am blue</Text>,
+                                    <Typography>{myName}</Typography>,
+                                    <Typography className={classes.symbolText}>{currentChar}</Typography>,
+                                    <Typography>{((x.admin.toLowerCase() === "admin") ? "Admin" : "")}</Typography>,
+                                    <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
+                                    Details
+                                    </Link>
+                                    // <FormControlLabel 
+                                    // key={"fc-"+x.groupName}
+                                    // className={classes.groupName} 
+                                    // value={x.groupName}    
+                                    // control={<Radio color="primary" key={rPrefix+x.groupName} id={rPrefix+x.groupName} defaultChecked={x.groupName === newCurrentGroup}/>}
+                                    // onClick={() => handleSelectGroup(x.groupName)}
+                                    // />
                                 ]
                                 return { data: arr, collapse: [] }
                             })}
@@ -161,17 +185,19 @@ export default function Group() {
             <h3 align="center">My Groups</h3>
             <ShowAllGroups/>
             <Button key={"create"} variant="contained" color="primary" size="small"
-                className={classes.button} onClick={handleNewGroup}>Create
+                className={classes.button} onClick={handleNewGroup}>New Group
             </Button>
-            <Button key={"members"} variant="contained" color="primary" size="small"
+            {/* <Button key={"members"} variant="contained" color="primary" size="small"
                className={classes.button} onClick={ShowGroupMembers}>Members
             </Button>
             <Button key={"progile"} variant="contained" color="primary" size="small"
                className={classes.button} onClick={EditGroupProfile}>Profile
-            </Button>
+            </Button> */}
             <Switch> {/* The Switch decides which component to show based on the current URL.*/}
                 <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
                 <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route>
+                {/* <Route  path='/admin/groupdetails/:groupName' component={GroupDetails} key="MemberList"/> */}
+                <Route  path='/admin/groupdetails' component={GroupDetails} key="MemberList"/>
             </Switch>
         </div>
         );
