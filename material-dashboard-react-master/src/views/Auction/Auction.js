@@ -29,7 +29,7 @@ import Avatar from "@material-ui/core/Avatar"
 import Card from "components/Card/Card.js";
 import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
-import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import { BlankArea, NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import { UserContext } from "../../UserContext";
 import socketIOClient from "socket.io-client";
 import { ENDPOINT, hasGroup } from 'views/functions';
@@ -281,8 +281,11 @@ export default function Auction() {
 
     function AdminAuction() {
         // console.log(`Pid from admin auction ${playerId}`)
-        return (<div className={classes.root}>
-            <h3 align="center">Auction ({localStorage.getItem("groupName")})</h3>
+        return (<div align="center" className={classes.root}>
+            {/* <Typography component="h1" variant="h5">AUCTION</Typography>
+            <DisplayGroupName groupName={localStorage.getItem("groupName")}/> */}
+            <DisplayPageHeader headerName="AUCTION" groupName={localStorage.getItem("groupName")}/>
+            <BlankArea/><BlankArea/>
             <Grid container justify="center" alignItems="center" >
                 <GridItem xs={12} sm={12} md={12} lg={12} >
                     <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 

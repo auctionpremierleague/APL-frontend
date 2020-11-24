@@ -436,13 +436,18 @@ const AMPM = [
   /**
  * @param {Date} d The date
  */
+const ISTHOURS=5;
+const ISTMINUTES=30;
 cricDate = function (d)  {
-  var myHour = d.getHours();
+  var xxx = new Date(d.getTime());
+  xxx.setHours(xxx.getHours()+ISTHOURS);
+  xxx.setMinutes(xxx.getMinutes()+ISTMINUTES);
+  var myHour = xxx.getHours();
   var myampm = AMPM[myHour];
   if (myHour > 12) myHour -= 12;
   // var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' ' + 
   //     ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + myampm;
-  var tmp = `${MONTHNAME[d.getMonth()]} ${("0" + d.getDate()).slice(-2)} ${("0" + myHour).slice(-2)}:${("0" +  d.getMinutes()).slice(-2)}${myampm}`
+  var tmp = `${MONTHNAME[xxx.getMonth()]} ${("0" + xxx.getDate()).slice(-2)} ${("0" + myHour).slice(-2)}:${("0" +  xxx.getMinutes()).slice(-2)}${myampm}`
   return tmp;
 }
 
@@ -450,6 +455,7 @@ const notToConvert = ['XI', 'ARUN']
 /**
  * @param {string} t The date
  */
+
 cricTeamName = function (t)  {
   var tmp = t.split(' ');
   for(i=0; i < tmp.length; ++i)  {

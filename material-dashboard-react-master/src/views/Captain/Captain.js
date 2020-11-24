@@ -14,7 +14,7 @@ import Radio from '@material-ui/core/Radio';
 // import Card from "components/Card/Card.js";
 // import CardBody from "components/Card/CardBody.js";
 import { UserContext } from "../../UserContext";
-import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import { hasGroup } from 'views/functions';
 import red from '@material-ui/core/colors/red';
 const vcPrefix = "vicecaptain-"
@@ -183,7 +183,10 @@ export default function Group() {
         return (
         <div className={classes.root} key="cpataininfo">
             {/* <h3 align="center">Captain and Vice Captain ({localStorage.getItem("tournament")})</h3> */}
-            <h3 className={classes.hdrText} align="center">Captain/ViceCaptain</h3>
+            {/* <h3 className={classes.hdrText} align="center">Captain/ViceCaptain</h3> */}
+            {/* <Typography align="center" component="h1" variant="h5">Captain/ViceCaptain</Typography> */}
+            {/* <DisplayGroupName groupName={localStorage.getItem("groupName")}/> */}
+            <DisplayPageHeader headerName="Captain/ViceCaptain" groupName={localStorage.getItem("groupName")}/>
             <DisplayTournamentStarted/>
             <ShowCaptainViceCaptain/>
             <DisplayCaptainSelectButton/>

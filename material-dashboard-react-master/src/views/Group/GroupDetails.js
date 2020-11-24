@@ -21,7 +21,7 @@ import red from '@material-ui/core/colors/red';
 import blue from '@material-ui/core/colors/blue';
 import { useHistory } from "react-router-dom";
 import {validateSpecialCharacters, validateEmail} from "views/functions.js";
-import {BlankArea} from "CustomComponents/CustomComponents.js"
+import {BlankArea, DisplayGroupName} from "CustomComponents/CustomComponents.js"
 import { useParams } from "react-router";
 import GroupMember from "views/Group/GroupMember.js"
 
@@ -261,9 +261,9 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
 
   function DisplayHeader() {
     return (
-      <div>
+      <div align="center">
         <Typography component="h1" variant="h5">Group Details</Typography>
-        <Typography className={classes.groupName} align="center">({myGroupName})</Typography>
+        <DisplayGroupName groupName={myGroupName}/>
       </div>
     );
   }
@@ -291,8 +291,9 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
-        <DisplayHeader/>
-        <BlankArea/>
+        {/* <DisplayHeader/> */}
+    <DisplayPageHeader headerName="Group Details" groupName={myGroupName}/>
+     <BlankArea/>
     <ValidatorForm className={classes.form} onSubmit={handleSubmit}>
       <DisplayFranchise/>
       {/* <TextValidator

@@ -1,6 +1,6 @@
 var router = express.Router();
 var MatchRes;
-var _group;
+// var _group;
 // var _tournament;
 
 // /**
@@ -65,27 +65,6 @@ router.use('/', function(req, res, next) {
 });
 
 
-/* GET all matches of given listing. */
-// router.use('/list/:myteam1/:myteam2', function(req, res, next) {
-//   MatchRes = res;
-//   setHeader();
-
-//   var {myteam1,myteam2} = req.params;
-//   myteam1 = myteam1.toUpperCase();
-//   myteam2 = myteam2.toUpperCase();
-//   //console.log("Single entry " + myteam1);
-//   //console.log("Single entry " + myteam2);
-
-//   let myfilter;
-//   if (myteam1 == "ALL")  
-//     myfilter = {tournament: _tournament};
-//   else if (myteam2 == "NONE") 
-//     myfilter = {tournament: _tournament, $or: [ {team1: myteam1}, {team2: myteam1} ]};
-//   else
-//     myfilter = {tournament: _tournament, team1: {$in: [myteam1, myteam2]}, team2: {$in: [myteam1, myteam2]} };
-//     //console.log(myfilter);
-//   publish_matches(myfilter);
-// });
 
 
 router.get('/matchinfo/:myGroup', async function(req, res, next) {
@@ -175,12 +154,10 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   tmp.forEach(m => {
     upcomingMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
   })
-  console.log(upcomingMatches);
+  // console.log(upcomingMatches);
 
   if (doSendWhat === SENDRES) {
-    var mydata = {current: currMatches, upcoming: upcomingMatches}
-    console.log(mydata);
-    sendok(mydata);
+    sendok({current: currMatches, upcoming: upcomingMatches});
   } else {
     const socket = app.get("socket");
     socket.emit("currentMatch", currMatches)

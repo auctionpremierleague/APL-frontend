@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
-import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -131,7 +131,8 @@ export default function MatchInfo() {
         return (
             <div>
                 {/* <h3 align="center">Tournament ({localStorage.getItem("tournament")})</h3> */}
-                <h3 align="center">Matches</h3>
+                {/* <h3 align="center">Matches</h3> */}
+                <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")}/>
                 <ShowCurrentMatch/>
                 <ShowUpcomingMatch/>
             </div>

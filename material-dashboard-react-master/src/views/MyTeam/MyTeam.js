@@ -10,7 +10,7 @@ import Card from "components/Card/Card.js";
 // import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
 import Avatar from "@material-ui/core/Avatar"
-import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import { hasGroup } from 'views/functions';
 
 const drawerWidth = 100;
@@ -104,7 +104,10 @@ export default function App() {
             <div>
                 {/* <h3 className={classes.cardTitle}>{team.displayName}</h3> */}
                 {/* <h3 align="center">My Team ({localStorage.getItem("tournament")})</h3> */}
-                <h3 align="center">My Team</h3>
+                {/* <h3 align="center">My Team</h3> */}
+                {/* <Typography align="center" component="h1" variant="h5">My Team</Typography>
+                <DisplayGroupName groupName={localStorage.getItem("groupName")}/> */}
+                <DisplayPageHeader headerName="My Team" groupName={localStorage.getItem("groupName")}/>
                 <Table
                     key={team.displayName}
                     id={team.displayName}

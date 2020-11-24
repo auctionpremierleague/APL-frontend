@@ -16,7 +16,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { makeStyles } from '@material-ui/core/styles';
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import socketIOClient from "socket.io-client";
-import { NoGroup } from 'CustomComponents/CustomComponents.js';
+import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import {ENDPOINT, socketPoint} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
@@ -105,7 +105,8 @@ export default function Stats() {
   if (localStorage.getItem("tournament").length > 0)
   return (
     <div className={classes.root}>
-      <h3 align="center">Statistics of {localStorage.getItem("tournament")}</h3> 
+      {/* <h3 align="center">Statistics of {localStorage.getItem("tournament")}</h3>  */}
+      <DisplayPageHeader headerName="Statistics" groupName={localStorage.getItem("groupName")}/>
       <ShowStats/>
     </div>
   );
