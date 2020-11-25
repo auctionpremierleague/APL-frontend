@@ -12,6 +12,7 @@ import { makeStyles } from '@material-ui/core/styles';
 // import CardBody from "components/Card/CardBody.js";
 // import { useLocation } from "react-router-dom";
 import AddGroupMember from "views/Group/AddGroupMember.js"
+import {DisplayPageHeader} from "CustomComponents/CustomComponents.js"
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -77,25 +78,16 @@ export default function GroupMember() {
     useEffect(() => {
        
         const fetchMember = async () => {
-            // console.log(state);
             try {
-                // console.log(`just called group data gid is ${localStorage.getItem("gdGid")}`)
                 var response = await axios.get(`/user/group/${localStorage.getItem("gdGid")}`);
-                // console.log(response.data);
                 setMemberArray(response.data);
-                // console.log("just called gamestarted")
                 var response1 = await axios.get(`/group/gamestarted/${localStorage.getItem("gdGid")}`);
                 var gameStarted = (response1.data.length > 0);
-                // console.log(gameStarted);
-                // gameStarted = false;
-                setTournamentStarted(gameStarted);
-    
+                setTournamentStarted(gameStarted);    
             } catch (e) {
                 console.log(e)
             }
         }
-        // console.log(`Is Admin: ${localStorage.getItem("gdAdmin")}`);
-        // console.log("in group member");
         fetchMember();
     }, []);
 
@@ -109,11 +101,10 @@ export default function GroupMember() {
     }
 
     function ShowGmButtons() {
-        // console.log(tournamentStated);
         return (
         <div align="center">
             <Button className={classes.button}  variant="contained" color="primary" size="small"
-                disabled={tournamentStated || (localStorage.getItem("gdAdmin").length === 0)}
+                disabled={tournamentStated || (localStorage.getItem("gdAdmin") !== "true")}
                 className={classes.button} onClick={handleAddGroupMember}>Edit Member List
             </Button>
             <Button className={classes.button} variant="contained" color="primary" size="small"
@@ -129,7 +120,8 @@ export default function GroupMember() {
 
     return (
         <div key={localStorage.getItem("gdName")}>
-            <h3 className={classes.cardTitle} align="center">Group Members ({localStorage.getItem("gdName")})</h3>
+            {/* <h3 className={classes.cardTitle} align="center">Group Members ({localStorage.getItem("gdName")})</h3> */}
+            <DisplayPageHeader headerName="Group Members" groupName={localStorage.getItem("gdName")}/>
             <Table
             align="center"
             id={localStorage.getItem("gdName")}

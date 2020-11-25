@@ -1,7 +1,7 @@
 router = express.Router();
 var PlayerStatRes;
-var _group = 1;
-var _tournament = "IPL2020";
+// var _group = 1;
+// var _tournament = "IPL2020";
 const doMaxRun = 1;
 const doMaxWicket = 2;
 
@@ -17,7 +17,7 @@ const doMaxWicket = 2;
 // ]; 
 
 // use for testing
-const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
+// const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
 
 // const keylist = [
 // "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -29,13 +29,13 @@ const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
 // ]
 
 // list provided by ANKIT
-// const keylist = [
-//   "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
-//   "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
-//   "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
-//   "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
-//   "8LweszMN9vMnjb4W9UjjeQzTgEx1"
-// ]
+const keylist = [
+  "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
+  "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
+  "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
+  "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
+  "8LweszMN9vMnjb4W9UjjeQzTgEx1"
+]
 
 // to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
@@ -58,33 +58,33 @@ router.use('/', async function(req, res, next) {
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
 
-  if (forceGroupInfo) {
-    var tmp = req.url.split("/")
-    var tmpgroup = parseInt(tmp[1]);
-    var myrec = null;
-    if (!isNaN(tmpgroup))
-      myrec = await IPLGroup.findOne({gid: tmpgroup});
-    //console.log(tmp.length);
-    if (!myrec) {
-      senderr(722, `Invalid gourp number specified`);
-      return; 
-    }
-    //console.log(myrec);
-    _group = myrec.gid;
-    _tournament = myrec.tournament;
-    tmp.splice(1, 2);
-    req.url = tmp.join("/");
-    if (req.url.length === 0) req.url = '/';
-  }
-  else {
-    _group = 1;
-    _tournament = "IPL2020";
-  }
+  // if (forceGroupInfo) {
+  //   var tmp = req.url.split("/")
+  //   var tmpgroup = parseInt(tmp[1]);
+  //   var myrec = null;
+  //   if (!isNaN(tmpgroup))
+  //     myrec = await IPLGroup.findOne({gid: tmpgroup});
+  //   //console.log(tmp.length);
+  //   if (!myrec) {
+  //     senderr(722, `Invalid gourp number specified`);
+  //     return; 
+  //   }
+  //   //console.log(myrec);
+  //   _group = myrec.gid;
+  //   _tournament = myrec.tournament;
+  //   tmp.splice(1, 2);
+  //   req.url = tmp.join("/");
+  //   if (req.url.length === 0) req.url = '/';
+  // }
+  // else {
+  //   _group = 1;
+  //   _tournament = "IPL2020";
+  // }
 
-  if (req.url == "/")
-    publish_stats();
-  else
-    next('route');
+  // if (req.url == "/")
+  //   publish_stats();
+  // else
+  //   next('route');
 });
 
 
@@ -691,7 +691,7 @@ async function statBrief(igroup, iwhichuser, doWhatSend)
     userScoreList.push({uid: userPid, 
       gid: igroup,
       userName: urec.userName, 
-      displayName: urec.displayName, 
+      displayName: gm.displayName,    //  urec.displayName, 
       userScore: userScoreValue,
       playerStat: playerScoreList});
   })
@@ -1057,7 +1057,7 @@ async function statCalculation (igroup) {
 	
 	// user name and dislay name from User record
     var curruserName = (urec) ? urec[0].userName : "";
-    var currdisplayName = (urec) ? urec[0].displayName : "";
+    // var currdisplayName = (urec) ? urec[0].displayName : "";
 
     // find out captain and vice captain selected by user
     var capinfo = _.find(g_captainlist, x => x.uid == userPid);
@@ -1103,8 +1103,8 @@ async function statCalculation (igroup) {
       var tmp = { 
         gid: igroup,
         uid: userPid, 
-        userName: urec.userName,
-        displayName: urec.displayName,
+        userName: urec[0].displayName,   //  urec.userName,
+        displayName: gm.displayName,     //urec.displayName,
         pid: p.pid, 
         playerName: p.playerName,
         playerScrore: myScore, 
@@ -1122,8 +1122,8 @@ async function statCalculation (igroup) {
     userRank.push({ 
       uid: userPid, 
       gid: igroup,
-      userName: curruserName, 
-      displayName: currdisplayName,
+      userName: urec[0].displayName,   //  curruserName, 
+      displayName: gm.displayName,    //  currdisplayName,
       grandScore: totscore, 
       rank: 0});
 
@@ -1776,23 +1776,22 @@ cron.schedule('*/1 * * * * *', () => {
     console.log("============= No mongoose connection");
     return;
   }   
-  // return;
   
   if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
-    console.log("======== clinet update start");
+    // console.log("======== clinet update start");
     // console.log(connectionArray);
     sendDashboardData();
     clientUpdateCount = 0;
-    console.log("client update over")
+    // console.log("client update over")
   }
 
   if (++cricTimer >= CRICUPDATEINTERVAL) {
     cricTimer = 0;
-    console.log("======== match update start");
+    // console.log("======== match update start");
     // console.log("TIme to getch cric data");
-    // update_cricapi_data_r1(false);
-    // updateTournamentBrief();
-    console.log("match update over")
+    update_cricapi_data_r1(false);
+    updateTournamentBrief();
+    // console.log("match update over")
   }
 });
 
@@ -2022,8 +2021,8 @@ function senderr(errcode, errmsg) { PlayerStatRes.status(errcode).send(errmsg); 
 function setHeader() {
   PlayerStatRes.header("Access-Control-Allow-Origin", "*");
   PlayerStatRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  _group = 1;
-  _tournament = "IPL2020";
+  // _group = 1;
+  // _tournament = "IPL2020";
 
 }
 module.exports = router;

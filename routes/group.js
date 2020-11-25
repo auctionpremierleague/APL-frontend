@@ -2,8 +2,6 @@ const { ConnectionBase } = require("mongoose");
 
 var router = express.Router();
 var GroupRes;
-// var _group = 1;
-// var _tournament = "";
 /* GET users listing. */
 
 const fetchBalance = async (groupid) => {
@@ -124,10 +122,9 @@ router.get('/getauctionstatus/:groupid', async function (req, res, next) {
     // if ((gdoc.auctionStatus === "RUNNING")) {
       const playerList = await Player.find({pid: gdoc.auctionPlayer});
       const balanceDetails = await fetchBalance(groupid);
-      console.log(`In Get Status: length is ${playerList.length}`);
+      // console.log(`In Get Status: length is ${playerList.length}`);
       sendDataToClient(groupid, playerList[0], balanceDetails);
       sendok(gdoc.auctionStatus);
-    // } else 
   });
 
 
@@ -430,8 +427,23 @@ router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (
   var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
   if (gmRec) {
     gmRec.displayName = myDisplayName
+    console.log(gmRec);
     gmRec.save();
     sendok("OK");
+  } else { 
+    senderr(624, "Invalid Group"); 
+  }
+});
+
+router.get('/getfranchisename/:myUser/:myGroup', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+  var {myUser, myGroup, myDisplayName}=req.params;
+
+  var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
+  if (gmRec) {
+    console.log(gmRec);
+    sendok(gmRec.displayName);
   } else { 
     senderr(624, "Invalid Group"); 
   }
@@ -451,7 +463,7 @@ router.get('/default/:myUser', async function (req, res, next) {
     myGmRec = await GroupMember.find({uid: userRec.uid, gid: userRec.defaultGroup});
   else
     myGmRec = await GroupMember.find({uid: myUser}).limit(-1).sort({ "gid": -1 });
-  var myData = {uid: myUser, gid: 0, displayName: "", groupName: "", tournament: "", ismember: false, admin: false};
+  var myData = {uid: myUser, gid: 0, displayName: "", groupName: "", tournament: "", admin: false};
   if (myGmRec.length > 0) {
     // console.log(myGmRec[0].gid);
     var myGroup = await IPLGroup.findOne({gid: myGmRec[0].gid});
@@ -461,7 +473,6 @@ router.get('/default/:myUser', async function (req, res, next) {
     myData.groupName = myGroup.name;
     myData.tournament = myGroup.tournament;
     myData.admin = (myUser == myGroup.owner);
-    myData.ismember = true;
   } 
   // console.log(myData);
   sendok(myData);
@@ -543,7 +554,7 @@ router.get('/memberof/:userid', async function(req, res, next) {
       let gm = tmp[i];
       var grp = _.find(allGroups, x => x.gid === gm.gid);
       var isDefault = gm.gid === u.defaultGroup;
-      var adminSts = (gm.uid === grp.owner) ? "Admin" : "";
+      var adminSts = (gm.uid === grp.owner) //? "Admin" : "";
       var xxx =  { gid: gm.gid, displayName: gm.displayName, 
         groupName: grp.name, tournament: grp.tournament, 
         admin: adminSts, defaultGroup: isDefault};
@@ -554,6 +565,7 @@ router.get('/memberof/:userid', async function(req, res, next) {
       gData.push(xxx)
     }
     gData = _.sortBy(gData, x => x.gid).reverse();
+    // console.log(gData);
     groupData.push({ uid: u.uid, userName: u.userName, displayName: u.displayName, groups: gData});
   }
   // console.log("about to send ok")

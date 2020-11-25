@@ -53,12 +53,13 @@ export default function Stats() {
     socket.on("connect", () => {
       var sendMessage = {page: "STAT", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
       socket.emit("page", sendMessage);
-      console.log("stat connected")
+      // console.log("stat connected")
 
       socket.on("brief", (stat) => {
         var gStat = stat.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         if (gStat.length > 0) {
           setTeamArray(gStat)
+          // console.log(gStat);
         }
       })
     });
@@ -75,7 +76,7 @@ export default function Stats() {
 
   const [expandedPanel, setExpandedPanel] = useState(false);
   const handleAccordionChange = (panel) => (event, isExpanded) => {
-    console.log({ event, isExpanded });
+    // console.log({ event, isExpanded });
     setExpandedPanel(isExpanded ? panel : false);
   };
 

@@ -64,19 +64,19 @@ router.get(`/statusupdate/:tournamentName`, async function(req, res, next) {
       // if matche details are available then
       // console.log(myMatches);
       var currTime = new Date();
-      console.log(currTime);
+      // console.log(currTime);
       var matchTime = _.minBy(myMatches, 'matchStartTime') 
-      console.log(matchTime.matchStartTime);
+      // console.log(matchTime.matchStartTime);
       tournamentRec.started = (matchTime.matchStartTime < currTime);
       var matchTime = _.maxBy(myMatches, 'matchEndTime');
-      console.log(matchTime.matchEndTime);
+      // console.log(matchTime.matchEndTime);
       tournamentRec.over = (matchTime.matchEndTime < currTime);
     }
     // console.log(tournamentRec);
     tournamentRec.save();
     sendok("OK");
   } else
-  senderr(741, `Invalid tournament name ${tournamentName}`);
+    senderr(741, `Invalid tournament name ${tournamentName}`);
 });
 
 router.get('/add/:tournamentName/:tournamentDesc/:tournamentType', async function(req, res, next) {

@@ -52,6 +52,10 @@ export class BlankArea extends React.Component {
   render() {return <h3></h3>;}
 }
 
+export class NothingToDisplay extends React.Component {
+  render() {return <div></div>;}
+}
+
 export function DisplayGroupName (props) {
   const classes = useStyles();
   return(<Typography className={classes.groupName} align="center">({props.groupName})</Typography>);

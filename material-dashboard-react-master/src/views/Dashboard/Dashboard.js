@@ -84,7 +84,7 @@ export default function Dashboard() {
     sockConn.on("connect", function() {
       sockConn.emit("page", sendMessage);
       sockConn.on("rank", (rank) => {
-        console.log(new Date());
+        // console.log(new Date());
         // console.log(localStorage.getItem("uid"))
         const allRank = rank.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         const userDetails = allRank.filter(x => x.uid === parseInt(localStorage.getItem("uid")));

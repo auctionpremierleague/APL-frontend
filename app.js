@@ -436,17 +436,14 @@ const AMPM = [
   /**
  * @param {Date} d The date
  */
-const ISTHOURS=5;
-const ISTMINUTES=30;
+const TZ_IST={hours: 5, minutes: 30};
 cricDate = function (d)  {
   var xxx = new Date(d.getTime());
-  xxx.setHours(xxx.getHours()+ISTHOURS);
-  xxx.setMinutes(xxx.getMinutes()+ISTMINUTES);
+  xxx.setHours(xxx.getHours()+TZ_IST.hours);
+  xxx.setMinutes(xxx.getMinutes()+TZ_IST.minutes);
   var myHour = xxx.getHours();
   var myampm = AMPM[myHour];
   if (myHour > 12) myHour -= 12;
-  // var tmp = MONTHNAME[d.getMonth()] + ' '  + ("0" + d.getDate()).slice(-2) + ' ' + 
-  //     ("0" + myHour).slice(-2) + ':' + ("0" +  d.getMinutes()).slice(-2) + ' ' + myampm;
   var tmp = `${MONTHNAME[xxx.getMonth()]} ${("0" + xxx.getDate()).slice(-2)} ${("0" + myHour).slice(-2)}:${("0" +  xxx.getMinutes()).slice(-2)}${myampm}`
   return tmp;
 }
@@ -482,7 +479,7 @@ getDisplayName = function (name) {
   return xxx.join(" ");
 }
 
-
+USERTYPE = { GENERAL: 0, SUPERUSER: 1, OTHER: 2}
 
 
 // module.exports = app;

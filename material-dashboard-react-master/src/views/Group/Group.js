@@ -55,7 +55,6 @@ export default function Group() {
     const { setUser } = useContext(UserContext);
     const classes = useStyles();
     const [myGroupTableData, setMyGroupTableData] = useState([]);
-    // const [hasatleast1Group, setUserHasGroup] = useState(false);
     const history = useHistory();
     const [newCurrentGroup, setNewCurrentGroup] = useState(localStorage.getItem("groupName"));
 
@@ -83,9 +82,9 @@ export default function Group() {
         window.localStorage.setItem("gdGid", ggg.gid.toString());
         window.localStorage.setItem("gdName", ggg.groupName)
         window.localStorage.setItem("gdDisplay", ggg.displayName)
-        window.localStorage.setItem("gdAdmin", ggg.admin.toString());
+        window.localStorage.setItem("gdAdmin", ggg.admin);
         window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
-        window.localStorage.setItem("gdDefault", ggg.defaultGroup.toString());
+        window.localStorage.setItem("gdDefault", ggg.defaultGroup);
         window.localStorage.setItem("gdTournament", ggg.tournament);
         history.push(`/admin/groupdetails`);
     }
@@ -120,7 +119,7 @@ export default function Group() {
         console.log(ggg);
         window.localStorage.setItem("gdGid", ggg.gid.toString());
         window.localStorage.setItem("gdName", ggg.groupName)
-        window.localStorage.setItem("gdAdmin", ggg.admin.toString());
+        window.localStorage.setItem("gdAdmin", ggg.admin);
         // console.log("abou to call /admin/membergroup ")
         history.push("/admin/membergroup");        
     };
@@ -156,7 +155,7 @@ export default function Group() {
                                     // <Text >I am blue</Text>,
                                     <Typography>{myName}</Typography>,
                                     <Typography className={classes.symbolText}>{currentChar}</Typography>,
-                                    <Typography>{((x.admin.toLowerCase() === "admin") ? "Admin" : "")}</Typography>,
+                                    <Typography>{((x.admin) ? "Admin" : "")}</Typography>,
                                     <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
                                     Details
                                     </Link>

@@ -21,7 +21,7 @@ import red from '@material-ui/core/colors/red';
 import blue from '@material-ui/core/colors/blue';
 import { useHistory } from "react-router-dom";
 import {validateSpecialCharacters, validateEmail} from "views/functions.js";
-import {BlankArea, DisplayGroupName} from "CustomComponents/CustomComponents.js"
+import {BlankArea, DisplayPageHeader} from "CustomComponents/CustomComponents.js"
 import { useParams } from "react-router";
 import GroupMember from "views/Group/GroupMember.js"
 
@@ -109,29 +109,38 @@ export default function GroupDetails() {
 const classes = useStyles();
 const history = useHistory();
 const [registerStatus, setRegisterStatus] = useState(0);
+
 const [myDisplayName, setDisplayName] = useState("");
+const [masterDisplayName, setMasterDisplayName] = useState("");
+
 const [myAdminSwitch, setMyAdminSwitch] = useState(false);
 const [myDefaultSwitch, setMyDefaultSwitch] = useState(false);
 const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
-const [masterDisplayName, setMasterDisplayName] = useState("");
-const [masterDefaultSwitch, setMasterDefaultSwitch] = useState(false);
-const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
+
+// const [masterDefaultSwitch, setMasterDefaultSwitch] = useState(false);
+// const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
 
   const { setUser } = useContext(UserContext);
 
+
   useEffect(() => {
-    myGroupName = window.localStorage.getItem("gdName")
 
-    setDisplayName(window.localStorage.getItem("gdDisplay"));
-    setMasterDisplayName(window.localStorage.getItem("gdDisplay"));
+    const updateGroupDetailData = async () => { 
+      myGroupName = window.localStorage.getItem("gdName")
+      const sts = await axios.get(`/group/getfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}`);
+      setDisplayName(sts.data);
+      setMasterDisplayName(sts.data);
 
-    setMyAdminSwitch(window.localStorage.getItem("gdAdmin").toLowerCase() === "admin");
-
-    setMyCurrentSwitch(window.localStorage.getItem("gdCurrent").toLowerCase() === "true");
-    setMasterCurrentSwitch(window.localStorage.getItem("gdCurrent").toLowerCase() === "true");
-
-    setMyDefaultSwitch(window.localStorage.getItem("gdDefault").toLowerCase() === "true");
-    setMasterDefaultSwitch(window.localStorage.getItem("gdDefault").toLowerCase() === "true");
+      setMyAdminSwitch(window.localStorage.getItem("gdAdmin") === "true");
+  
+      setMyCurrentSwitch(window.localStorage.getItem("gdCurrent") === "true");
+      // setMasterCurrentSwitch(window.localStorage.getItem("gdCurrent").toLowerCase() === "true");
+  
+      setMyDefaultSwitch(window.localStorage.getItem("gdDefault") === "true");
+      // setMasterDefaultSwitch(window.localStorage.getItem("gdDefault").toLowerCase() === "true");
+    }
+  
+    updateGroupDetailData();
     
   }, [])
 
@@ -194,10 +203,10 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
         // window.localStorage.setItem("gdTournament", ggg.tournament);
         localStorage.setItem("gid", localStorage.getItem("gdGid"));
         localStorage.setItem("groupName", localStorage.getItem("gdName"));
-        localStorage.setItem("displayName", myDisplayName);
+        // localStorage.setItem("displayName", myDisplayName);
         localStorage.setItem("tournament", localStorage.getItem("gdTournament"));
         localStorage.setItem("admin", localStorage.getItem("gdAdmin"))
-        setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "admin")})    
+        setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "true")})    
         setMyCurrentSwitch(true);
     }
   }
@@ -277,11 +286,12 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
   }
 
   function DisplayFranchise() {
+    // console.log(`Frnachise is ${myDisplayName}`);
     return (
-      <div className={classes.filter} align="left">
+      <div className={classes.filter} align="center">
         <TextField className={classes.filter} id="franchise" margin="none" size="small" defaultValue={myDisplayName}/>        
         <Button key="filterbtn" variant="contained" color="primary" size="small"
-          className={classes.button} onClick={SetFranchiseName}>Update
+          className={classes.button} onClick={SetFranchiseName}>set Franchise
         </Button>
       </div>
     );
@@ -290,7 +300,7 @@ const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
-      <div className={classes.paper}>
+      <div className={classes.paper} align="center">
         {/* <DisplayHeader/> */}
     <DisplayPageHeader headerName="Group Details" groupName={myGroupName}/>
      <BlankArea/>

@@ -6,7 +6,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
-import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
+import { NothingToDisplay, NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
+import {hasGroup} from 'views/functions'
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -75,7 +76,7 @@ export default function MatchInfo() {
                 console.log(e)
             }
         }
-        fetchMatch();
+        if (hasGroup()) fetchMatch();
     }, []);
 
 
@@ -91,7 +92,7 @@ export default function MatchInfo() {
             })}
             />);
         else
-            return (<div></div>);
+            return (<NothingToDisplay />);
     }
 
     function ShowCurrentMatch() {
@@ -113,18 +114,21 @@ export default function MatchInfo() {
 
     function ShowUpcomingMatch() {
         var myHeader = "Upcoming Matches";
-        return(
-        <Grid container justify="center" alignItems="center" >
-            <GridItem xs={12} sm={12} md={12} lg={12} >
-            <Card profile>
-            <CardBody profile>
-                <h4 className={classes.cardTitle}>{myHeader}</h4>
-                <MatchTable myTable={upcomingArray}/>
-            </CardBody>
-            </Card>
-            </GridItem>
-        </Grid>
-        )
+        if (upcomingArray.length > 0)
+            return(
+            <Grid container justify="center" alignItems="center" >
+                <GridItem xs={12} sm={12} md={12} lg={12} >
+                <Card profile>
+                <CardBody profile>
+                    <h4 className={classes.cardTitle}>{myHeader}</h4>
+                    <MatchTable myTable={upcomingArray}/>
+                </CardBody>
+                </Card>
+                </GridItem>
+            </Grid>
+            )
+        else 
+            return (<NothingToDisplay/>)
     }
 
     if (localStorage.getItem("tournament").length > 0)

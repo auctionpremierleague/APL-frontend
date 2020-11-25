@@ -107,7 +107,6 @@ export default function SignIn() {
       window.localStorage.setItem("userName", response.data.userName);
       window.localStorage.setItem("groupName", response.data.groupName);
       window.localStorage.setItem("tournament", response.data.tournament);
-      // window.localStorage.setItem("ismember", response.data.ismember);
       window.localStorage.setItem("admin", response.data.admin)
       setUser({ uid: myUID, admin: response.data.admin });
       history.push("/admin")

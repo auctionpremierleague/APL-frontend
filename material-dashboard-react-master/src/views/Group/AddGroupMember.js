@@ -33,6 +33,7 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import { useHistory } from "react-router-dom";
 import GroupMember from "views/Group/GroupMember.js"
 import NewGroup from "views/Group/NewGroup.js"
+import {DisplayPageHeader} from "CustomComponents/CustomComponents.js"
 
 
 export default function AddGroupMember() {
@@ -66,8 +67,8 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'userName', numeric: false, disablePadding: true, label: 'User Name' },
-  { id: 'displayName', numeric: true, disablePadding: true, label: 'Display Name' },
+  // { id: 'userName', numeric: false, disablePadding: true, label: 'User Name' },
+  { id: 'displayName', numeric: true, disablePadding: true, label: 'Member Name' },
 //   { id: 'statusCount', numeric: true, disablePadding: true, label: 'Status' },
   // { id: 'carbs', numeric: true, disablePadding: false, label: 'Carbs (g)' },
   // { id: 'protein', numeric: true, disablePadding: false, label: 'Protein (g)' },
@@ -239,7 +240,6 @@ const [dense, setDense] = React.useState(true);
 const [rowsPerPage, setRowsPerPage] = React.useState(10);
   useEffect(() => {       
     const fetchMember = async () => {
-      // console.log(`Admin: ${localStorage.getItem("uid")}`);
       try {
             var response = await axios.get(`/user/group/${localStorage.getItem("gdGid")}`);
             // setMemberArray(response.data);
@@ -330,7 +330,7 @@ const handleClick = (event, myUid) => {
   function SetFilter() { 
     const chkstr = document.getElementById("filterstring").value.toLowerCase();
     setfilterString(chkstr);
-    console.log(chkstr);
+    // console.log(chkstr);
     var tmp = masterData.filter(x => x.displayName.toLowerCase().includes(chkstr));
     setUserArray(tmp);
     setPage(0);
@@ -379,7 +379,8 @@ function ShowGmButtons() {
     <div className={classes.root}>
       <Paper className={classes.paper}>
         {/* <EnhancedTableToolbar numSelected={selected.length} /> */}
-        <h3 align = "center" margin-top= "0px" margin-bottom= "0px">Edit Member List ({localStorage.getItem("gdName")})</h3>
+        {/* <h3 align = "center" margin-top= "0px" margin-bottom= "0px">Edit Member List ({localStorage.getItem("gdName")})</h3> */}
+        <DisplayPageHeader headerName="Edit Member List" groupName={localStorage.getItem("gdName")}/>
         <ShowFilters/>
         <TableContainer>
           <Table
@@ -432,22 +433,18 @@ function ShowGmButtons() {
                           inputProps={{ 'aria-labelledby': labelId }}
                         />
                       </TableCell> */}
-                      <TableCell component="th" id={labelId} scope="row" align="center" padding="none">
+                      {/* <TableCell component="th" id={labelId} scope="row" align="center" padding="none">
                         {row.userName}
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell component="th" id={labelId} scope="row" align="center" padding="none">
                         {row.displayName}
                       </TableCell>
-                      {/* <TableCell align="center">{row.analogCount}</TableCell>
-                      <TableCell align="center">{row.statusCount}</TableCell> */}
-                      {/* <TableCell align="right">{row.carbs}</TableCell>
-                      <TableCell align="right">{row.protein}</TableCell> */}
                     </TableRow>
                   );
                 })}
               {emptyRows > 0 && (
                 <TableRow style={{ height: (dense ? 27 : 53) * emptyRows }}>
-                  <TableCell colSpan={3} />
+                  <TableCell colSpan={2} />
                 </TableRow>
               )}
             </TableBody>

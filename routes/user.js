@@ -315,12 +315,13 @@ router.get('/balance/:mygroup/:myuser', async function (req, res, next) {
     var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
     balanceDetails.push({
       uid: gm.uid,
-      userName: gm.userName,
+      userName: gm.displayName,
       gid: gm.gid,
       playerCount: myPlayerCount,
       balance: mybal
     })
   })
+  console.log(balanceDetails);
   sendok(balanceDetails);
 })
 

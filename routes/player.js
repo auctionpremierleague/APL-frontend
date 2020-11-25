@@ -2,8 +2,8 @@
 
 router = express.Router();
 var PlayerRes;
-var _group = 1;
-var _tournament = ""; //defaultTournament;
+// var _group = 1;
+// var _tournament = ""; //defaultTournament;
 
 /* GET users listing. */
 router.use('/', async function(req, res, next) {
@@ -12,11 +12,11 @@ router.use('/', async function(req, res, next) {
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return};
 
   //console.log("In player router");
-  if (req.url == "/") {
-    var myGroup = await IPLGroup.findOne({gid: _group});
-    publish_players({tournament: myGroup.tournament});
-  } else
-    next('route');
+  // if (req.url == "/") {
+  //   var myGroup = await IPLGroup.findOne({gid: _group});
+  //   publish_players({tournament: myGroup.tournament});
+  // } else
+  //   next('route');
 });
 
 
@@ -116,7 +116,7 @@ function senderr(errocode, errmsg) { PlayerRes.status(errocode).send(errmsg); }
 function setHeader() {
   PlayerRes.header("Access-Control-Allow-Origin", "*");
   PlayerRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  _group = 1;
-  _tournament = defaultTournament;
+  // _group = 1;
+  // _tournament = defaultTournament;
 }
 module.exports = router;

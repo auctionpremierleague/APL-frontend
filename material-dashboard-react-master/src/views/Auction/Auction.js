@@ -285,7 +285,7 @@ export default function Auction() {
             {/* <Typography component="h1" variant="h5">AUCTION</Typography>
             <DisplayGroupName groupName={localStorage.getItem("groupName")}/> */}
             <DisplayPageHeader headerName="AUCTION" groupName={localStorage.getItem("groupName")}/>
-            <BlankArea/><BlankArea/>
+            <BlankArea/>
             <Grid container justify="center" alignItems="center" >
                 <GridItem xs={12} sm={12} md={12} lg={12} >
                     <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 
@@ -340,7 +340,7 @@ export default function Auction() {
     function ShowBalance() {
         return (
             <Table tableHeaderColor="warning" align="center"
-                tableHead={["Owner", "Player Count", "Balance"]}
+                tableHead={["Franchise", "Player Count", "Balance"]}
                 tableData={AuctionTableData.map(x => {
                     const arr = [x.userName, x.playerCount, x.balance]
                     return { data: arr, collapse: [] }
@@ -440,7 +440,7 @@ export default function Auction() {
 
     function ShowAdminButtons() {
         // console.log("admin buttons")
-        // console.log(localStorage.getItem("admin").toLowerCase());
+        console.log(localStorage.getItem("admin").toLowerCase());
         if (localStorage.getItem("admin").toLowerCase() === "true")
             return(
             <div align="center" key="playerAuctionButton">
@@ -536,24 +536,26 @@ export default function Auction() {
             return <div></div>;
     }
 
-    function DisplayPending() {
-        return (
-            <div align ="center">
-                <Typography>Auction has not yet started</Typography>
-                <DisplayPendingButton/>
-            </div>
-        );
+    function DisplayPendingOver(props) {
+        return (<Typography align="center">{props.message}</Typography>);
     }
 
     if (hasGroup()) {
         if ( auctionStatus === "PENDING") {
-            return <DisplayPending/>
+            return (
+                <div align="center">
+                    <DisplayPendingOver message="Auction has not yet started"/>
+                    <DisplayPending/>
+                </div>);
         } else if (auctionStatus === "OVER") {
-            return <div>Auction is over</div>
+            return (
+                <div align="center">
+                    <DisplayPendingOver message="Auction is Over"/>
+                </div>);
         } else if (auctionStatus === "RUNNING") {
             return (<AdminAuction />); 
         } else {
-            return (<div></div>);
+            return (<BlankArea/>);
         } 
     } else
         return <NoGroup/>;

@@ -2,87 +2,18 @@ const { multiply } = require("lodash");
 
 var router = express.Router();
 let AuctionRes;
-var _group;
-var _tournament;
 /* GET users listing. */
 router.use('/', function(req, res, next) {
   AuctionRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
 
-  if (req.url == "/")
-    publish_auctions({gid: _group});
-  else
-    next();
+  // if (req.url == "/")
+  //   publish_auctions({gid: _group});
+  // else
+  //   next();
 });
 
-router.get('/add_orig/:groupId/:userId/:playerId/:bidValue', async function(req, res, next) {
-  AuctionRes = res;
-  setHeader();
-
-  var {groupId,userId,playerId,bidValue}=req.params;
-
-  var igroup = _group;
-  var grpstr = igroup.toString();
-
-  if (groupId != grpstr) { senderr(702, "Invalid Group"); return; }
-  var iuser = parseInt(userId);
-  if (isNaN(iuser)) { senderr(703, "Invalid User"); return next;}
-  var iplayer = parseInt(playerId);
-  if (isNaN(iplayer)) { senderr(704, "Invalid Player"); return;}
-  var ibid = parseInt(bidValue);
-  if (isNaN(ibid)) { senderr(705, "Invalid bid amount"); return;} 
-
-  console.log(igroup);
-  console.log(iuser);
-  console.log(iplayer);
-  console.log(ibid);
-
-  var gmember = await GroupMember.findOne({gid: igroup, uid: iuser});
-  if (!gmember) {
-    senderr(706, `User ${iuser} does not belong to Group 1`);
-    return;
-  }
-  var myplayer = await Player.findOne({pid: iplayer});
-  if (!myplayer) {
-    senderr(704, "Invalid player");
-    return
-  }
-  var myauction = await Auction.findOne({gid: igroup, pid:iplayer});
-  if (myauction) {
-    senderr(707, "Player already purchased");
-    return;
-  }
-
-  console.log("Player available");
-  var doc = await Auction.find({gid: igroup, uid: iuser});
-
-  // check if user has already purchased maximum allowed players. If yes then throw error
-  if (doc.length === defaultMaxPlayerCount) {
-    senderr(709, `Max player purchase count reached. Cannot buy additional player.`);
-    return;
-  }
-
-  // cgeck if user has sufficent balance points to purhcase the player at given bid amount
-  var balance = GROUP1_MAXBALANCE - _.sumBy(doc, x => x.bidAmount);
-  console.log(balance);
-  if (balance < ibid ) {
-    senderr(708, `Insufficient balance. Bid balance available is ${balance}`);
-    return;
-  }
-
-  console.log("Balance availab;e");
-  var bidrec = new Auction({ 
-    uid: iuser,
-    pid: iplayer,
-    playerName: myplayer.name,
-    gid: igroup,
-    bidAmount: ibid 
-  });
-  bidrec.save();
-  balance = balance - ibid;
-  sendok(`Added bid for player ${iplayer} with amount ${bidrec.bidAmount}> New Balance is ${balance}`);
-});  // aution get
 
 router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) {
   AuctionRes = res;
@@ -118,7 +49,7 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   var allPlayers = await PallPlayers;
   console.log(`${gRec.tournament}   ${iplayer}`);
   var myplayer = _.find(allPlayers, {tournament: gRec.tournament, pid: parseInt(iplayer)});
-  console.log(myplayer);
+  // console.log(myplayer);
   if (!myplayer) {
     senderr(704, `Invalid player ${iplayer}`);
     return
@@ -194,7 +125,7 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
     }
     balanceDetails.push({
       uid: gm.uid,
-      userName: gm.userName,
+      userName: gm.displayName,
       gid: gm.gid,
       playerCount: myPlayerCount,
       balance: mybal
@@ -211,7 +142,7 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
 
 function sendBidOverToClient(bidData) {
   var myList = _.filter(connectionArray, x => x.gid == bidData.gid && x.page === "AUCT");
-  console.log(myList);
+  // console.log(myList);
   myList.forEach(x => {
     io.to(x.socketId).emit('bidOver', bidData);
   });
@@ -219,7 +150,7 @@ function sendBidOverToClient(bidData) {
 
 function sendNewBidToClient(groupRec) {
   var myList = _.filter(connectionArray, x => x.gid == groupRec.gid && x.page === "AUCT");
-  console.log(myList);
+  // console.log(myList);
   myList.forEach(x => {
     io.to(x.socketId).emit('newBid', groupRec);
   });
@@ -242,8 +173,8 @@ router.get('/nextbid/:groupId/:userId/:bidAmount', async function(req, res, next
   currentBidUid: Number,
   currentBidUser: String,
   */
- console.log(iamount);
- console.log(groupRec);
+//  console.log(iamount);
+//  console.log(groupRec);
   if ((groupRec.auctionStatus === AUCT_RUNNING) && (iamount > groupRec.auctionBid) &&
       (groupRec.maxBidAmount >= iamount)) {
         groupRec.auctionBid = iamount;
@@ -331,7 +262,7 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
     var mybal = myGroup[0].maxBidAmount - _.sumBy(myAuction, 'bidAmount');
     balanceDetails.push({
       uid: gm.uid,
-      userName: gm.userName,
+      userName: gm.displayName,
       gid: gm.gid,
       playerCount: myPlayerCount,
       balance: mybal
@@ -379,12 +310,13 @@ router.get('/current/:groupId', async function(req, res, next) {
     var mybal = myGroup.maxBidAmount - _.sumBy(myAuction, 'bidAmount');
     balanceDetails.push({
       uid: gm.uid,
-      userName: gm.userName,
+      userName: gm.displayName,
       gid: gm.gid,
       playerCount: myPlayerCount,
       balance: mybal
     });
   });
+  
   /*
   cannot send data over socket since when called. Auction view
   has not made the socket connection with server
@@ -399,46 +331,44 @@ router.get('/current/:groupId', async function(req, res, next) {
   sendok({a: myplayer, b: balanceDetails});
 });
 
-async function publish_auctions(auction_filter)
-{
-  auctionList = await Auction.find(auction_filter); 
-  //console.log(auctionList)
-  //const myOrderedArray = _.sortBy(myArray, o => o.name)
-  auctionList = _.sortBy(auctionList, a => a.uid);
-  sendok(auctionList);
-}
+// async function publish_auctions(auction_filter)
+// {
+//   auctionList = await Auction.find(auction_filter); 
+//   //console.log(auctionList)
+//   //const myOrderedArray = _.sortBy(myArray, o => o.name)
+//   auctionList = _.sortBy(auctionList, a => a.uid);
+//   sendok(auctionList);
+// }
 
-function fetchBalance(gmembers, auctionList, maxBidAmount, iuser, ibid) {
-  gmembers = _.sortBy(gmembers, 'uid');
-  var balanceDetails = [];
-  gmembers.forEach(gm => {
-    myAuction = _.filter(auctionList, x => x.uid == gm.uid);
-    var myPlayerCount = myAuction.length;
-    var mybal = maxBidAmount - _.sumBy(myAuction, 'bidAmount');
-    if (gm.uid === iuser) {
-      // this user has purchased just now new player with amount "ibit"
-      // take care of if
-      ++myPlayerCount;
-      mybal = mybal - ibid;
-    }
-    balanceDetails.push({
-      uid: gm.uid,
-      userName: gm.userName,
-      gid: gm.gid,
-      playerCount: myPlayerCount,
-      balance: mybal
-    });
-  });
+// function fetchBalance(gmembers, auctionList, maxBidAmount, iuser, ibid) {
+//   gmembers = _.sortBy(gmembers, 'uid');
+//   var balanceDetails = [];
+//   gmembers.forEach(gm => {
+//     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
+//     var myPlayerCount = myAuction.length;
+//     var mybal = maxBidAmount - _.sumBy(myAuction, 'bidAmount');
+//     if (gm.uid === iuser) {
+//       // this user has purchased just now new player with amount "ibit"
+//       // take care of if
+//       ++myPlayerCount;
+//       mybal = mybal - ibid;
+//     }
+//     balanceDetails.push({
+//       uid: gm.uid,
+//       userName: gm.userName,
+//       gid: gm.gid,
+//       playerCount: myPlayerCount,
+//       balance: mybal
+//     });
+//   });
 
-  return balanceDetails;
-}
+//   return balanceDetails;
+// }
 
 function senderr(errcode, msg)  { AuctionRes.status(errcode).send(msg); }
-function sendok(msg)   { console.log("in sendok"); AuctionRes.send(msg); }
+function sendok(msg)   { AuctionRes.send(msg); }
 function setHeader() {
   AuctionRes.header("Access-Control-Allow-Origin", "*");
   AuctionRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  _group = defaultGroup;
-  _tournament = defaultTournament
 }
 module.exports = router;
