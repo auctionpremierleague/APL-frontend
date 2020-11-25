@@ -114,21 +114,18 @@ export default function MatchInfo() {
 
     function ShowUpcomingMatch() {
         var myHeader = "Upcoming Matches";
-        if (upcomingArray.length > 0)
-            return(
-            <Grid container justify="center" alignItems="center" >
-                <GridItem xs={12} sm={12} md={12} lg={12} >
-                <Card profile>
-                <CardBody profile>
-                    <h4 className={classes.cardTitle}>{myHeader}</h4>
-                    <MatchTable myTable={upcomingArray}/>
-                </CardBody>
-                </Card>
-                </GridItem>
-            </Grid>
-            )
-        else 
-            return (<NothingToDisplay/>)
+        return(
+        <Grid container justify="center" alignItems="center" >
+            <GridItem xs={12} sm={12} md={12} lg={12} >
+            <Card profile>
+            <CardBody profile>
+                <h4 className={classes.cardTitle}>{myHeader}</h4>
+                <MatchTable myTable={upcomingArray}/>
+            </CardBody>
+            </Card>
+            </GridItem>
+        </Grid>
+        )
     }
 
     if (localStorage.getItem("tournament").length > 0)
