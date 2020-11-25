@@ -8,6 +8,8 @@ router.use('/', function(req, res, next) {
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
 
+  next('route');
+
   // if (req.url == "/")
   //   publish_auctions({gid: _group});
   // else
@@ -279,12 +281,13 @@ router.get('/current/:groupId', async function(req, res, next) {
   AuctionRes = res;
   setHeader();
   var {groupId}=req.params;
-
+  console.log("Hello")
   var myGroup = await IPLGroup.findOne({gid: groupId});
   if (!myGroup) { senderr(702, `Invalid Group ${groupId}`); return; }
   var igroup = myGroup.gid;
   var playerId = myGroup.auctionPlayer;
   if (playerId === 0) { senderr(704, "Invalid Player"); return;}
+  console.log(`I am ${playerId}`);
 
   var PauctionList = Auction.find({gid: igroup});
   var Pgmembers = GroupMember.find({gid: igroup});

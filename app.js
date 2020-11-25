@@ -122,6 +122,11 @@ app.use('/tournament', tournamentRouter);
 mongoose_conn_string = "mongodb+srv://akshama:akshama@cluster0-urc6p.mongodb.net/IPL2020";
 
 //Schema
+MasterSettingsSchema = mongoose.Schema ({
+  msid: Number,
+  trialExpiry: String,
+})
+
 UserSchema = mongoose.Schema({
   uid: Number,
   userName: String,
@@ -129,8 +134,10 @@ UserSchema = mongoose.Schema({
   password: String,
   status: Boolean,
   defaultGroup: Number,
-  email: String
+  email: String,
+  userPlan: Number
 });
+
 IPLGroupSchema = mongoose.Schema({
   gid: Number,
   name: String,
@@ -290,7 +297,7 @@ Team = mongoose.model("iplteams", TeamSchema);
 // Match = mongoose.model("iplmatches", MatchSchema);
 Stat = mongoose.model("iplplayerstats", StatSchema);
 Tournament = mongoose.model("tournaments", TournamentSchema);
-
+MasterData = mongoose.model("MasterSettings", MasterSettingsSchema)
 
 CricapiMatch = mongoose.model("cricApiMatch", CricapiMatchSchema)
 
@@ -479,9 +486,39 @@ getDisplayName = function (name) {
   return xxx.join(" ");
 }
 
-USERTYPE = { GENERAL: 0, SUPERUSER: 1, OTHER: 2}
+masterRec = null;
+fetchMasterSettings = async function () {
+  if (masterRec === null) {
+    let tmp = await MasterData.find();
+    masterRec = tmp[0];  
+  }  
+}
 
+USERTYPE = { TRIAL: 0, SUPERUSER: 1, PAID: 2}
 
+userAlive = async function (uRec) {
+  let sts = false;
+  if (uRec) {
+    switch (uRec.userPlan) {
+      case USERTYPE.SUPERUSER:
+        sts = true;
+        break;
+      case  USERTYPE.PAID:
+        sts = true;
+        break;
+      case  USERTYPE.TRIAL:
+        let cTime = new Date();
+        await fetchMasterSettings(); 
+        // console.log(masterRec);
+        let tTime = new Date(masterRec.trialExpiry);
+        // console.log(cTime);
+        // console.log(tTime);
+        sts =  (tTime.getTime() > cTime.getTime());
+        break;
+    }
+  }
+  console.log(sts); 
+  return sts;
+}
 // module.exports = app;
-
 

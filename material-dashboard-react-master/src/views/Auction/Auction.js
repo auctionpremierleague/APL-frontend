@@ -227,12 +227,15 @@ export default function Auction() {
             if (response.data === "RUNNING") {
                 // get current player details
                 //same as when data rcvd in socket msg playerChange
+                console.log("1");
                 const response2 = await axios.get(`/auction/current/${localStorage.getItem("gid")}`)
+                console.log("2");
                 updatePlayerChange(response2.data.a, response2.data.b);
                 // get whi has bidded
                 const response1 = await axios.get(`/auction/getbid/${localStorage.getItem("gid")}`);
-                // console.log("GETBID");
-                // console.log(response1.data)
+                // console.log("1");
+                console.log("GETBID");
+                console.log(response1.data)
                 if (response1.status === 200) {
                     setBidAmount(response1.data.auctionBid)
                     setBidUser(response1.data.currentBidUser);
@@ -364,6 +367,7 @@ export default function Auction() {
     function BidButton(props) {
         let btnMsg, btnDisable, btnSize;
         if (props.value === "AMOUNT") {
+            console.log(bidAmount);
             btnMsg = `Current Bid Amount:  ${bidAmount}`;
             btnDisable = true;
             btnSize = "medium";
@@ -439,7 +443,7 @@ export default function Auction() {
     }
 
     function ShowAdminButtons() {
-        // console.log("admin buttons")
+        console.log("admin buttons")
         console.log(localStorage.getItem("admin").toLowerCase());
         if (localStorage.getItem("admin").toLowerCase() === "true")
             return(
@@ -537,15 +541,17 @@ export default function Auction() {
     }
 
     function DisplayPendingOver(props) {
+        console.log(props);
         return (<Typography align="center">{props.message}</Typography>);
     }
 
     if (hasGroup()) {
+        console.log(auctionStatus);
         if ( auctionStatus === "PENDING") {
             return (
                 <div align="center">
                     <DisplayPendingOver message="Auction has not yet started"/>
-                    <DisplayPending/>
+                    <DisplayPendingButton/>
                 </div>);
         } else if (auctionStatus === "OVER") {
             return (

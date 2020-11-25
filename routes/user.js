@@ -46,7 +46,7 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
   var dname = getDisplayName(uName);
   uEmail = uEmail.toLowerCase();
 
-  let myCount = await User.count({ userName: lname });
+  let myCount = await User.count({userName: lname });
   if (myCount > 0) {senderr(602, "User name already used."); return; }
   myCount = await User.count({ email: uEmail });
   if (myCount > 0) {senderr(603, "Email already used."); return; }
@@ -94,7 +94,10 @@ router.get('/login/:uName/:uPassword', async function (req, res, next) {
   var {uName, uPassword } = req.params;
   var isValid = false;
   let uRec = await User.findOne({ userName: getLoginName(uName) });
-  if (uRec) isValid = (uPassword === uRec.password);
+
+  if (await userAlive(uRec)) 
+    isValid = (uPassword === uRec.password);
+
   if (isValid) sendok(uRec.uid.toString());
   else         senderr(602, "Invalid User name or password");
 });
