@@ -117,28 +117,14 @@ export default function Group() {
             SetSelectedViceCaptain(newViceCap);
     };
 
-    async function updateCVC(corvc) {
-        var pType, pPlayer, pPid;
-        if (corvc === 'captain') {
-            pType = "captain";
-            pPlayer = selectedCaptain;            
-        }
-        else {
-            pType = "vicecaptain";
-            pPlayer = selectedViceCaptain;
-        }
-        var tmp = myTeamTableData.find(x => x.playerName === pPlayer);
-        pPid = tmp.pid;
-        var myUrl = `/user/${pType}/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${pPid}`;
-        // console.log(myUrl);
-        const resp = await  axios.get(myUrl);
-        return;        
-    }
 
     async function updateCaptain() {
         // console.log("upd captin vc details");
-        await updateCVC("captain");
-        await updateCVC("vicecaptain");
+        var tmp1 = myTeamTableData.find(x => x.playerName === selectedCaptain);
+        var tmp2 = myTeamTableData.find(x => x.playerName === selectedViceCaptain);
+        var myUrl = `/user/captainvicecaptain/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${tmp1.pid}/${tmp2.pid}`;
+        // console.log(myUrl);
+        const resp = await  axios.get(myUrl);
     }
 
     function DisplayCaptainSelectButton() {

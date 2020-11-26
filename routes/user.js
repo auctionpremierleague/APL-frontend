@@ -270,6 +270,50 @@ router.get('/vicecaptain/:myGroup/:myUser/:myPlayer', async function (req, res, 
   }
 });
 
+
+router.get('/captainvicecaptain/:myGroup/:myUser/:myCap/:myVice', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var { myGroup, myUser, myCap,  myVice} = req.params;
+  // igroup = _group;
+
+  // check tournament has started
+  var myMsg = await ipl_started(myGroup);
+  if (myMsg != "") {
+    senderr(604, myMsg);
+    return;
+  }
+
+  var myplayer1 = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myCap });  //.countDocuments(function (err, count) {
+  if (!myplayer1) {
+    senderr(607, `Player ${myCap}  not purchased by user ${myUser}`);
+    return;
+  }
+  var myplayer2 = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myVice });  //.countDocuments(function (err, count) {
+  if (!myplayer2) {
+    senderr(607, `Player ${myVice}  not purchased by user ${myUser}`);
+    return;
+  }
+
+  caprec = await Captain.findOne({ gid: myGroup, uid: myUser });
+  if (!caprec)
+    caprec = new Captain({
+      gid: myGroup,
+      uid: myUser,
+      captain: 0,
+      captainName: "",
+      viceCaptain: 0,
+      viceCaptainName: ""
+    });
+
+    caprec.captain = myplayer1.pid;
+    caprec.captainName = myplayer1.playerName;
+    caprec.viceCaptain = myplayer2.pid;
+    caprec.viceCaptainName = myplayer2.playerName;
+    caprec.save();
+    sendok(`Captain and Vice captain updated for user ${myUser}`);
+});
+
 router.get('/getcaptain/:mygroup/:myuser', async function (req, res, next) {
   CricRes = res;
   setHeader();
