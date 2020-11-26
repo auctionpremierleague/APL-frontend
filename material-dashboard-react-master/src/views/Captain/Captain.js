@@ -17,6 +17,7 @@ import { UserContext } from "../../UserContext";
 import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import { hasGroup } from 'views/functions';
 import red from '@material-ui/core/colors/red';
+import { updateLanguageServiceSourceFile } from 'typescript';
 const vcPrefix = "vicecaptain-"
 const cPrefix = "captain-"
 
@@ -116,8 +117,28 @@ export default function Group() {
             SetSelectedViceCaptain(newViceCap);
     };
 
-    function updateCaptain() {
-        console.log("upd captin vc details");
+    async function updateCVC(corvc) {
+        var pType, pPlayer, pPid;
+        if (corvc === 'captain') {
+            pType = "captain";
+            pPlayer = selectedCaptain;            
+        }
+        else {
+            pType = "vicecaptain";
+            pPlayer = selectedViceCaptain;
+        }
+        var tmp = myTeamTableData.find(x => x.playerName === pPlayer);
+        pPid = tmp.pid;
+        var myUrl = `/user/${pType}/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${pPid}`;
+        // console.log(myUrl);
+        const resp = await  axios.get(myUrl);
+        return;        
+    }
+
+    async function updateCaptain() {
+        // console.log("upd captin vc details");
+        await updateCVC("captain");
+        await updateCVC("vicecaptain");
     }
 
     function DisplayCaptainSelectButton() {

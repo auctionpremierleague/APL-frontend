@@ -239,8 +239,8 @@ router.get('/captain/:myGroup/:myUser/:myPlayer', async function (req, res, next
     return;
   }
 
-  var count = await Auction.count({ gid: myGroup, uid: myUser, pid: myPlayer });  //.countDocuments(function (err, count) {
-  if (count === 0)
+  var tmp = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myPlayer });  //.countDocuments(function (err, count) {
+  if (!tmp)
     senderr(607, `Player ${myPlayer} not purchased by user ${myUser}`);
   else {
       updateCaptainOrVicecaptain(myGroup, myUser, myPlayer, is_Captain);
@@ -261,14 +261,8 @@ router.get('/vicecaptain/:myGroup/:myUser/:myPlayer', async function (req, res, 
     return;
   }
 
-  // var iuser = parseInt(myuser);
-  // var iplayer = parseInt(myplayer);
-
-  // if (isNaN(iuser)) { senderr(605, "Invalid user"); return; }
-  // if (isNaN(iplayer)) { senderr(606, "Invalid player"); return; }
-
-  var count = await Auction.count({ gid: myGroup, uid: myUser, pid: myPlayer });  //.countDocuments(function (err, count) {
-  if (count === 0)
+  var tmp = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myPlayer });  //.countDocuments(function (err, count) {
+  if (!tmp)
     senderr(607, `Player ${myPlayer}  not purchased by user ${myUser}`);
   else {
     // user has purchased this player. User is eligible to set this player as vice captain
@@ -523,7 +517,7 @@ async function updateCaptainOrVicecaptain(igroup, iuser, iplayer, mytype) {
         caprec.viceCaptainName = myplayer.name;
       }
       //console.log(caprec);
-      // caprec.save(function (err) {
+      caprec.save();
       //   if (err) senderr(DBFETCHERR, `Could not update ${caporvice}`);
       //   else sendok(`${caporvice} updated for user ${iuser}`);
       // });
