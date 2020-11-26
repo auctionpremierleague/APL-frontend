@@ -324,7 +324,7 @@ router.get('/balance/:mygroup/:myuser', async function (req, res, next) {
       balance: mybal
     })
   })
-  console.log(balanceDetails);
+  // console.log(balanceDetails);
   sendok(balanceDetails);
 })
 

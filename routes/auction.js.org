@@ -16,113 +16,71 @@ router.use('/', function(req, res, next) {
   //   next();
 });
 
-const SAMEPLAYER=true;
-const NOTSAMEPLAYER=false;
-var auctionUser;
+
 var auctionGroup;
-var auctionGroupMembers;
-var auctionAllPlayers;
-var auctionSoldPlayers;
-var auctionNewPlayer;
-
-function calculateBalance() {
-  // calculate fresh balance for all users to be submitted to caller
-  auctionGroupMembers = _.sortBy(auctionGroupMembers, 'uid');
-  var balanceDetails = [];
-  auctionGroupMembers.forEach(gm => {
-    var myAuction = _.filter(auctionSoldPlayers, x => x.uid == gm.uid);
-    var myPlayerCount = myAuction.length;
-    var mybal = auctionGroup.maxBidAmount - _.sumBy(myAuction, 'bidAmount');
-    balanceDetails.push({
-      uid: gm.uid,
-      userName: gm.displayName,
-      gid: gm.gid,
-      playerCount: myPlayerCount,
-      balance: mybal
-    });
-  });
-  return balanceDetails;
-}
-
-function processNextPlayer(isItSamePlayer, howToSend) {
-
-  if (isItSamePlayer === NOTSAMEPLAYER) {
-    // identify players who are still not sold and thus are available for purchase
-    var soldPlayerId = _.map(auctionSoldPlayers, 'pid');
-    var allPlayers = _.filter(auctionAllPlayers, x => !soldPlayerId.includes(x.pid) );
-    // select new player  
-    var myIndex = Math.floor( Math.random() * allPlayers.length );
-    auctionGroup.auctionPlayer = allPlayers[myIndex].pid;
-    auctionGroup.auctionBid = 0;
-    auctionGroup.currentBidUid = 0;
-    auctionGroup.currentBidUser = '';
-    console.log(auctionGroup);
-    auctionGroup.save();
-    sendNewBidToClient(auctionGroup);
-    auctionNewPlayer = allPlayers[myIndex]; 
-  }
-  newBalance = calculateBalance();
-  if (howToSend === SENDSOCKET) {
-    sendPlayerChangeToClient(auctionGroup.gid, auctionNewPlayer, newBalance);
-    // console.log(newBalance);
-    sendok(auctionNewPlayer);
-  } else {
-      sendok({a: auctionNewPlayer, b: newBalance});
-  }
-  return;
-}
-
 
 router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) {
   AuctionRes = res;
   setHeader();
   var {igroup,iuser,iplayer,ibid}=req.params;
 
-  if (isNaN(ibid)) { senderr(705, "Invalid bid amount"); return;} 
-
-  // validate user
-  auctionUser = await User.findOne({uid: iuser});
-  if (!auctionUser) { senderr(701, `Invalid user ${iuser}`); return; }
-
-  // validate group and user
   auctionGroup = await IPLGroup.findOne({gid: igroup});
   if (!auctionGroup) {senderr(702, "Invalid Group"); return;}
-  var PallPlayers = Player.find({tournament: auctionGroup.tournament});
+  sendok("GroupOK");
+  return;
+  var PallPlayers = Player.find({});
   var PauctionList = Auction.find({gid: igroup});
+  var Pgmembers = GroupMember.findOne({gid: igroup, uid: iuser});
+  var PgRec = IPLGroup.findOne({gid: igroup});
 
-  auctionGroupMembers = await GroupMember.find({gid: igroup});
-  var tmp = _.filter(auctionGroupMembers, x => x.uid === auctionUser.uid);
-  if (tmp === 0) {
+  // if (isNaN(userId)) { senderr(703, "Invalid User"); return;}
+  // var iuser = parseInt(userId);
+  // if (isNaN(playerId)) { senderr(704, "Invalid Player"); return;}
+  // var iplayer = parseInt(playerId);
+  // if (isNaN(bidValue)) { senderr(705, "Invalid bid amount"); return;} 
+  // var ibid = parseInt(bidValue);
+
+  // Step 0: validate user
+  var uRec = await User.findOne({uid: iuser});
+  if (!uRec) { senderr(701, `Invalid user ${iuser}`); return; }
+  // Step 1: validate group number
+  var gRec = await PgRec;
+  if (!gRec) { senderr(702, `Invalid Group ${igroup}`); return; }
+
+  // Step 2: Validate user is member of the group
+  var gmRec = await Pgmembers;
+  if (!gmRec) {
     senderr(706, `User ${iuser} does not belong to Group 1`);
     return;
   }
-  
+
   // Step 3: Player is part if the tournament configured in group.
-  auctionAllPlayers = await PallPlayers;
-  var myplayer = _.find(auctionAllPlayers, x => x.pid == iplayer);
+  var allPlayers = await PallPlayers;
+  console.log(`${gRec.tournament}   ${iplayer}`);
+  var myplayer = _.find(allPlayers, {tournament: gRec.tournament, pid: parseInt(iplayer)});
   // console.log(myplayer);
   if (!myplayer) {
-    senderr(704, `Player ${iplayer} does not belong to touranament ${auctionGroup.tournament}`);
-    return;
+    senderr(704, `Invalid player ${iplayer}`);
+    return
   }
 
   // Step 4: Player is available for purchase
-  auctionSoldPlayers = await PauctionList;
-  var tmp = _.find(auctionSoldPlayers, x => x.pid == iplayer);
+  var auctionList = await PauctionList;
+  var tmp = _.find(auctionList, {pid: iplayer});
   if (tmp) {
     senderr(707, `Player ${iplayer} already purchased`);
     return;
   }
-  
+
   // Step 5: User has not purchased maximum allowed player in auction
-  myAuctionList = _.filter(auctionSoldPlayers, x => x.uid == iuser);
+  myAuctionList = _.filter(auctionList, x => x.uid == iuser);
   if (myAuctionList.length === defaultMaxPlayerCount) {
     senderr(709, `Max player purchase count reached. Cannot buy additional player.`);
     return;
   }
 
   // Step 6: User has sufficient balance to purhcase the player at given bid amount
-  var balance = auctionGroup.maxBidAmount - _.sumBy(myAuctionList, x => x.bidAmount);
+  var balance = gRec.maxBidAmount - _.sumBy(myAuctionList, x => x.bidAmount);
   if (balance < ibid ) {
     senderr(708, `Insufficient balance. Bid balance available is ${balance}`);
     return;
@@ -137,20 +95,12 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
     gid: igroup,
     bidAmount: ibid 
   });
+
+  var bidOVerData = {gid: igroup, uid: iuser, bidAmount: ibid, userName: uRec.displayName, playerName: myplayer.name}
   bidrec.save();
-  auctionSoldPlayers.push(bidrec);        // now this player is also sold
 
-  // send player added  user's auction kitty
-  sendBidOverToClient({gid: igroup, uid: iuser, bidAmount: ibid, userName: auctionUser.displayName, playerName: myplayer.name});
-
-  processNextPlayer(NOTSAMEPLAYER, SENDSOCKET);
-  return;
-  // now find all unsold players 
-  // remember that iplayer just got sold, thus will not be part of unsold player list
-  var soldPlayerId = _.map(auctionSoldPlayers, 'pid');
-  soldPlayerId.push(auctionCurrentPlayerId);
-  sendok(soldPlayerId);
-  return;
+  // now find all unsold players
+  var soldPlayerId = _.map(auctionList, 'pid');
 
   // identify players who are still not sold and thus are available for purchase
   allPlayers = _.filter(allPlayers, x => 
@@ -196,6 +146,7 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   // socket.broadcast.emit('playerChange', allPlayers[myindex], balanceDetails);
   sendPlayerChangeToClient(igroup, allPlayers[myindex], balanceDetails);
   sendNewBidToClient(gRec);
+  sendBidOverToClient(bidOVerData);
   sendok(allPlayers[myindex]);
 });
 
@@ -278,33 +229,6 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
   setHeader();
   var {groupId,playerId}=req.params;
 
-  // validate group and user
-  auctionGroup = await IPLGroup.findOne({gid: groupId});
-  if (!auctionGroup) {senderr(702, "Invalid Group"); return;}
-
-  var PallPlayers = Player.find({tournament: auctionGroup.tournament});
-  var PauctionList = Auction.find({gid: groupId});
-
-  auctionGroupMembers = await GroupMember.find({gid: groupId});
-  auctionAllPlayers = await PallPlayers;
-  var myplayer = _.find(auctionAllPlayers, x => x.pid == playerId);
-  // console.log(myplayer);
-  if (!myplayer) {
-    senderr(704, `Player ${playerId} does not belong to touranament ${auctionGroup.tournament}`);
-    return;
-  }
-  // ignoring check if player is sold
-
-  // remove this player if player is skipped
-  // console.log(auctionAllPlayers.length);
-  auctionAllPlayers = _.remove(auctionAllPlayers, x => x.pid !== myplayer.pid);
-  // console.log(auctionAllPlayers.length);
-  processNextPlayer(NOTSAMEPLAYER, SENDSOCKET);
-  return;
-  // now find all unsold players 
-
-  return
-
   if (isNaN(groupId)) { senderr(702, `Invalid Group ${groupId}`); return; }
   var igroup = parseInt(groupId);
   
@@ -373,22 +297,16 @@ router.get('/current/:groupId', async function(req, res, next) {
   AuctionRes = res;
   setHeader();
   var {groupId}=req.params;
-  
-  auctionGroup = await IPLGroup.findOne({gid: groupId});
-  if (!auctionGroup) { senderr(702, `Invalid Group ${groupId}`); return; }
-
-  // var PallPlayers = Player.find({tournament: auctionGroup.tournament});
-  var PauctionList = Auction.find({gid: groupId});
-  auctionGroupMembers = await GroupMember.find({gid: groupId});
-  auctionNewPlayer = await Player.findOne({tournament: auctionGroup.tournament, pid: auctionGroup.auctionPlayer});
-  auctionSoldPlayers = await PauctionList;
-  processNextPlayer(SAMEPLAYER, SENDRES);
-  return;
-  // var igroup = myGroup.gid;
-  // var playerId = myGroup.auctionPlayer;
-  if (myGroup.auctionPlayer === 0) { senderr(704, "Invalid Player"); return;}
+  console.log("Hello")
+  var myGroup = await IPLGroup.findOne({gid: groupId});
+  if (!myGroup) { senderr(702, `Invalid Group ${groupId}`); return; }
+  var igroup = myGroup.gid;
+  var playerId = myGroup.auctionPlayer;
+  if (playerId === 0) { senderr(704, "Invalid Player"); return;}
   console.log(`I am ${playerId}`);
 
+  var PauctionList = Auction.find({gid: igroup});
+  var Pgmembers = GroupMember.find({gid: igroup});
 
 
   // make sold player list pid

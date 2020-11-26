@@ -134,6 +134,7 @@ export default function Auction() {
     const [role, setRole] = useState("");
     const [battingStyle, setBattingStyle] = useState("");
     const [bowlingStyle, setBowlingStyle] = useState("");
+    const [bidPaused, setBidPaused] = useState(true);
     // const [open, setOpen] = useState(false);
 
     const [bidAmount, setBidAmount] = useState(0);
@@ -175,7 +176,10 @@ export default function Auction() {
             // const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
             // first set PID so that display is better
             setPid(newPlayerDetails.pid)
+            // console.log(`New player is ${newPlayerDetails.pid}`);
+            // console.log(balanceDetails);
             let ourBalance = balanceDetails.filter(balance => balance.uid == localStorage.getItem("uid"))
+            // console.log(ourBalance);
             setMyBalanceAmount(ourBalance[0].balance);
             let allUserBalance = (localStorage.getItem("admin") === "false") ? ourBalance : balanceDetails;
             setAuctionTableData(allUserBalance);
@@ -195,6 +199,7 @@ export default function Auction() {
                 // console.log("Same player image")
             }
             setAuctionStatus("RUNNING");
+            setBidPaused(false);
         }
 
         makeconnection();    
@@ -203,17 +208,18 @@ export default function Auction() {
 
             sockConn.on("bidOver", (myrec) => {
                 // console.log("bid over reveived");
-                console.log(myrec);
+                // console.log(myrec);
                 DisplayBidOverMsg(`${myrec.playerName} successfully purchsed by ${myrec.userName}`);
             });
             sockConn.on("newBid", (grec) => {
                 // console.log("new bid reveived");
-                console.log(grec);
+                // console.log(grec);
                 setBidAmount(grec.auctionBid);
                 setBidUser(grec.currentBidUser);
                 setBidUid(grec.currentBidUid);
             });
             sockConn.on("playerChange", async (newPlayerDetails, balanceDetails) => {
+                // console.log("Calling updatePlayerChange from socker");
                 updatePlayerChange(newPlayerDetails, balanceDetails);
             });
         })
@@ -227,15 +233,13 @@ export default function Auction() {
             if (response.data === "RUNNING") {
                 // get current player details
                 //same as when data rcvd in socket msg playerChange
-                console.log("1");
                 const response2 = await axios.get(`/auction/current/${localStorage.getItem("gid")}`)
-                console.log("2");
+                // console.log("Calling updatePlayerChange from currentr");
                 updatePlayerChange(response2.data.a, response2.data.b);
                 // get whi has bidded
                 const response1 = await axios.get(`/auction/getbid/${localStorage.getItem("gid")}`);
-                // console.log("1");
-                console.log("GETBID");
-                console.log(response1.data)
+                // console.log("GETBID");
+                // console.log(response1.data)
                 if (response1.status === 200) {
                     setBidAmount(response1.data.auctionBid)
                     setBidUser(response1.data.currentBidUser);
@@ -257,13 +261,14 @@ export default function Auction() {
 
 
     async function sellPlayer() {
+        setBidPaused(true);
         let myUrl = `/auction/add/${localStorage.getItem("gid")}/${bidUid}/${playerId}/${bidAmount}`
-        console.log(myUrl);
+        // console.log(myUrl);
         let response = await fetch(myUrl);
         if (response.status == 200) {
-            console.log("getting balance");
-            const balance = await axios.get(`/user/balance/${localStorage.getItem("gid")}/all`);
-            setAuctionTableData(balance.data);
+            // console.log("getting balance");
+            // const balance = await axios.get(`/user/balance/${localStorage.getItem("gid")}/all`);
+            // setAuctionTableData(balance.data);
         } else {
             var msg;
             switch (response.status) { 
@@ -279,6 +284,7 @@ export default function Auction() {
     }
 
     async function skipPlayer() {
+        setBidPaused(true);
         await fetch(`/auction/skip/${localStorage.getItem("gid")}/${playerId}`);
     }
 
@@ -354,11 +360,11 @@ export default function Auction() {
     async function handleMyBid(newBid) {
         var value = parseInt(newBid) + parseInt(bidAmount);
 
-        console.log(localStorage.getItem("gid"));
-        console.log(localStorage.getItem("uid"));
-        console.log(value);        
+        // console.log(localStorage.getItem("gid"));
+        // console.log(localStorage.getItem("uid"));
+        // console.log(value);        
         let myURL=`/auction/nextbid/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${value}`;
-        console.log(myURL);
+        // console.log(myURL);
         var resp = await axios(myURL);
         // console.log(`Bid for value ${newBid}`)
         // setBidAmount();
@@ -367,7 +373,7 @@ export default function Auction() {
     function BidButton(props) {
         let btnMsg, btnDisable, btnSize;
         if (props.value === "AMOUNT") {
-            console.log(bidAmount);
+            // console.log(bidAmount);
             btnMsg = `Current Bid Amount:  ${bidAmount}`;
             btnDisable = true;
             btnSize = "medium";
@@ -443,8 +449,8 @@ export default function Auction() {
     }
 
     function ShowAdminButtons() {
-        console.log("admin buttons")
-        console.log(localStorage.getItem("admin").toLowerCase());
+        // console.log("admin buttons")
+        // console.log(localStorage.getItem("admin").toLowerCase());
         if (localStorage.getItem("admin").toLowerCase() === "true")
             return(
             <div align="center" key="playerAuctionButton">
@@ -454,7 +460,7 @@ export default function Auction() {
                     size="small"
                     className={classes.button}
                     // startIcon={<CheckSharpIcon />}
-                    disabled={bidAmount === 0}
+                    disabled={((bidAmount === 0) || (bidPaused === "true"))}
                     onClick={sellPlayer}>
                     SOLD
                 </Button>
@@ -464,7 +470,7 @@ export default function Auction() {
                     size="small"
                     className={classes.button}
                     // startIcon={<ClearSharpIcon />}
-                    disabled={bidAmount !== 0}
+                    disabled={((bidAmount !== 0) || (bidPaused === "true"))}
                     onClick={() => skipPlayer()}>
                     UNSOLD
                 </Button>
@@ -541,12 +547,12 @@ export default function Auction() {
     }
 
     function DisplayPendingOver(props) {
-        console.log(props);
+        // console.log(props);
         return (<Typography align="center">{props.message}</Typography>);
     }
 
     if (hasGroup()) {
-        console.log(auctionStatus);
+        // console.log(auctionStatus);
         if ( auctionStatus === "PENDING") {
             return (
                 <div align="center">

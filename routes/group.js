@@ -119,11 +119,11 @@ router.get('/getauctionstatus/:groupid', async function (req, res, next) {
 
     var gdoc = await IPLGroup.findOne({ gid: groupid });  
     if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
-    // if ((gdoc.auctionStatus === "RUNNING")) {
-      const playerList = await Player.find({pid: gdoc.auctionPlayer});
-      const balanceDetails = await fetchBalance(groupid);
-      // console.log(`In Get Status: length is ${playerList.length}`);
-      sendDataToClient(groupid, playerList[0], balanceDetails);
+    // // if ((gdoc.auctionStatus === "RUNNING")) {
+    //   const playerList = await Player.find({pid: gdoc.auctionPlayer});
+    //   const balanceDetails = await fetchBalance(groupid);
+    //   // console.log(`In Get Status: length is ${playerList.length}`);
+    //   sendDataToClient(groupid, playerList[0], balanceDetails);
       sendok(gdoc.auctionStatus);
   });
 
