@@ -1780,7 +1780,7 @@ cron.schedule('*/1 * * * * *', () => {
   if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
     // console.log("======== clinet update start");
     // console.log(connectionArray);
-    sendDashboardData();
+    sendDashboardData(); 
     clientUpdateCount = 0;
     // console.log("client update over")
   }
