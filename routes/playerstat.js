@@ -1683,6 +1683,8 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
 
 async function processConnection(i) {
   // just simple connection then nothing to do
+  // console.log("in process connection array");
+  // console.log(connectionArray[i]);
   if ((connectionArray[i].gid  <= 0)  || 
       (connectionArray[i].uid  <= 0)  ||
       (connectionArray[i].page.length  <= 0)) return;
@@ -1692,18 +1694,21 @@ async function processConnection(i) {
   if (myTournament.length === 0) return;
   // valid tourament found
 
-  var arunTemp = _.filter(runningMatchArray, x => x.tournament === myTournament)
-  if (arunTemp.length === 0)
-    console.log(`No match currently running for ${myTournament}`)
-  else
-    console.log(`Currently match ${arunTemp[0].mid} running for ${myTournament}`)
+  // console.log("ruuning array");
+  // console.log(runningMatchArray);
+  // console.log(clientData);
+  // var arunTemp = _.filter(runningMatchArray, x => x.tournament === myTournament)
+  // if (arunTemp.length === 0)
+  //   console.log(`No match currently running for ${myTournament}`)
+  // else
+  //   console.log(`Currently match ${arunTemp[0].mid} running for ${myTournament}`)
 
   var myData = _.find(clientData, x => x.tournament === myTournament);
   let sts = false;
   if (!myData) {
     // no data of this tournament with us. Read database and do calculation
     sts = await readDatabase(connectionArray[i].gid );
-    console.log(`Status is ${sts} for tournamenet data ${myTournament}`);
+    // console.log(`Status is ${sts} for tournamenet data ${myTournament}`);
     if (sts) {
       // console.log(connectionArray[i].gid );
       let myDB_Data = await statCalculation(connectionArray[i].gid );
@@ -1712,7 +1717,7 @@ async function processConnection(i) {
       clientData.push(myData);
       var myDate2 = new Date();
       var duration = myDate2.getTime() - myDate1.getTime();
-      console.log(`Total Time: ${duration}`)
+      // console.log(`Total Time: ${duration}`)
     }
   }
   // console.log(clientData);
@@ -1752,11 +1757,14 @@ async function sendDashboardData() {
   // clientData = [];
   // first cleanup data of tournament which has running matches
   // this will force fresh calculation which inlcudes curret matches
+  // console.log(clientData);
   connectionArray.forEach( ccc => {
     _.remove(clientData, x => x.tournament === ccc.tournament);
   });
 
   // now process connection
+  // console.log("send dash");
+  // console.log(connectionArray);
   for(i=0; i<connectionArray.length; ++i)  {
     await processConnection(i);
   }
@@ -1958,6 +1966,7 @@ async function completePendingBrief(mytournament) {
   // get match if the matches that are completed in this tournament
   let ttt = mytournament.toUpperCase();
   let completedMatchList = await CricapiMatch.find({tournament: ttt, matchEnded: true});
+  // console.log(`${ttt} Completed match status ${completedMatchList.length}`)
   if (completedMatchList.length <= 0) return;
   let midList = _.map(completedMatchList, 'mid');
 
