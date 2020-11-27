@@ -17,7 +17,7 @@ const doMaxWicket = 2;
 // ]; 
 
 // use for testing
-// const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
+const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
 
 // const keylist = [
 // "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -29,13 +29,13 @@ const doMaxWicket = 2;
 // ]
 
 // list provided by ANKIT
-const keylist = [
-  "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
-  "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
-  "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
-  "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
-  "8LweszMN9vMnjb4W9UjjeQzTgEx1"
-]
+// const keylist = [
+//   "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
+//   "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
+//   "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
+//   "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
+//   "8LweszMN9vMnjb4W9UjjeQzTgEx1"
+// ]
 
 // to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
@@ -1201,7 +1201,7 @@ async function statCalculation (igroup) {
 // this list is used by schedule to do calc
 
 function addRunningMatch(mmm) {
-  let tmp = _.filter(runningMatchArray, x => x.mid === mmm.nid);
+  let tmp = _.filter(runningMatchArray, x => x.mid === mmm.mid);
   if (tmp.length === 0) {
     runningMatchArray.push({tournament: mmm.tournament, mid: mmm.mid});
   }
@@ -1320,7 +1320,10 @@ async function update_cricapi_data_r1(logToResponse)
     // console.log(`Matches started count ${matchesFromDB.length}`)
 
     // get stas of all these matches
-    await matchesFromDB.forEach(async (mmm) => {
+    // await matchesFromDB.forEach(async (mmm) => {
+    let aidx
+    for(aidx=0; aidx < matchesFromDB.length; ++aidx) {
+      let mmm = matchesFromDB[aidx];
       addRunningMatch(mmm);
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
       if (cricData != null)
@@ -1335,7 +1338,8 @@ async function update_cricapi_data_r1(logToResponse)
           mmm.save();
         }     
       }
-    });
+    }
+    // });
     return;
 }
 
@@ -1692,8 +1696,8 @@ async function processConnection(i) {
   var myDate1 = new Date();
   var myTournament = await getTournameDetails(connectionArray[i].gid);
   if (myTournament.length === 0) return;
-  // valid tourament found
 
+  // valid tourament found
   // console.log("ruuning array");
   // console.log(runningMatchArray);
   // console.log(clientData);
@@ -1717,7 +1721,7 @@ async function processConnection(i) {
       clientData.push(myData);
       var myDate2 = new Date();
       var duration = myDate2.getTime() - myDate1.getTime();
-      // console.log(`Total Time: ${duration}`)
+      console.log(`Total calculation Time: ${duration}`)
     }
   }
   // console.log(clientData);
@@ -1758,7 +1762,12 @@ async function sendDashboardData() {
   // first cleanup data of tournament which has running matches
   // this will force fresh calculation which inlcudes curret matches
   // console.log(clientData);
-  connectionArray.forEach( ccc => {
+  // connectionArray.forEach( ccc => {
+  //   _.remove(clientData, x => x.tournament === ccc.tournament);
+  // });
+  //--------------CHECK
+  let T1 = new Date();
+  runningMatchArray.forEach( ccc => {
     _.remove(clientData, x => x.tournament === ccc.tournament);
   });
 
@@ -1768,11 +1777,16 @@ async function sendDashboardData() {
   for(i=0; i<connectionArray.length; ++i)  {
     await processConnection(i);
   }
+  let T2 = new Date();
+  let diff = T2.getTime() - T1.getTime();
+  // console.log(T1);
+  // console.log(T2);
+  console.log(`Processing all socket took time ${diff}`);
 }
 
 async function updateTournamentBrief() {
   var currDate = new Date();
-  if (true) { //(currDate.getHours() === 18) {
+  if (currDate.getHours() === 23) {
     console.log(currDate);
     await check_all_tournaments();
   }
@@ -1895,29 +1909,29 @@ function getMatchStartTime(cricapiRec) {
   return mytime;
 }
 
-const OdiHours = 9;
-const testHours = 9;
-const t20Hours = 5;
+const OdiMinutes = 570;   // 9.5 hours is 570 minutes
+const testMinutes = 570;    
+const t20Minutes = 300;    //  5 hours is 300 minutes
 
 function getMatchEndTime(cricapiRec) {
   var tmp = getMatchStartTime(cricapiRec);       // clone start date
   var etime = new Date(tmp.getTime());
-  var matchHours;
+  var matchMinutes;
 
   var typeUpper = cricapiRec.type.toUpperCase();
   // if test match advance date by 4 days (to make it 5th day)
   if (typeUpper.includes("TEST")) {
     etime.setDate(etime.getDate()+4);     // test match is for 5 days. set date to 5th day
-    matchHours = testHours;
+    matchMinutes = testMinutes;
   } else if (typeUpper.includes("ODI")) {
-    matchHours = OdiHours;
+    matchMinutes = OdiMinutes;
   } else if (typeUpper.includes("20")) {
-    matchHours = t20Hours;
+    matchMinutes = t20Minutes;
   } else
-    matchHours = OdiHours;
+    matchMinutes = OdiMinutes;
 
   // addd match time to end date
-  etime.setHours(etime.getHours() + matchHours);
+  etime.setMinutes(etime.getMinutes() + matchMinutes);
 
   return etime;
 }
@@ -1955,7 +1969,7 @@ async function get_userDisplayName(userId) {
 async function check_all_tournaments() {
   let tmp = await Tournament.find({over: false});
   let allTournaments = _.map(tmp, 'name');
-  // console.log(allTournaments);
+  console.log(allTournaments);
   for(i=0; i < allTournaments.length; ++i) {
     await completePendingBrief(allTournaments[i]);
   }

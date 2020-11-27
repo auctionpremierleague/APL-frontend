@@ -517,6 +517,7 @@ userAlive = async function (uRec) {
         break;
     }
   }
+  // 
   console.log(sts); 
   return sts;
 }
