@@ -273,12 +273,12 @@ router.get('/add/:groupid/:ownerid/:userid', async function (req, res, next) {
   // iuser = parseInt(userid);
   // if (isNaN(iuser)) { senderr(623, "Invalid user"); return; }
 
-  var gdoc = await IPLGroup({gid: groupid});
+  var gdoc = await IPLGroup.findOne({gid: groupid});
   if (!gdoc)  { senderr(621, "Invalid group"); return; }
-  if (gdoc.owner !== ownerid) { senderr(624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
+  if (gdoc.owner != ownerid) { senderr(624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
 
   var udoc = await User.findOne({ uid: userid });
-  if (!uoc) { senderr(623, "Invalid user"); return; };
+  if (!udoc) { senderr(623, "Invalid user"); return; };
 
   var gmdoc = await GroupMember.findOne({ gid: gdoc.gid, uid: udoc.uid });
   if (gmdoc) {senderr(624, `User already member to group ${groupid}`); return; }
@@ -307,6 +307,26 @@ router.get('/add/:groupid/:ownerid/:userid', async function (req, res, next) {
   sendok(`Added user ${userid}; to Group ${groupid}`);
 }); // end of get
 
+router.get('/delete/:groupid/:ownerid/:userid', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var { groupid, ownerid, userid } = req.params;
+
+  var gdoc = await IPLGroup.findOne({gid: groupid});
+  if (!gdoc)  { senderr(621, "Invalid group"); return; }
+  if (gdoc.owner != ownerid) { senderr(624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
+  // var udoc = await User.findOne({ uid: userid });
+  // if (!uoc) { senderr(623, "Invalid user"); return; };
+
+  var gmdoc = await GroupMember.findOne({ gid: gdoc.gid, uid: userid });
+  if (!gmdoc) {senderr(624, `User not a member to group ${groupid}`); return; }
+  // User.deleteOne({ age: { $gte: 10 } }).then(function(){
+  await gmdoc.deleteOne({ gid: gdoc.gid, uid: userid })
+
+  sendok(`Delete user ${userid} from Group ${groupid}`);
+}); // end of get
+
 router.get('/owner', function (req, res, next) {
   GroupRes = res;
   setHeader();
@@ -332,19 +352,14 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
   var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
   if (tmp.length > 0) { senderr(629, `Duplicate Group name ${groupName}`); return; }
 
-  // var iowner = 0;
-  // if (!isNaN(iowner)) {
-  //   iowner = parseInt(ownerid);
-  //   var tmp = await User.find({ uid: iowner });
-  //   if (tmp.length === 0) iowner = 0;
-  // }
   if (isNaN(maxbid)) { senderr(627, `Invalid max bid amount ${maxbid}`); return; }
+  let imaxbid = parseInt(maxbid);
 
   var ownerRec = await User.findOne({uid: ownerid});
   if (!ownerRec) { senderr(622, `Invalid owner ${ownerid}`); return; }
 
-  var tmp = await Tournament.find({ name: mytournament.toUpperCase() })
-  if (tmp.length === 0) { senderr(628, `Invalid tournament ${mytournament}`); return; }
+  var tournamentRec = await Tournament.findOne({ name: mytournament.toUpperCase() })
+  if (!tournamentRec) { senderr(628, `Invalid tournament ${mytournament}`); return; }
 
   //Goods.find({}).sort({ price: 1 }).limit(1).then(goods => goods[0].price);
   var maxGid = await IPLGroup.find({}).sort({ gid: -1 }).limit(1);
@@ -364,16 +379,35 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
   myRec.gid = maxGid[0].gid + 1;
   myRec.name = groupName;
   myRec.owner = ownerRec.uid;
-  myRec.maxBidAmount = maxbid;
-  myRec.tournament = mytournament;
+  myRec.maxBidAmount = imaxbid;
+  myRec.tournament = tournamentRec.name;
   myRec.auctionStatus = "PENDING";
   myRec.auctionPlayer = 0;
   myRec.auctionBid = 0;
   myRec.currentBidUid = 0;
-  myRec.currentBidUser = 0;
+  myRec.currentBidUser = "";
   myRec.enable = true;
   myRec.save();
+
+  // Also add owner as group member
+  // gid: Number,
+  // uid: Number,
+  // userName: String,
+  // balanceAmount: Number,        // balance available to be used for bid
+  // displayName: String,
+  // enable: Boolean
+  myGroupMemberRec = new GroupMember();
+  myGroupMemberRec.gid = myRec.gid;
+  myGroupMemberRec.uid = myRec.owner
+  myGroupMemberRec.userName = ownerRec.displayName;
+  myGroupMemberRec.balanceAmount = imaxbid;
+  myGroupMemberRec.displayName = ownerRec.displayName;
+  myGroupMemberRec.enable = true;
+  myGroupMemberRec.save();
+
+  // now save okay to user
   sendok(myRec);
+
 }); // end of get
 
 // who is the owner of the group. Returns user record of the owner
@@ -442,7 +476,7 @@ router.get('/getfranchisename/:myUser/:myGroup', async function (req, res, next)
 
   var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
   if (gmRec) {
-    console.log(gmRec);
+    // console.log(gmRec);
     sendok(gmRec.displayName);
   } else { 
     senderr(624, "Invalid Group"); 

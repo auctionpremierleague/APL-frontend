@@ -15,10 +15,11 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { UserContext } from "../../UserContext";
 // import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
-import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
 import {validateSpecialCharacters, validateEmail} from "views/functions.js";
 import {BlankArea} from "CustomComponents/CustomComponents.js"
+import red from '@material-ui/core/colors/red';
+import blue from '@material-ui/core/colors/blue';
 
 function Copyright() {
   return (
@@ -57,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
  error:  {
       // right: 0,
       fontSize: '12px',
-      color: red[700],
+      color: blue[700],
       // position: 'absolute',
       alignItems: 'center',
       marginTop: '0px',
@@ -111,6 +112,7 @@ export default function CreateGroup() {
   const [tournamentData, setTournamentData] = useState([]);
   const [selectedTournament, SetSelectedTournament] = useState("");
   const { setUser } = useContext(UserContext);
+  const [ errorMessage, setErrorMessage ] = useState("");
 
   const handleSelectedTournament = (event) => {
     SetSelectedTournament(event.target.value);
@@ -135,9 +137,10 @@ export default function CreateGroup() {
 
   const handleSubmit = async() => {
     console.log("Submit command provided");
-    // let response = await fetch(`/user/signup/${groupName}/${password}/${email}`);
-    // setRegisterStatus(response.status);
-    // console.log(`Status is ${response.status}`);
+    //  /group/create/TeSt/8/1250/AUSINDT20
+    // groupName  bidAmount selectedTournament
+    const response = await axios.get(`/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}`);
+    setErrorMessage(`Successfully create group ${groupName}`);
   }
 
   function handleCancel() {
@@ -201,7 +204,7 @@ export default function CreateGroup() {
           errorMessages={['Group Name to be provided', 'Group Name should be of minimum 6 characters', 'Special characters not permitted']}
           value={groupName}
       />
-      <BlankArea/>
+      {/* <BlankArea/>
       <TextValidator
           variant="outlined"
           required
@@ -213,7 +216,7 @@ export default function CreateGroup() {
           validators={[['required', 'minLength', 'noSpecialCharacters' ]]}
           errorMessages={['Group display name to be provided', 'Group Name should be of minimum 6 characters', , 'Special characters not permitted']}
           value={displayName}
-      />
+      /> */}
       <BlankArea/>
       <TextValidator
           variant="outlined"
@@ -240,6 +243,10 @@ export default function CreateGroup() {
         {tournamentData.map(x =>
         <MenuItem key={x.name} value={x.name}>{x.name}</MenuItem>)}
     </Select>
+      <BlankArea/>
+      <div>
+        <Typography className={classes.error} align="left">{errorMessage}</Typography>
+      </div>
       <BlankArea/>
       <div align="center">
         <Button type="submit" key={"create"} variant="contained" color="primary" size="small"

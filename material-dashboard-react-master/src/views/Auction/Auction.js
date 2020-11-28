@@ -283,6 +283,14 @@ export default function Auction() {
         }
     }
 
+    async function handleAuctionOver() {
+        const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/OVER`);
+        if (response.data) {
+            setAuctionStatus("OVER");
+        }
+    }
+
+
     async function skipPlayer() {
         setBidPaused(true);
         await fetch(`/auction/skip/${localStorage.getItem("gid")}/${playerId}`);
@@ -303,6 +311,7 @@ export default function Auction() {
                 </GridItem>
             </Grid>
             <ShowBalance/>
+            <ShowAuctionOverButton/>
             <ShowDialog/>
         </div>
         );
@@ -447,6 +456,25 @@ export default function Auction() {
         else
             return(<div></div>);
     }
+
+    function ShowAuctionOverButton() {
+        if (localStorage.getItem("admin").toLowerCase() === "true")
+            return(
+            <div align="center">
+                <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    className={classes.button}
+                    onClick={handleAuctionOver}>
+                    AUCTION OVER
+                </Button>
+            </div>
+            );
+        else 
+            return(<div></div>);
+    }
+
 
     function ShowAdminButtons() {
         // console.log("admin buttons")

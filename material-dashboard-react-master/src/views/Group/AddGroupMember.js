@@ -23,7 +23,7 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Radio from '@material-ui/core/Radio';
-import { blue } from '@material-ui/core/colors';
+import { red, blue } from '@material-ui/core/colors';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 // import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -228,21 +228,33 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: '0.1rem',
     fontSize: 5,
   },
+  error:  {
+    // right: 0,
+    fontSize: '12px',
+    color: blue[700],
+    // position: 'absolute',
+    alignItems: 'center',
+    marginTop: '0px',
+},
+
 }));
 
 
 const [masterData, setmasterData] = React.useState([]);
+const [originalData, setOriginalData] = React.useState([]);
 // const [rows, setStationTableData] = React.useState([]);
 const [rows, setUserArray] = React.useState([]);
 const [filterString, setfilterString] = React.useState("");
 const [page, setPage] = React.useState(0);
 const [dense, setDense] = React.useState(true);
 const [rowsPerPage, setRowsPerPage] = React.useState(10);
+const [ errorMessage, setErrorMessage ] = React.useState("");
+
   useEffect(() => {       
     const fetchMember = async () => {
       try {
             var response = await axios.get(`/user/group/${localStorage.getItem("gdGid")}`);
-            // setMemberArray(response.data);
+            setOriginalData(response.data);
             var response1 = await axios.get(`/user`);
             // let tmp = response1.data.sortBy(x => x.displayName);
             let tmp = response1.data;
@@ -347,13 +359,34 @@ const handleClick = (event, myUid) => {
     );
   }
 
-  function addNewMember() {
-    // masterData.forEach(x => {
-    //     if (x.isMember) console.log(x.displayName)
-    // })
-    var tmp = masterData.filter(x => x.isMember === true);
-    console.log(tmp);
-    console.log("Update Member list is to be implemnted");
+  async function UpdateMemberList() {
+    // make list of fresh member list (select existing members as well as selected new memebrs)
+    var newMebmerList = masterData.filter(x => x.isMember === true);
+    // console.log(newMebmerList);
+    
+
+    let uidx = 0;
+    let addMember = [];
+    for(uidx=0; uidx<newMebmerList.length; ++uidx) {
+      let tmp = originalData.find(x => x.uid === newMebmerList[uidx].uid)
+      if (!tmp) addMember.push(newMebmerList[uidx].uid);
+    }
+    // console.log(addMember);
+    for(uidx=0; uidx<addMember.length; ++uidx) {
+      let response = await axios.get(`/group/add/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${addMember[uidx]}`)
+    }
+
+    let delMember = [];
+    for(uidx=0; uidx<originalData.length; ++uidx) {
+      let tmp = newMebmerList.find(x => x.uid === originalData[uidx].uid);
+      if (!tmp) delMember.push(originalData[uidx].uid);
+    }
+    // console.log(delMember);
+    for(uidx=0; uidx<delMember.length; ++uidx) {
+      let response = await axios.get(`/group/delete/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${delMember[uidx]}`)
+      // console.log(response);
+    }
+    setErrorMessage(`Successfully added and/or removed members of group ${localStorage.getItem("gdName")}`)
 }
 
 
@@ -362,7 +395,7 @@ function ShowGmButtons() {
     <div align="center">
         <Button variant="contained" color="primary" size="small"
             // disabled={tournamentStated || (localStorage.getItem("gdAdmin").length === 0)}
-            className={classes.button} onClick={addNewMember}>Update List
+            className={classes.button} onClick={UpdateMemberList}>Update List
         </Button>
         <Button variant="contained" color="primary" size="small"
             className={classes.button} onClick={() => { history.push("/admin/groupmember") }}>Back
@@ -460,6 +493,9 @@ function ShowGmButtons() {
           onChangeRowsPerPage={handleChangeRowsPerPage}
         />
       </Paper>
+      <div>
+        <Typography className={classes.error} align="left">{errorMessage}</Typography>
+      </div>
       <br/>
       <ShowGmButtons/>
     </div>
