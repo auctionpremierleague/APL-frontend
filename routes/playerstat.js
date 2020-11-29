@@ -1201,10 +1201,13 @@ async function statCalculation (igroup) {
 // this list is used by schedule to do calc
 
 function addRunningMatch(mmm) {
+  // console.log(`Adding match ${mmm.mid}`);
   let tmp = _.filter(runningMatchArray, x => x.mid === mmm.mid);
   if (tmp.length === 0) {
     runningMatchArray.push({tournament: mmm.tournament, mid: mmm.mid});
   }
+  // console.log(runningMatchArray);
+  // console.log("Add over");
 }
 
 function delRunningMatch(mmm) {
@@ -1292,11 +1295,11 @@ async function update_cricapi_data_r1(logToResponse)
           matchTournament = t.name;
         });
         if (matchTournament.length === 0) return;
-        console.log(`Tournament: ${matchTournament} Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
+        // console.log(`Tournament: ${matchTournament} Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
 
         var mymatch = _.find(existingmatches, m => m.mid == parseInt(x.unique_id));
         if (mymatch === undefined) mymatch = new CricapiMatch();
-        console.log(`dating match of ${x.unique_id}`)
+        // console.log(`dating match of ${x.unique_id}`)
         mymatch = getMatchDetails(x, mymatch, matchTournament);
         // console.log(mymatch);
         mymatch.save();
@@ -1389,7 +1392,7 @@ async function updateMatchStats_r1(mmm, cricdata)
         //console.log(`Invalid Over ${bowler.O}. Skipping this recird`);
         return;
       }
-      console.log(`Bowling of ${bowler.pid}`)
+      // console.log(`Bowling of ${bowler.pid}`)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(bowler.pid)});
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
@@ -1452,7 +1455,7 @@ async function updateMatchStats_r1(mmm, cricdata)
   // console.log(battingArray);
   battingArray.forEach( x => {
     x.scores.forEach(batsman => {
-      console.log(`batting of ${batsman.pid}`)
+      // console.log(`batting of ${batsman.pid}`)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(batsman.pid)});
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
@@ -1697,16 +1700,6 @@ async function processConnection(i) {
   var myTournament = await getTournameDetails(connectionArray[i].gid);
   if (myTournament.length === 0) return;
 
-  // valid tourament found
-  // console.log("ruuning array");
-  // console.log(runningMatchArray);
-  // console.log(clientData);
-  // var arunTemp = _.filter(runningMatchArray, x => x.tournament === myTournament)
-  // if (arunTemp.length === 0)
-  //   console.log(`No match currently running for ${myTournament}`)
-  // else
-  //   console.log(`Currently match ${arunTemp[0].mid} running for ${myTournament}`)
-
   var myData = _.find(clientData, x => x.tournament === myTournament);
   let sts = false;
   if (!myData) {
@@ -1725,7 +1718,7 @@ async function processConnection(i) {
     }
   }
   // console.log(clientData);
-  // console.log(myData);
+  // console.log(`Will send data of ${myData.tournament} to UID ${connectionArray[i].uid}  with GID ${connectionArray[i].gid}`);
   // console.log(connectionArray[i].page);
   switch(connectionArray[i].page.substr(0, 4).toUpperCase()) {
     case "DASH":
@@ -1767,9 +1760,22 @@ async function sendDashboardData() {
   // });
   //--------------CHECK
   let T1 = new Date();
+  console.log("---------------------");
+  connectionArray = [].concat(masterConnectionArray)
+  // if (connectionArray.length > 0)
+  //   console.log(` ${connectionArray[0].gid}  ${connectionArray[0].uid}   ${connectionArray[0].page}`);
+  // console.log(runningMatchArray);
+  // console.log(`Before client Data list ${clientData.length}`);
+  // clientData.forEach(ccc => {
+  //   console.log(ccc.tournament);
+  // })
   runningMatchArray.forEach( ccc => {
     _.remove(clientData, x => x.tournament === ccc.tournament);
   });
+  // console.log(`After client Data list ${clientData.length}`);
+  // clientData.forEach(ccc => {
+  //   console.log(ccc.tournament);
+  // })
 
   // now process connection
   // console.log("send dash");
@@ -1798,14 +1804,6 @@ cron.schedule('*/1 * * * * *', () => {
     console.log("============= No mongoose connection");
     return;
   }   
-  
-  if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
-    // console.log("======== clinet update start");
-    // console.log(connectionArray);
-    sendDashboardData(); 
-    clientUpdateCount = 0;
-    // console.log("client update over")
-  }
 
   if (++cricTimer >= CRICUPDATEINTERVAL) {
     cricTimer = 0;
@@ -1815,6 +1813,15 @@ cron.schedule('*/1 * * * * *', () => {
     updateTournamentBrief();
     // console.log("match update over")
   }
+
+  if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
+    // console.log("======== clinet update start");
+    // console.log(connectionArray);
+    sendDashboardData(); 
+    clientUpdateCount = 0;
+    // console.log("client update over")
+  }
+
 });
 
 

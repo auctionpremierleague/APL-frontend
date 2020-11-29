@@ -40,6 +40,7 @@ tournamentRouter = require('./routes/tournament');
 
 // maintaing list of all active client connection
 connectionArray  = [];
+masterConnectionArray  = [];
 clientData = [];
 CLIENTUPDATEINTERVAL=10;
 clientUpdateCount=0;
@@ -55,7 +56,7 @@ io.on('connect', socket => {
   socket.on("page", (pageMessage) => {
     console.log("page message from "+socket.id);
     console.log(pageMessage);
-    var myClient = _.find(connectionArray, x => x.socketId === socket.id);
+    var myClient = _.find(masterConnectionArray, x => x.socketId === socket.id);
     if (pageMessage.page.toUpperCase().includes("DASH")) {
       myClient.page = "DASH";
       myClient.gid = parseInt(pageMessage.gid);
@@ -80,9 +81,9 @@ io.on('connect', socket => {
 
 io.sockets.on('connection', function(socket){
   // console.log("Connected Socket = " + socket.id)
-  connectionArray.push({socketId: socket.id, page: "", gid: 0, uid: 0});
+  masterConnectionArray.push({socketId: socket.id, page: "", gid: 0, uid: 0});
   socket.on('disconnect', function(){
-    _.remove(connectionArray, {socketId: socket.id});
+    _.remove(masterConnectionArray, {socketId: socket.id});
     
   });
 });
