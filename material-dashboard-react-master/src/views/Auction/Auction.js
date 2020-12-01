@@ -171,26 +171,11 @@ export default function Auction() {
         }
 
         function updatePlayerChange(newPlayerDetails, balanceDetails) {
+            setBidPaused(false);
             // console.log("Player Changed");
             // console.log(`New: ${newPlayerDetails.pid}  Old: ${playerId} `)
-            // const { role, Team, battingStyle, bowlingStyle, pid, fullName } = newPlayerDetails;
             // first set PID so that display is better
             setPid(newPlayerDetails.pid)
-            // console.log(`New player is ${newPlayerDetails.pid}`);
-            // console.log(balanceDetails);
-            let ourBalance = balanceDetails.filter(balance => balance.uid == localStorage.getItem("uid"))
-            // console.log(ourBalance);
-            setMyBalanceAmount(ourBalance[0].balance);
-            let allUserBalance = (localStorage.getItem("admin") === "false") ? ourBalance : balanceDetails;
-            setAuctionTableData(allUserBalance);
-            // console.log(userBalance);
-            setRole(newPlayerDetails.role)
-            setTeam(newPlayerDetails.Team)
-            setBattingStyle(newPlayerDetails.battingStyle)
-            setBowlingStyle(newPlayerDetails.bowlingStyle)
-            setPlayerName(newPlayerDetails.fullName)
-            // console.log("player change")
-            // console.log(`finally New player is ${newPlayerDetails.pid}`)
             let tmp = `${process.env.PUBLIC_URL}/${newPlayerDetails.pid}.JPG`
             if (playerImage != tmp) {
                 // console.log("Different image")
@@ -198,8 +183,19 @@ export default function Auction() {
             } else {
                 // console.log("Same player image")
             }
+            setTeam(newPlayerDetails.Team)
+            setRole(newPlayerDetails.role)
+            setBattingStyle(newPlayerDetails.battingStyle)
+            setBowlingStyle(newPlayerDetails.bowlingStyle)
+            setPlayerName(newPlayerDetails.fullName)
+
+            let ourBalance = balanceDetails.filter(balance => balance.uid == localStorage.getItem("uid"))
+            setMyBalanceAmount(ourBalance[0].balance);
+            // for ADMIN, NOW WE WILL SHOW BALANCE of himself/herself. Not of other members
+            // let allUserBalance = (localStorage.getItem("admin") === "false") ? ourBalance : balanceDetails;
+            let allUserBalance = ourBalance;
+            setAuctionTableData(allUserBalance);
             setAuctionStatus("RUNNING");
-            setBidPaused(false);
         }
 
         makeconnection();    
@@ -209,7 +205,7 @@ export default function Auction() {
             sockConn.on("bidOver", (myrec) => {
                 // console.log("bid over reveived");
                 // console.log(myrec);
-                DisplayBidOverMsg(`${myrec.playerName} successfully purchsed by ${myrec.userName}`);
+                DisplayBidOverMsg(`${myrec.playerName} successfully purchased by ${myrec.userName}`);
             });
             sockConn.on("newBid", (grec) => {
                 // console.log("new bid reveived");
@@ -296,13 +292,9 @@ export default function Auction() {
         await fetch(`/auction/skip/${localStorage.getItem("gid")}/${playerId}`);
     }
 
-    function AdminAuction() {
+    function DisplayRunningAuction() {
         // console.log(`Pid from admin auction ${playerId}`)
         return (<div align="center" className={classes.root}>
-            {/* <Typography component="h1" variant="h5">AUCTION</Typography>
-            <DisplayGroupName groupName={localStorage.getItem("groupName")}/> */}
-            <DisplayPageHeader headerName="AUCTION" groupName={localStorage.getItem("groupName")}/>
-            <BlankArea/>
             <Grid container justify="center" alignItems="center" >
                 <GridItem xs={12} sm={12} md={12} lg={12} >
                     <ShowPlayerAvatar pName={playerName} pImage={playerImage} pTeamLogo={team} /> 
@@ -316,20 +308,6 @@ export default function Auction() {
         </div>
         );
     }
-
-    // function AdminPending() {
-    //     return <Button variant="contained"
-    //         color="secondary"
-    //         size="small"
-    //         className={classes.button}
-    //         startIcon={<NavigateBeforeIcon />}
-    //         onClick={() => startAuction("PENDING")}>Start Auction</Button>
-    // }
-
-    // function UserAuctionPending() {
-        
-    //     return auctionStatus==="PENDING"? <Typography>Auction has not been started by Admin! <br /> Auction is Coming !!</Typography>:<Typography>Auction has ended</Typography>
-    // }
 
     function ShowPlayerAvatar(props) {
         return (
@@ -579,24 +557,40 @@ export default function Auction() {
         return (<Typography align="center">{props.message}</Typography>);
     }
 
-    if (hasGroup()) {
-        // console.log(auctionStatus);
-        if ( auctionStatus === "PENDING") {
-            return (
-                <div align="center">
-                    <DisplayPendingOver message="Auction has not yet started"/>
-                    <DisplayPendingButton/>
-                </div>);
-        } else if (auctionStatus === "OVER") {
-            return (
-                <div align="center">
-                    <DisplayPendingOver message="Auction is Over"/>
-                </div>);
-        } else if (auctionStatus === "RUNNING") {
-            return (<AdminAuction />); 
-        } else {
-            return (<BlankArea/>);
+    function DisplayAuctionInformation() {
+        if (hasGroup()) {
+            // console.log(auctionStatus);
+            if ( auctionStatus === "PENDING") {
+                return (
+                    <div align="center">
+                        <DisplayPendingOver message="Auction has not yet started"/>
+                        <DisplayPendingButton/>
+                    </div>);
+            } else if (auctionStatus === "OVER") {
+                return (
+                    <div align="center">
+                        <DisplayPendingOver message="Auction is Over"/>
+                    </div>);
+            } else if (auctionStatus === "RUNNING") {
+                return (
+                    <div align="center">
+                        <DisplayRunningAuction />
+                    </div>
+                    ); 
+            } else {
+                return (<BlankArea/>);
         } 
-    } else
-        return <NoGroup/>;
+        } else
+            return <NoGroup/>;
+    }
+
+    return (
+        <div align="center">
+            <DisplayPageHeader headerName="AUCTION" groupName={localStorage.getItem("groupName")}/>
+            <BlankArea/>
+            <DisplayAuctionInformation/>
+        </div>
+    );
+
+ 
 }

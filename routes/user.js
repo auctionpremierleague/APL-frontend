@@ -68,7 +68,7 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
       status: true,
       defaultGroup: 0,
       email: uEmail,
-      userPlan: USERTYPE.SUPERUSER,
+      userPlan: USERTYPE.TRIAL,
     });
   user1.save();
   // console.log(user1);
@@ -96,9 +96,8 @@ router.get('/login/:uName/:uPassword', async function (req, res, next) {
   var {uName, uPassword } = req.params;
   var isValid = false;
   let lName = getLoginName(uName);
-  console.log(lName);
   let uRec = await User.findOne({ userName:  lName});
-
+  // console.log(uRec)
   if (await userAlive(uRec)) 
     isValid = (uPassword === uRec.password);
 

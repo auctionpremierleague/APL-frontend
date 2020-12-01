@@ -109,8 +109,13 @@ export default function SignUp() {
   const handleSubmit = async() => {
     console.log("Submit command provided");
     let response = await fetch(`/user/signup/${userName}/${password}/${email}`);
-    setRegisterStatus(response.status);
-    console.log(`Status is ${response.status}`);
+    if (response.status === 200) {
+      history.push("/signin");
+    } else {
+      // error
+      setRegisterStatus(response.status);
+      console.log(`Status is ${response.status}`);
+    }
   }
 
   function handleLogin() {

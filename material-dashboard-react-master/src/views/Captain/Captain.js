@@ -16,7 +16,7 @@ import Radio from '@material-ui/core/Radio';
 import { UserContext } from "../../UserContext";
 import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import { hasGroup } from 'views/functions';
-import red from '@material-ui/core/colors/red';
+import { red, blue } from '@material-ui/core/colors';
 import { updateLanguageServiceSourceFile } from 'typescript';
 const vcPrefix = "vicecaptain-"
 const cPrefix = "captain-"
@@ -46,6 +46,14 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
         marginTop: '0px',
     },
+    updatemsg:  {
+        // right: 0,
+        fontSize: '12px',
+        color: blue[700],
+        // position: 'absolute',
+        alignItems: 'center',
+        marginTop: '0px',
+    },
     hdrText:  {
         // right: 0,
         // fontSize: '12px',
@@ -69,6 +77,7 @@ export default function Group() {
     const [selectedCaptain, SetSelectedCaptain] = useState("");
     const [myTeamTableData, setMyTeamTableData] = useState([]);
     const [tournamentStated, setTournamentStarted] = useState(false);
+    const [ errorMessage, setErrorMessage ] = React.useState("");
 
 
       
@@ -83,6 +92,11 @@ export default function Group() {
             // get start of tournamnet (i.e. start of 1st match)
             var gameStarted = false;  
             var mygroup  = localStorage.getItem("gid")
+            var response = await axios.get(`/group/gamestarted/${localStorage.getItem("gid")}`);
+            gameStarted = (response.data.length > 0);
+            setTournamentStarted(gameStarted);
+
+
             var response = await axios.get(`/user/getcaptain/${mygroup}/${localStorage.getItem("uid")}`);
             // console.log(response.data[0]);
             if (response.data.length > 0) {
@@ -95,11 +109,8 @@ export default function Group() {
             const teamResponse = await axios.get(myUrl);
             setMyTeamTableData(teamResponse.data[0].players);
             // console.log(teamResponse.data[0].players) ;
+            
 
-            response = await axios.get(`/group/gamestarted/${localStorage.getItem("gid")}`);
-            gameStarted = (response.data.length > 0);
-            // gameStarted = false;
-            setTournamentStarted(gameStarted);
         }
         a();
     }, [])
@@ -125,10 +136,17 @@ export default function Group() {
         var myUrl = `/user/captainvicecaptain/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${tmp1.pid}/${tmp2.pid}`;
         // console.log(myUrl);
         const resp = await  axios.get(myUrl);
+        // console.log(resp.status)
+        if (resp.status === 200)
+            setErrorMessage("Successfully updated Captain / ViceCaptain details");
+        else
+           setErrorMessage("Error updating Captain / ViceCaptain details");
     }
 
+
+
     function DisplayCaptainSelectButton() {
-    return (
+        return (
         <div align="center">
         <Button variant="contained" color="primary" size="small"
             disabled={tournamentStated}
@@ -196,6 +214,10 @@ export default function Group() {
             <DisplayPageHeader headerName="Captain/ViceCaptain" groupName={localStorage.getItem("groupName")}/>
             <DisplayTournamentStarted/>
             <ShowCaptainViceCaptain/>
+            <div>
+                <Typography className={classes.updatemsg} align="left">{errorMessage}</Typography>
+            </div>
+            <br/>
             <DisplayCaptainSelectButton/>
         </div>
         );

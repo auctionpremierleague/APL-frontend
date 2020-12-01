@@ -17,7 +17,7 @@ const doMaxWicket = 2;
 // ]; 
 
 // use for testing
-// const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
+const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
 
 // const keylist = [
 // "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -29,13 +29,13 @@ const doMaxWicket = 2;
 // ]
 
 // list provided by ANKIT
-const keylist = [
-  "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
-  "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
-  "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
-  "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
-  "8LweszMN9vMnjb4W9UjjeQzTgEx1"
-]
+// const keylist = [
+//   "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
+//   "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
+//   "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
+//   "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
+//   "8LweszMN9vMnjb4W9UjjeQzTgEx1"
+// ]
 
 // to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
@@ -1200,7 +1200,7 @@ async function statCalculation (igroup) {
 // func 2 ==> del match from the list once match is over
 // this list is used by schedule to do calc
 
-function addRunningMatch(mmm) {
+async function addRunningMatch(mmm) {
   // console.log(`Adding match ${mmm.mid}`);
   let tmp = _.filter(runningMatchArray, x => x.mid === mmm.mid);
   if (tmp.length === 0) {
@@ -1210,7 +1210,7 @@ function addRunningMatch(mmm) {
   // console.log("Add over");
 }
 
-function delRunningMatch(mmm) {
+async function delRunningMatch(mmm) {
   _.remove(runningMatchArray, {mid: mmm.mid});
 }
 
@@ -1328,6 +1328,7 @@ async function update_cricapi_data_r1(logToResponse)
     for(aidx=0; aidx < matchesFromDB.length; ++aidx) {
       let mmm = matchesFromDB[aidx];
       addRunningMatch(mmm);
+      await updateTournamentStarted(mmm.tournament);   
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
       if (cricData != null)
       if (cricData.data != null) {
@@ -1336,13 +1337,13 @@ async function update_cricapi_data_r1(logToResponse)
         var currdate = new Date();
         console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
         if (mmm.matchEndTime < new Date()) {
-          delRunningMatch(mmm);
           mmm.matchEnded = true;
           mmm.save();
+          delRunningMatch(mmm);
+          await checkTournamentOver(mmm.tournament);
         }     
       }
     }
-    // });
     return;
 }
 
@@ -1792,10 +1793,12 @@ async function sendDashboardData() {
 
 async function updateTournamentBrief() {
   var currDate = new Date();
+  console.log("in update")
   if (currDate.getHours() === 23) {
     console.log(currDate);
     await check_all_tournaments();
   }
+  console.log("out of update");
 }
 
 // schedule task

@@ -562,46 +562,29 @@ router.get('/memberof/:userid', async function(req, res, next) {
   var {userid}=req.params;
 
   // check if valid user
-  var iuser = allUSER;
-  var ufilter = {}
-  var gfilter = {enable: true};
-  if (userid.toUpperCase() != "ALL") {
-    if (isNaN(userid)) { senderr(623, `Invalid user id ${userid}`); return;}
-    iuser = parseInt(userid);
-    ufilter = {uid: iuser}
-    gfilter = {uid: iuser, enable: true};
-  }
+  var myUser = await User.findOne({uid: userid})
+  if (!myUser) { senderr(623, `Invalid user id ${userid}`); return;}
   // console.log(`${userid} is valid`)
-  var myUsers = await User.find(ufilter)
-  var myGmRec = await GroupMember.find (gfilter);
-  var allGroups = await IPLGroup.find({});
+
+  var myGmRec = await GroupMember.find ({uid: userid});
+  var allGroups = await IPLGroup.find({enable: true});
   // console.log(allGroups);
-  var groupData = [];
-  let uidx;
-  for(uidx=0; uidx < myUsers.length; ++uidx) {
-    let u = myUsers[uidx];
-    // console.log(u);
-    var gData = [];
-    var tmp = _.filter(myGmRec, x => x.uid === u.uid);
-    let i;
-    for(i=0; i<tmp.length; ++i) {
-      let gm = tmp[i];
-      var grp = _.find(allGroups, x => x.gid === gm.gid);
-      var isDefault = gm.gid === u.defaultGroup;
-      var adminSts = (gm.uid === grp.owner) //? "Admin" : "";
-      var xxx =  { gid: gm.gid, displayName: gm.displayName, 
-        groupName: grp.name, tournament: grp.tournament, 
+  var gData = [];
+  allGroups.forEach(ggg => {
+    var tmp = myGmRec.find(x => x.gid === ggg.gid);
+    if (tmp) {
+      var isDefault = tmp.gid === myUser.defaultGroup;
+      var adminSts = (tmp.uid === ggg.owner) //? "Admin" : "";
+      var xxx =  { gid: tmp.gid, displayName: tmp.displayName, 
+        groupName: ggg.name, tournament: ggg.tournament, 
         admin: adminSts, defaultGroup: isDefault};
-      // console.log(grp);
-      // console.log(gm);
-      // console.log(xxx);
-      // if (gm.gid === u.defaultGroup) xxx.default = "Default";
-      gData.push(xxx)
+        gData.push(xxx)
     }
-    gData = _.sortBy(gData, x => x.gid).reverse();
-    // console.log(gData);
-    groupData.push({ uid: u.uid, userName: u.userName, displayName: u.displayName, groups: gData});
-  }
+  });
+  gData = _.sortBy(gData, x => x.gid).reverse();
+  // console.log(gData);
+  var groupData = [];
+  groupData.push({ uid: myUser.uid, userName: myUser.userName, displayName: myUser.displayName, groups: gData});
   // console.log("about to send ok")
   sendok(groupData);
 });
