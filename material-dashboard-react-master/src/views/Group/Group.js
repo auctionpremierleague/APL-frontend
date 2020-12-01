@@ -61,6 +61,9 @@ export default function Group() {
       
     useEffect(() => {
         const a = async () => {
+			// console.log("Start");
+			// console.log(process.env.REACT_APP_LOGO_PATH);
+			// console.log("END");
             // get start of tournamnet (i.e. start of 1st match)
             // var mygroup  = 1;
             window.localStorage.setItem("groupMember", "");

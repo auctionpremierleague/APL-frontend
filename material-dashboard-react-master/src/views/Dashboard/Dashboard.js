@@ -30,7 +30,7 @@ import CardFooter from "components/Card/CardFooter.js";
 
 import socketIOClient from "socket.io-client";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import {ENDPOINT, hasGroup} from "views/functions.js";
+import {hasGroup} from "views/functions.js";
 import { NoGroup } from 'CustomComponents/CustomComponents.js';
 
 
@@ -76,7 +76,7 @@ export default function Dashboard() {
       sockConn.emit("page", sendMessage);
     }
 
-    var sockConn = socketIOClient(ENDPOINT);
+    var sockConn = socketIOClient(process.env.REACT_APP_ENDPOINT);
     // console.log("in dashboard before make connection");
     makeconnection();
     // console.log("in dashboard after make connection");

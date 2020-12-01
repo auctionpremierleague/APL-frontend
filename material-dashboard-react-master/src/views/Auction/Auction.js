@@ -32,7 +32,7 @@ import CardBody from "components/Card/CardBody.js";
 import { BlankArea, NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import { UserContext } from "../../UserContext";
 import socketIOClient from "socket.io-client";
-import { ENDPOINT, hasGroup } from 'views/functions';
+import { hasGroup } from 'views/functions';
 
 
 const drawerWidth = 100;
@@ -163,7 +163,7 @@ export default function Auction() {
     // console.log(`Dangerous ${playerId}`)
     useEffect(() => {
         var sendMessage = {page: "AUCT", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
-        var sockConn = socketIOClient(ENDPOINT);
+        var sockConn = socketIOClient(process.env.REACT_APP_ENDPOINT);
 
         const makeconnection = async () => {
           await sockConn.connect();

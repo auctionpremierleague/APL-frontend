@@ -17,7 +17,7 @@ import { makeStyles } from '@material-ui/core/styles';
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import socketIOClient from "socket.io-client";
 import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
-import {ENDPOINT, socketPoint} from "views/functions.js";
+import {socketPoint} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -46,7 +46,7 @@ export default function Stats() {
       await socket.connect();
     }
 
-    const socket = socketIOClient(ENDPOINT);
+    const socket = socketIOClient(process.env.REACT_APP_ENDPOINT);
 
     makeconnection();
 
