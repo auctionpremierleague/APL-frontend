@@ -235,6 +235,13 @@ StatSchema = mongoose.Schema({
   oversBowled: Number,
   maxTouramentRun: Number,
   maxTouramentWicket: Number,
+  // fielding details
+  runout: Number,
+  stumped: Number,
+  bowled: Number,
+  lbw: Number,
+  catch: Number,
+
   // overall performance
   manOfTheMatch: Boolean
 });
