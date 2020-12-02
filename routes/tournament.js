@@ -20,6 +20,13 @@ router.get(`/list/running`, function(req, res, next) {
   publishTournament({over: false});
 });
 
+router.get(`/list/notstarted`, function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+  publishTournament({started: false});
+});
+
 router.get(`/list/over`, function(req, res, next) {
   TournamentRes = res;
   setHeader();

@@ -281,6 +281,12 @@ BriefStatSchema = mongoose.Schema({
   hattrick: Number,
   maiden: Number,
   oversBowled: Number,
+  // fielding details
+  runout: Number,
+  stumped: Number,
+  bowled: Number,
+  lbw: Number,
+  catch: Number,
   // overall performance
   maxTouramentRun: Number,
   maxTouramentWicket: Number,

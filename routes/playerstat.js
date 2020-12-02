@@ -17,7 +17,7 @@ const doMaxWicket = 2;
 // ]; 
 
 // use for testing
-// const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
+// const keylist= [ "bbdCNNOKBtPnL54mvGSgpToFUlA2" ];
 
 // const keylist = [
 // "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -1412,6 +1412,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       briefIndex = _.findIndex(allbriefstats, {sid: currMatch, pid: parseInt(bowler.pid)});
       if (briefIndex < 0) {
         var tmp = getBlankBriefRecord(briefStat);
+        // console.log(tmp);
         tmp.sid = currMatch;
         tmp.pid = bowler.pid;
         tmp.playerName = bowler.bowler;
@@ -1521,6 +1522,48 @@ async function updateMatchStats_r1(mmm, cricdata)
     });
   });
 
+  fieldingArray.forEach( x => {
+    x.scores.forEach(fielder => {
+      // console.log(`Fielding of ${fielder.pid}`)
+      myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(fielder.pid)});
+      if (myindex < 0) {
+        var tmp = getBlankStatRecord(tournamentStat);
+        tmp.mid = currMatch;
+        tmp.pid = fielder.pid;
+        tmp.playerName = fielder.name;
+        allplayerstats.push(tmp);
+        myindex = allplayerstats.length - 1;
+      }
+      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, pid: parseInt(fielder.pid)});
+      if (briefIndex < 0) {
+        var tmp = getBlankBriefRecord(briefStat);
+        tmp.sid = currMatch;
+        tmp.pid = fielder.pid;
+        tmp.playerName = fielder.name;
+        // console.log(`length is ${allbriefstats.length}`);
+        allbriefstats.push(tmp);
+        briefIndex = allbriefstats.length - 1;
+      }
+
+      allplayerstats[myindex].runout = (fielder.runout === undefined) ? 0 : fielder.runout;
+      allplayerstats[myindex].stumped = (fielder.stumped === undefined) ? 0 : fielder.stumped;
+      allplayerstats[myindex].bowled = (fielder.bowled === undefined) ? 0 : fielder.bowled;
+      allplayerstats[myindex].lbw = (fielder.lbw === undefined) ? 0 : fielder.lbw;
+      allplayerstats[myindex].catch = (fielder.catch === undefined) ? 0 : fielder.catch;
+
+      allbriefstats[briefIndex].runout = (fielder.runout === undefined) ? 0 : fielder.runout;
+      allbriefstats[briefIndex].stumped = (fielder.stumped === undefined) ? 0 : fielder.stumped;
+      allbriefstats[briefIndex].bowled = (fielder.bowled === undefined) ? 0 : fielder.bowled;
+      allbriefstats[briefIndex].lbw = (fielder.lbw === undefined) ? 0 : fielder.lbw;
+      allbriefstats[briefIndex].catch = (fielder.catch === undefined) ? 0 : fielder.catch;
+
+      var myscore = calculateScore(allplayerstats[myindex]);
+      allplayerstats[myindex].score = myscore;
+      allbriefstats[briefIndex].score = myscore;
+    });
+  });
+
+
   // update statistics in mongoose
   //console.log(allplayerstats.length);
   //console.log("Saveing statsu");
@@ -1528,6 +1571,8 @@ async function updateMatchStats_r1(mmm, cricdata)
     ps.save();
   })
   allbriefstats.forEach(ps => {
+    // if (ps.pid === 288284) 
+    // console.log(ps);
     ps.save();
   })
 
@@ -1600,7 +1645,7 @@ function getBlankStatRecord(tournamentStat) {
 }
 
 function getBlankBriefRecord(tournamentStat) {
-  return new tournamentStat( {
+  let tmp = new tournamentStat( {
     sid: RUNNINGMATCH,
     pid: 0,
     playerName: "",
@@ -1631,6 +1676,8 @@ function getBlankBriefRecord(tournamentStat) {
     maxTouramentRun: 0,
     maxTouramentWicket: 0,
   });
+  // console.log(tmp);
+  return(tmp);
 }
 
 function calculateScore(mystatrec) {
@@ -1670,7 +1717,7 @@ async function fetchMatchStatsFromCricapi(matchId) { // (1)
     let json = await cricres.json(); // (3)
     return json;
   }
-  console
+  // console
   throw new Error(cricres.status);
 }
 
@@ -1812,7 +1859,7 @@ async function sendDashboardData() {
 async function updateTournamentBrief() {
   var currDate = new Date();
   console.log("in update")
-  if (currDate.getHours() === 23) {
+  if (currDate.getHours() === 0) {
     console.log(currDate);
     await check_all_tournaments();
   }

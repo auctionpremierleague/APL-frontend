@@ -120,7 +120,7 @@ export default function CreateGroup() {
   
   useEffect(() => {
     const a = async () => {
-        var response = await axios.get(`/tournament/list/running`); 
+        var response = await axios.get(`/tournament/list/notstarted`); 
         // console.log("Getting tournament list");
         // console.log(response.data);
         setTournamentData(response.data);
