@@ -163,6 +163,14 @@ PlayerSchema = mongoose.Schema({
   battingStyle: String,
   tournament: String
 });
+
+SkippedPlayerSchema = mongoose.Schema({
+  gid: Number,
+  pid: Number,
+  playerName: String,
+  tournament: String
+});
+
 AuctionSchema = mongoose.Schema({
   gid: Number,
   uid: Number,
@@ -312,7 +320,7 @@ Team = mongoose.model("iplteams", TeamSchema);
 Stat = mongoose.model("iplplayerstats", StatSchema);
 Tournament = mongoose.model("tournaments", TournamentSchema);
 MasterData = mongoose.model("MasterSettings", MasterSettingsSchema)
-
+SkippedPlayer = mongoose.model("skippedplayers", SkippedPlayerSchema)
 CricapiMatch = mongoose.model("cricApiMatch", CricapiMatchSchema)
 
 nextMatchFetchTime = new Date();

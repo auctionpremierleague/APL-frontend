@@ -283,6 +283,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
     const newName = document.getElementById("franchise").value;
     if (newName !== myDisplayName) {
       // console.log(`New display name ${newName}`);
+      setDisplayName(newName);
       await updateFranchiseName(localStorage.getItem("gdGid"), newName);
       setUserMessage("Successfully updated Franchise details");
       setBackDropOpen(true);

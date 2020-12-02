@@ -24,6 +24,7 @@ var auctionGroupMembers;
 var auctionAllPlayers;
 var auctionSoldPlayers;
 var auctionNewPlayer;
+var skippedPlayerList;
 
 function calculateBalance() {
   // calculate fresh balance for all users to be submitted to caller
@@ -44,23 +45,41 @@ function calculateBalance() {
   return balanceDetails;
 }
 
-function processNextPlayer(isItSamePlayer, howToSend) {
+async function processNextPlayer(isItSamePlayer, howToSend) {
 
   if (isItSamePlayer === NOTSAMEPLAYER) {
+    // console.log(skippedPlayerList);
     // identify players who are still not sold and thus are available for purchase
     var soldPlayerId = _.map(auctionSoldPlayers, 'pid');
-    var allPlayers = _.filter(auctionAllPlayers, x => !soldPlayerId.includes(x.pid) );
+    var allUnsoldPlayerList = _.filter(auctionAllPlayers, x => !soldPlayerId.includes(x.pid) );
+    // now remove the skipped players
+    var skipPlayerId = _.map(skippedPlayerList, 'pid');
+    console.log(skipPlayerId);
+    var allPlayers = _.filter(allUnsoldPlayerList, x => !skipPlayerId.includes(x.pid) );
+    // cehck if no player available. 
+    // We will now use skipped players
+    if (allPlayers.length === 0) {
+      console.log("Will be using skipped players")
+      // removed all players from skipped player table
+      await SkippedPlayer.deleteMany({gid: auctionGroup.gid})
+      // use unsold player list (not to removed skipped players now.)
+      allPlayers = [].concat(allUnsoldPlayerList);
+    }
+    // console.log(`Balance players ${allPlayers.length} Sold Players ${soldPlayerId.length} Skipped players ${skipPlayerId.length}`);
+
     // select new player  
-    var myIndex = Math.floor( Math.random() * allPlayers.length );
+    var myIndex;
+    myIndex = Math.floor( Math.random() * allPlayers.length );
     auctionGroup.auctionPlayer = allPlayers[myIndex].pid;
     auctionGroup.auctionBid = 0;
     auctionGroup.currentBidUid = 0;
     auctionGroup.currentBidUser = '';
-    console.log(auctionGroup);
+    // console.log(auctionGroup);
     auctionGroup.save();
     sendNewBidToClient(auctionGroup);
     auctionNewPlayer = allPlayers[myIndex]; 
   }
+  
   newBalance = calculateBalance();
   if (howToSend === SENDSOCKET) {
     sendPlayerChangeToClient(auctionGroup.gid, auctionNewPlayer, newBalance);
@@ -142,8 +161,9 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
 
   // send player added  user's auction kitty
   sendBidOverToClient({gid: igroup, uid: iuser, bidAmount: ibid, userName: auctionUser.displayName, playerName: myplayer.name});
-
-  processNextPlayer(NOTSAMEPLAYER, SENDSOCKET);
+  
+  skippedPlayerList = await SkippedPlayer.find({gid: igroup});
+  await processNextPlayer(NOTSAMEPLAYER, SENDSOCKET);
   return;
   // now find all unsold players 
   // remember that iplayer just got sold, thus will not be part of unsold player list
@@ -293,13 +313,28 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
     senderr(704, `Player ${playerId} does not belong to touranament ${auctionGroup.tournament}`);
     return;
   }
-  // ignoring check if player is sold
 
   // remove this player if player is skipped
   // console.log(auctionAllPlayers.length);
-  auctionAllPlayers = _.remove(auctionAllPlayers, x => x.pid !== myplayer.pid);
+  // auctionAllPlayers = _.remove(auctionAllPlayers, x => x.pid !== myplayer.pid);
   // console.log(auctionAllPlayers.length);
-  processNextPlayer(NOTSAMEPLAYER, SENDSOCKET);
+
+  // add this player in skipped list
+  var skpRec = new SkippedPlayer({
+    gid: groupId,
+    pid: myplayer.pid,
+    playerName: myplayer.name,
+    tournament: myplayer.tournament
+  });
+  skpRec.save();
+
+  skippedPlayerList = await SkippedPlayer.find({gid: groupId});
+  skippedPlayerList.push(skpRec);
+  // console.log("Total skipped players");
+  // console.log(skippedPlayerList.length);
+
+  auctionSoldPlayers = await PauctionList;
+  await processNextPlayer(NOTSAMEPLAYER, SENDSOCKET);
   return;
   // now find all unsold players 
 
@@ -382,7 +417,7 @@ router.get('/current/:groupId', async function(req, res, next) {
   auctionGroupMembers = await GroupMember.find({gid: groupId});
   auctionNewPlayer = await Player.findOne({tournament: auctionGroup.tournament, pid: auctionGroup.auctionPlayer});
   auctionSoldPlayers = await PauctionList;
-  processNextPlayer(SAMEPLAYER, SENDRES);
+  await processNextPlayer(SAMEPLAYER, SENDRES);
   return;
   // var igroup = myGroup.gid;
   // var playerId = myGroup.auctionPlayer;
