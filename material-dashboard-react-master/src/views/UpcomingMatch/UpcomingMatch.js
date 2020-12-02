@@ -133,7 +133,7 @@ export default function MatchInfo() {
             <div>
                 {/* <h3 align="center">Tournament ({localStorage.getItem("tournament")})</h3> */}
                 {/* <h3 align="center">Matches</h3> */}
-                <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")}/>
+                <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
                 <ShowCurrentMatch/>
                 <ShowUpcomingMatch/>
             </div>

@@ -2,8 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
-import red from '@material-ui/core/colors/red';
-import blue from '@material-ui/core/colors/blue';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from '@material-ui/core/Dialog';
+import {red, blue, green} from '@material-ui/core/colors';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -42,6 +43,13 @@ error:  {
       alignItems: 'center',
       marginTop: '0px',
   },
+successMessage: {
+    color: green[700],
+}, 
+failureMessage: {
+  color: red[700],
+}, 
+
 }));
 
 export class NoGroup extends React.Component {
@@ -62,12 +70,26 @@ export function DisplayGroupName (props) {
 }
 
 export function DisplayPageHeader (props) {
-return (
-  <div>
-    <Typography align="center" component="h1" variant="h5">{props.headerName}</Typography>
-    <DisplayGroupName groupName={props.groupName}/>
-  </div>
-);
+    let msg = props.groupName + '-' + props.tournament;
+    return (
+    <div>
+      <Typography align="center" component="h1" variant="h5">{props.headerName}</Typography>
+      <DisplayGroupName groupName={msg}/>
+    </div>
+  );
+}
+
+
+export function MessageToUser (props) {
+  const classes = useStyles();
+  // console.log(props.mtuMessage);
+  let myClass = props.mtuMessage.toLowerCase().includes("success") ? classes.successMessage : classes.failureMessage;
+  return (
+  <Dialog aria-labelledby="simple-dialog-title" open={props.mtuOpen}
+      onClose={() => {props.mtuClose(false)}} >
+      <DialogTitle id="simple-dialog-title" className={myClass}>{props.mtuMessage}</DialogTitle>
+  </Dialog>
+  );
 }
 
 

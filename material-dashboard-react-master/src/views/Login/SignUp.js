@@ -110,6 +110,7 @@ export default function SignUp() {
     console.log("Submit command provided");
     let response = await fetch(`/user/signup/${userName}/${password}/${email}`);
     if (response.status === 200) {
+      let setemailresp = await fetch(`/user/emailwelcome/${email}`);
       history.push("/signin");
     } else {
       // error

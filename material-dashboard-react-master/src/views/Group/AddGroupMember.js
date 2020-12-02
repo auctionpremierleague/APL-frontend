@@ -33,7 +33,7 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import { useHistory } from "react-router-dom";
 import GroupMember from "views/Group/GroupMember.js"
 import NewGroup from "views/Group/NewGroup.js"
-import {DisplayPageHeader} from "CustomComponents/CustomComponents.js"
+import {DisplayPageHeader, MessageToUser} from "CustomComponents/CustomComponents.js"
 
 
 export default function AddGroupMember() {
@@ -248,7 +248,9 @@ const [filterString, setfilterString] = React.useState("");
 const [page, setPage] = React.useState(0);
 const [dense, setDense] = React.useState(true);
 const [rowsPerPage, setRowsPerPage] = React.useState(10);
-const [ errorMessage, setErrorMessage ] = React.useState("");
+const [errorMessage, setErrorMessage ] = React.useState("");
+const [backDropOpen, setBackDropOpen] = React.useState(false);
+const [userMessage, setUserMessage] = React.useState("");
 
   useEffect(() => {       
     const fetchMember = async () => {
@@ -386,7 +388,10 @@ const handleClick = (event, myUid) => {
       let response = await axios.get(`/group/delete/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${delMember[uidx]}`)
       // console.log(response);
     }
-    setErrorMessage(`Successfully added and/or removed members of group ${localStorage.getItem("gdName")}`)
+    // setErrorMessage(`Successfully added and/or removed members of group ${localStorage.getItem("gdName")}`)
+    setUserMessage(`Successfully added and/or removed members of group ${localStorage.getItem("gdName")}`);
+    setBackDropOpen(true);
+    setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
 }
 
 
@@ -413,7 +418,7 @@ function ShowGmButtons() {
       <Paper className={classes.paper}>
         {/* <EnhancedTableToolbar numSelected={selected.length} /> */}
         {/* <h3 align = "center" margin-top= "0px" margin-bottom= "0px">Edit Member List ({localStorage.getItem("gdName")})</h3> */}
-        <DisplayPageHeader headerName="Edit Member List" groupName={localStorage.getItem("gdName")}/>
+        <DisplayPageHeader headerName="Edit Member List" groupName={localStorage.getItem("gdName")} tournament={localStorage.getItem("gdTournament")}/>
         <ShowFilters/>
         <TableContainer>
           <Table
@@ -498,6 +503,7 @@ function ShowGmButtons() {
       </div>
       <br/>
       <ShowGmButtons/>
+      <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={userMessage} />
     </div>
 );
 }

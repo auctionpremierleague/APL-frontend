@@ -14,7 +14,7 @@ import Radio from '@material-ui/core/Radio';
 // import Card from "components/Card/Card.js";
 // import CardBody from "components/Card/CardBody.js";
 import { UserContext } from "../../UserContext";
-import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
+import { NoGroup, DisplayPageHeader, MessageToUser } from 'CustomComponents/CustomComponents.js';
 import { hasGroup } from 'views/functions';
 import { red, blue } from '@material-ui/core/colors';
 import { updateLanguageServiceSourceFile } from 'typescript';
@@ -78,7 +78,8 @@ export default function Group() {
     const [myTeamTableData, setMyTeamTableData] = useState([]);
     const [tournamentStated, setTournamentStarted] = useState(false);
     const [ errorMessage, setErrorMessage ] = React.useState("");
-
+    const [backDropOpen, setBackDropOpen] = React.useState(false);
+    const [userMessage, setUserMessage] = React.useState("");
 
       
     useEffect(() => {
@@ -137,10 +138,15 @@ export default function Group() {
         // console.log(myUrl);
         const resp = await  axios.get(myUrl);
         // console.log(resp.status)
-        if (resp.status === 200)
-            setErrorMessage("Successfully updated Captain / ViceCaptain details");
-        else
-           setErrorMessage("Error updating Captain / ViceCaptain details");
+        if (resp.status === 200) {
+            // setErrorMessage("Successfully updated Captain / ViceCaptain details");
+            setUserMessage("Successfully updated Captain / ViceCaptain details");
+        } else {
+        //    setErrorMessage("Error updating Captain / ViceCaptain details");
+           setUserMessage("Error updating Captain / ViceCaptain details");
+        }
+        setBackDropOpen(true);
+        setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
     }
 
 
@@ -211,14 +217,15 @@ export default function Group() {
             {/* <h3 className={classes.hdrText} align="center">Captain/ViceCaptain</h3> */}
             {/* <Typography align="center" component="h1" variant="h5">Captain/ViceCaptain</Typography> */}
             {/* <DisplayGroupName groupName={localStorage.getItem("groupName")}/> */}
-            <DisplayPageHeader headerName="Captain/ViceCaptain" groupName={localStorage.getItem("groupName")}/>
+            <DisplayPageHeader headerName="Captain/ViceCaptain" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
             <DisplayTournamentStarted/>
             <ShowCaptainViceCaptain/>
-            <div>
+            {/* <div>
                 <Typography className={classes.updatemsg} align="left">{errorMessage}</Typography>
-            </div>
+            </div> */}
             <br/>
             <DisplayCaptainSelectButton/>
+            <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={userMessage} />
         </div>
         );
     else

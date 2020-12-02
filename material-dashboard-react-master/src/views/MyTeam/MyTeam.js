@@ -107,7 +107,7 @@ export default function App() {
                 {/* <h3 align="center">My Team</h3> */}
                 {/* <Typography align="center" component="h1" variant="h5">My Team</Typography>
                 <DisplayGroupName groupName={localStorage.getItem("groupName")}/> */}
-                <DisplayPageHeader headerName="My Team" groupName={localStorage.getItem("groupName")}/>
+                <DisplayPageHeader headerName="My Team" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
                 <Table
                     key={team.displayName}
                     id={team.displayName}

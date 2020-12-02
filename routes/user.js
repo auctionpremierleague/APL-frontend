@@ -46,10 +46,10 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
   var dname = getDisplayName(uName);
   uEmail = uEmail.toLowerCase();
 
-  let myCount = await User.count({userName: lname });
-  if (myCount > 0) {senderr(602, "User name already used."); return; }
-  myCount = await User.count({ email: uEmail });
-  if (myCount > 0) {senderr(603, "Email already used."); return; }
+  let uuu = await User.findOne({userName: lname });
+  if (uuu) {senderr(602, "User name already used."); return; }
+  uuu = await User.findOne({ email: uEmail });
+  if (uuu) {senderr(603, "Email already used."); return; }
   
   // uid: Number,
   // userName: String,
@@ -106,7 +106,7 @@ router.get('/login/:uName/:uPassword', async function (req, res, next) {
 });
 
 //=============== forgot passord. email pwd to user
-router.get('/emailpassword/:mailid', async function (req, res, next) {
+router.get('/xxxxxemailpassword/:mailid', async function (req, res, next) {
   CricRes = res;
   setHeader();
   var {mailid} = req.params;
@@ -114,18 +114,49 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
   let uRec = await User.findOne({ email: mailid });
   if (!uRec) {senderr(602, "Invalid email id"); return  }
   
-  MYEMAILID='cricketpwd@gmail.com';
+
+  // mailOptions.to = uRec.email;
+  let mySubject = 'User info from CricDream';
+  let myText = `Dear User,
+  
+    Greeting from CricDeam.
+
+    As request by you here is your password.
+
+    Login Name: ${uRec.userName} 
+    User Name : ${uRec.displayName}
+    Password  : ${uRec.password}
+
+    Regards,
+    for Cricdream.`
+
+    if (sendEmailToUser(urec.email, mySubject, myText))
+      sendok("OK")
+    else
+      senderr(603, EMAILERROR);
+}); 
+
+
+router.get('/emailpassword/:mailid', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var {mailid} = req.params;
+  var isValid = false;
+  mailid = mailid.toLowerCase();
+  let uRec = await User.findOne({ email: mailid });
+  if (!uRec) {senderr(602, "Invalid email id"); return  }
+  
 
   var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: MYEMAILID,
+      user: CRICDREAMEMAILID,
       pass: 'Anob@1989#93'
     }
   });
 
   var mailOptions = {
-    from: MYEMAILID,
+    from: CRICDREAMEMAILID,
     to: 'arunsalgia@gmail.com',
     subject: 'User info from CricDream',
     text: 'That was easy!'
@@ -138,7 +169,66 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
 
     As request by you here is your password.
 
-    Password:  ${uRec.password}
+    Login Name: ${uRec.userName} 
+    User Name : ${uRec.displayName}
+    Password  : ${uRec.password}
+
+    Regards,
+    for Cricdream.`
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      senderr(603, error);
+    } else {
+      console.log('Email sent: ' + info.response);
+      sendok('Email sent: ' + info.response);
+    }
+  });
+}); 
+
+router.get('/emailwelcome/:mailid', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var {mailid} = req.params;
+  var isValid = false;
+  mailid = mailid.toLowerCase();
+
+  let uRec = await User.findOne({ email: mailid });
+  console.log(uRec)
+  if (!uRec) {senderr(602, "Invalid email id"); return  }
+
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: CRICDREAMEMAILID,
+      pass: 'Anob@1989#93'
+    }
+  });
+
+  var mailOptions = {
+    from: CRICDREAMEMAILID,
+    to: 'arunsalgia@gmail.com',
+    subject: 'Welcome to CricDream',
+    text: 'That was easy!'
+  };
+
+  mailOptions.to = uRec.email;
+  mailOptions.text = `Dear ${uRec.displayName},
+  
+    Welcome to the family of CricDeam.
+
+    Thanking you registering in CricDream.
+
+    You can now create Group, with family and friends and select the tournament,
+    Auction players among group members
+    and let CricDream provide you the players details during the tournament.
+
+    Your login details are:
+    
+    Login Name: ${uRec.userName} 
+    User Name : ${uRec.displayName}
+    Password  : ${uRec.password}
 
     Regards,
     for Cricdream.`

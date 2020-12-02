@@ -12,7 +12,7 @@ import { makeStyles } from '@material-ui/core/styles';
 // import CardBody from "components/Card/CardBody.js";
 // import { useLocation } from "react-router-dom";
 import AddGroupMember from "views/Group/AddGroupMember.js"
-import {DisplayPageHeader} from "CustomComponents/CustomComponents.js"
+import {DisplayPageHeader,MessageToUser} from "CustomComponents/CustomComponents.js"
 
 const drawerWidth = 100;
 const useStyles = makeStyles((theme) => ({
@@ -121,7 +121,7 @@ export default function GroupMember() {
     return (
         <div key={localStorage.getItem("gdName")}>
             {/* <h3 className={classes.cardTitle} align="center">Group Members ({localStorage.getItem("gdName")})</h3> */}
-            <DisplayPageHeader headerName="Group Members" groupName={localStorage.getItem("gdName")}/>
+            <DisplayPageHeader headerName="Group Members" groupName={localStorage.getItem("gdName")} tournament={localStorage.getItem("gdTournament")}/>
             <Table
             align="center"
             id={localStorage.getItem("gdName")}

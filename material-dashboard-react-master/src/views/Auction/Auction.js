@@ -29,7 +29,7 @@ import Avatar from "@material-ui/core/Avatar"
 import Card from "components/Card/Card.js";
 import CardAvatar from "components/Card/CardAvatar.js";
 import CardBody from "components/Card/CardBody.js";
-import { BlankArea, NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
+import { BlankArea, NoGroup, DisplayPageHeader, MessageToUser } from 'CustomComponents/CustomComponents.js';
 import { UserContext } from "../../UserContext";
 import socketIOClient from "socket.io-client";
 import { hasGroup } from 'views/functions';
@@ -144,7 +144,7 @@ export default function Auction() {
     // const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
     // const [selectedOwner, setSelectedOwner] = useState(null);
     const [backDropOpen, setBackDropOpen] = useState(false);
-    const [playerStatus, setPlayerStatus] = useState();
+    const [playerStatus, setPlayerStatus] = useState("");
     const [AuctionTableData, setAuctionTableData] = useState([]);
     const [myBalanceAmount, setMyBalanceAmount] = useState(0);
 
@@ -157,7 +157,8 @@ export default function Auction() {
     function DisplayBidOverMsg(msg) {
         setPlayerStatus(msg);
         // setConfirmDialogOpen(false);
-        setBackDropOpen(true);        
+        setBackDropOpen(true); 
+        setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);       
     }
 
     // console.log(`Dangerous ${playerId}`)
@@ -304,7 +305,8 @@ export default function Auction() {
             </Grid>
             <ShowBalance/>
             <ShowAuctionOverButton/>
-            <ShowDialog/>
+            <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={playerStatus} />
+            {/* <ShowDialog/> */}
         </div>
         );
     }
@@ -486,14 +488,18 @@ export default function Auction() {
             return(<div></div>);
     }
 
-    function ShowDialog() {
-        return (
-        <Dialog aria-labelledby="simple-dialog-title" open={backDropOpen}
-            onClose={() => setBackDropOpen(false)} >
-            <DialogTitle id="simple-dialog-title" className={classes.sold}>{playerStatus}</DialogTitle>
-        </Dialog>
-        );
-    }
+    // function OrgShowDialog() {
+    //     return (
+    //     <Dialog aria-labelledby="simple-dialog-title" open={backDropOpen}
+    //         onClose={() => setBackDropOpen(false)} >
+    //         <DialogTitle id="simple-dialog-title" className={classes.sold}>{playerStatus}</DialogTitle>
+    //     </Dialog>
+    //     );
+    // }
+
+    // function ShowDialog() {
+    //     return (<MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={playerStatus} />);
+    // }
 
     // function SelctNewOwner() {
     //     return (
@@ -586,7 +592,7 @@ export default function Auction() {
 
     return (
         <div align="center">
-            <DisplayPageHeader headerName="AUCTION" groupName={localStorage.getItem("groupName")}/>
+            <DisplayPageHeader headerName="AUCTION" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
             <BlankArea/>
             <DisplayAuctionInformation/>
         </div>

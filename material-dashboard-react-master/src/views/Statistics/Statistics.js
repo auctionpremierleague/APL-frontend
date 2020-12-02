@@ -107,7 +107,7 @@ export default function Stats() {
   return (
     <div className={classes.root}>
       {/* <h3 align="center">Statistics of {localStorage.getItem("tournament")}</h3>  */}
-      <DisplayPageHeader headerName="Statistics" groupName={localStorage.getItem("groupName")}/>
+      <DisplayPageHeader headerName="Statistics" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
       <ShowStats/>
     </div>
   );

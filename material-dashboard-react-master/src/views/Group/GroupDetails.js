@@ -21,7 +21,7 @@ import red from '@material-ui/core/colors/red';
 import blue from '@material-ui/core/colors/blue';
 import { useHistory } from "react-router-dom";
 import {validateSpecialCharacters, validateEmail} from "views/functions.js";
-import {BlankArea, DisplayPageHeader} from "CustomComponents/CustomComponents.js"
+import {BlankArea, DisplayPageHeader, MessageToUser} from "CustomComponents/CustomComponents.js"
 import { useParams } from "react-router";
 import GroupMember from "views/Group/GroupMember.js"
 
@@ -121,6 +121,8 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
 // const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
 
   const { setUser } = useContext(UserContext);
+  const [backDropOpen, setBackDropOpen] = React.useState(false);
+  const [userMessage, setUserMessage] = React.useState("");
 
 
   useEffect(() => {
@@ -282,7 +284,11 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
     if (newName !== myDisplayName) {
       // console.log(`New display name ${newName}`);
       await updateFranchiseName(localStorage.getItem("gdGid"), newName);
+      setUserMessage("Successfully updated Franchise details");
+      setBackDropOpen(true);
+      setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
     }
+
   }
 
   function DisplayFranchise() {
@@ -293,6 +299,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
         <Button key="filterbtn" variant="contained" color="primary" size="small"
           className={classes.button} onClick={SetFranchiseName}>set Franchise
         </Button>
+        <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={userMessage} />
       </div>
     );
   }
@@ -302,7 +309,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
       <CssBaseline />
       <div className={classes.paper} align="center">
         {/* <DisplayHeader/> */}
-    <DisplayPageHeader headerName="Group Details" groupName={myGroupName}/>
+    <DisplayPageHeader headerName="Group Details" groupName={myGroupName} tournament={localStorage.getItem("gdTournament")}/>
      <BlankArea/>
     <ValidatorForm className={classes.form} onSubmit={handleSubmit}>
       <DisplayFranchise/>

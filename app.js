@@ -564,5 +564,56 @@ checkTournamentOver = async function (tournamentName) {
   }
 }
 
+EMAILERROR="";
+CRICDREAMEMAILID='cricketpwd@gmail.com';
+sendEmailToUser = async function(userEmailId, userSubject, userText) {
+  // USERSUBJECT='User info from CricDream';
+  // USEREMAILID='salgia.ankit@gmail.com';
+  // USERTEXT=`Dear User,
+    
+      // Greeting from CricDeam.
+  
+      // As requested by you here is login details.
+  
+      // Login Name: ${uRec.userName} 
+      // User Name : ${uRec.displayName}
+      // Password  : ${uRec.password}
+  
+      // Regards,
+      // for Cricdream.`
+    
+  var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: CRICDREAMEMAILID,
+    pass: 'Anob@1989#93'
+  }
+  });
+  
+  var mailOptions = {
+  from: CRICDREAMEMAILID,
+  to: userEmailId,
+  subject: userSubject,
+  text: userText
+  };
+  
+  //mailOptions.to = uRec.email;
+  //mailOptions.text = 
+  
+  var status = true;
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      EMAILERROR=error;
+      //senderr(603, error);
+      status=false;
+    } else {
+      //console.log('Email sent: ' + info.response);
+      //sendok('Email sent: ' + info.response);
+    }
+    return(status);
+  });
+}
+  
 // module.exports = app;
 
