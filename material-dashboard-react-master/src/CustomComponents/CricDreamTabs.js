@@ -78,8 +78,13 @@ function Logout() {
 
 function getTabPos() {
   let pos = 0;
-  if (localStorage.getItem("tabpos") !== null)
+  if ((localStorage.getItem("tabpos") === null)  ||
+      (localStorage.getItem("tabpos") === "") ||
+      (localStorage.getItem("tabpos") === "0"))
+      pos = 0;
+  else
     pos = parseInt(localStorage.getItem("tabpos"));
+    console.log(`Tab position ${pos}`);
   return pos;
 }
 
@@ -88,16 +93,27 @@ export default function CricDreamTabs() {
   const [value, setValue] = React.useState(getTabPos());
   // localStorage.setItem("tabpos", "0");
   const handleChange = (event, newValue) => {
-    if (newValue !== value) setValue(newValue);
+    if (newValue !== value) {
+      localStorage.setItem("tabpos", newValue);
+      setValue(newValue);
+    }
   };
 
-
+  // value={value}
+  // onChange={handleChange}
+  // indicatorColor="primary"
+  // textColor="primary"
+  // variant="scrollable"
+  // scrollButtons="auto"
+  // aria-label="scrollable auto tabs example"
   return (
     <div className={classes.root}>
       <AppBar position="static">
         <Tabs
           value={value}
           onChange={handleChange}
+          variant="scrollable"
+          scrollButtons="auto"
           aria-label="simple tabs example"
         >
           <Tab label="Group" {...a11yProps(0)} />
