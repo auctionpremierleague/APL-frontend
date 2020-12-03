@@ -123,7 +123,7 @@ export default function Auction() {
 
     window.onbeforeunload = () => setUser(null)
 
-    const { user, setUser } = useContext(UserContext);
+    // const { user, setUser } = useContext(UserContext);
     const classes = useStyles();
     const theme = useTheme();
     const [playerId, setPid] = useState(0);

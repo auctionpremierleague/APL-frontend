@@ -2,6 +2,9 @@
 // export const ENDPOINT = "http://localhost:4000";
 
 
+export function cdRefresh(complteRefresh) {
+  window.location.reload(complteRefresh);
+}
 export function cdCurrent() {
   return String.fromCharCode(169);
 }

@@ -1866,6 +1866,13 @@ async function updateTournamentBrief() {
   console.log("out of update");
 }
 
+async function checkallover() {
+  var allTRec = await Tournament.find({});
+  for(i=0; i <allTRec.length; ++i) {
+    await checkTournamentOver(allTRec[i].name);
+  }
+}
+
 // schedule task
 cron.schedule('*/1 * * * * *', () => {
   if (!db_connection) {
@@ -1879,6 +1886,7 @@ cron.schedule('*/1 * * * * *', () => {
     // console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);
     updateTournamentBrief();
+    checkallover();
     // console.log("match update over")
   }
 

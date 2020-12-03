@@ -34,6 +34,7 @@ import { useHistory } from "react-router-dom";
 import GroupMember from "views/Group/GroupMember.js"
 import NewGroup from "views/Group/NewGroup.js"
 import {DisplayPageHeader, MessageToUser} from "CustomComponents/CustomComponents.js"
+import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 
 export default function AddGroupMember() {
@@ -403,7 +404,7 @@ function ShowGmButtons() {
             className={classes.button} onClick={UpdateMemberList}>Update List
         </Button>
         <Button variant="contained" color="primary" size="small"
-            className={classes.button} onClick={() => { history.push("/admin/groupmember") }}>Back
+            className={classes.button} onClick={() => { setTab(0) }}>Done
         </Button>
         <Switch>
             <Route  path='/admin/groupmember' component={GroupMember} key="MemberList"/>

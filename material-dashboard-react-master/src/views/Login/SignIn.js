@@ -18,7 +18,8 @@ import { UserContext } from "../../UserContext";
 import axios from "axios";
 import red from '@material-ui/core/colors/red';
 import { DesktopWindows } from '@material-ui/icons';
-
+import { cdRefresh } from "views/functions.js"
+import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -59,7 +60,7 @@ export default function SignIn() {
   const [password, setPassword] = useState();
   // const [showPage, setShowPage] = useState(true);
   // const [open, setOpen] = useState(true)
-  const { setUser } = useContext(UserContext);
+  // const { setUser } = useContext(UserContext);
   const [ errorMessage, setErrorMessage ] = useState("");
 
   useEffect(() => {
@@ -67,8 +68,8 @@ export default function SignIn() {
       localStorage.clear();
     }
     if (window.localStorage.getItem("uid")) {
-      setUser({ uid: window.localStorage.getItem("uid"), admin: window.localStorage.getItem("admin") })
-      history.push("/admin")
+      // setUser({ uid: window.localStorage.getItem("uid"), admin: window.localStorage.getItem("admin") })
+      // history.push("/admin")
     } else {
       // setShowPage(true)
     }
@@ -108,8 +109,9 @@ export default function SignIn() {
       window.localStorage.setItem("groupName", response.data.groupName);
       window.localStorage.setItem("tournament", response.data.tournament);
       window.localStorage.setItem("admin", response.data.admin)
-      setUser({ uid: myUID, admin: response.data.admin });
-      history.push("/admin")
+      // setUser({ uid: myUID, admin: response.data.admin });
+      // cdRefresh(true);
+      setTab(0);
     }
 
   }
@@ -174,10 +176,8 @@ export default function SignIn() {
           </Typography>
           </form>
         </div>
-        <Switch> {/* The Switch decides which component to show based on the current URL.*/}
-            <Route  path='/admin/emailpassword' component={Reset} key="MemberList"/>
-            <Route  path='/admin/register' component={SignUp} key="NewGroup"></Route>
-        </Switch>
+        {/* <Route  path='/admin/emailpassword' component={Reset} key="MemberList"/>
+        <Route  path='/admin/register' component={SignUp} key="NewGroup"></Route> */}
       </Container>
   );
 }

@@ -20,19 +20,8 @@ import {validateSpecialCharacters, validateEmail} from "views/functions.js";
 import {BlankArea} from "CustomComponents/CustomComponents.js"
 import red from '@material-ui/core/colors/red';
 import blue from '@material-ui/core/colors/blue';
+import {setTab} from "CustomComponents/CricDreamTabs.js"
 
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        CricDream
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -111,7 +100,7 @@ export default function CreateGroup() {
   const [registerStatus, setRegisterStatus] = useState(0);
   const [tournamentData, setTournamentData] = useState([]);
   const [selectedTournament, SetSelectedTournament] = useState("");
-  const { setUser } = useContext(UserContext);
+  // const { setUser } = useContext(UserContext);
   const [ errorMessage, setErrorMessage ] = useState("");
 
   const handleSelectedTournament = (event) => {
@@ -141,10 +130,12 @@ export default function CreateGroup() {
     // groupName  bidAmount selectedTournament
     const response = await axios.get(`/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}`);
     setErrorMessage(`Successfully create group ${groupName}`);
+    setTab(0);
   }
 
   function handleCancel() {
-    history.push("/admin/mygroup")
+    // history.push("/admin/mygroup")
+    setTab(0);
   }
 
   function ShowResisterStatus() {

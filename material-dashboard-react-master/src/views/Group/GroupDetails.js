@@ -24,6 +24,8 @@ import {validateSpecialCharacters, validateEmail} from "views/functions.js";
 import {BlankArea, DisplayPageHeader, MessageToUser} from "CustomComponents/CustomComponents.js"
 import { useParams } from "react-router";
 import GroupMember from "views/Group/GroupMember.js"
+import { SettingsPowerSharp } from '@material-ui/icons';
+import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 // const [myGroupName, setMyGroupName] = useState("");
 
@@ -120,7 +122,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
 // const [masterDefaultSwitch, setMasterDefaultSwitch] = useState(false);
 // const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
 
-  const { setUser } = useContext(UserContext);
+  // const { setUser } = useContext(UserContext);
   const [backDropOpen, setBackDropOpen] = React.useState(false);
   const [userMessage, setUserMessage] = React.useState("");
 
@@ -208,7 +210,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
         // localStorage.setItem("displayName", myDisplayName);
         localStorage.setItem("tournament", localStorage.getItem("gdTournament"));
         localStorage.setItem("admin", localStorage.getItem("gdAdmin"))
-        setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "true")})    
+        // setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "true")})    
         setMyCurrentSwitch(true);
     }
   }
@@ -247,7 +249,8 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
   }
 
   function ShowGroupMembers() {
-    history.push("/admin/membergroup");        
+    // history.push("/admin/membergroup");        
+    setTab(103);
   };
 
   function DisplayButtons() {
@@ -261,7 +264,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
             className={classes.button} onClick={ShowGroupMembers}>Members
       </Button>
       <Button variant="contained" color="primary" className={classes.button}
-          onClick={() => {history.push('/admin/mygroup')}}
+          onClick={() => {setTab(0)}}
           type="cancel">
         Done
       </Button>

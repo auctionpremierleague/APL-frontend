@@ -12,6 +12,7 @@ import { makeStyles } from '@material-ui/core/styles';
 // import CardBody from "components/Card/CardBody.js";
 // import { useLocation } from "react-router-dom";
 import AddGroupMember from "views/Group/AddGroupMember.js"
+import {setTab} from "CustomComponents/CricDreamTabs.js"
 import {DisplayPageHeader,MessageToUser} from "CustomComponents/CustomComponents.js"
 
 const drawerWidth = 100;
@@ -93,11 +94,13 @@ export default function GroupMember() {
 
 
     function handleAddGroupMember() {
-        history.push('/admin/addgroupmember');
+        // history.push('/admin/addgroupmember');
+        setTab(104);
     }
 
     function handleMyGroup() {
-        history.push("/admin/mygroup")
+        // history.push("/admin/mygroup")
+        setTab(0);
     }
 
     function ShowGmButtons() {

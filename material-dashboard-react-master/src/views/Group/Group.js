@@ -23,7 +23,7 @@ import NewGroup from "views/Group/NewGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
 import { cdCurrent, cdDefault } from "views/functions.js"
 import green from '@material-ui/core/colors/green';
-
+import {setTab} from "CustomComponents/CricDreamTabs.js"
 const rPrefix = "radio-";
 
 const useStyles = makeStyles((theme) => ({
@@ -51,8 +51,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Group() {
 
-    window.onbeforeunload = () => setUser(null)
-    const { setUser } = useContext(UserContext);
+    // window.onbeforeunload = () => setUser(null)
+    // const { setUser } = useContext(UserContext);
     const classes = useStyles();
     const [myGroupTableData, setMyGroupTableData] = useState([]);
     const history = useHistory();
@@ -89,7 +89,8 @@ export default function Group() {
         window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
         window.localStorage.setItem("gdDefault", ggg.defaultGroup);
         window.localStorage.setItem("gdTournament", ggg.tournament);
-        history.push(`/admin/groupdetails`);
+        // history.push(`/admin/groupdetails`);
+        setTab(102);
     }
 
     function handleSelectGroup(grpName) {
@@ -113,7 +114,7 @@ export default function Group() {
         window.localStorage.setItem("groupName", ggg.groupName);
         window.localStorage.setItem("tournament", ggg.tournament);
         window.localStorage.setItem("admin", ggg.admin)
-        setUser({ uid: localStorage.getItem("uid"), admin: ggg.admin })    
+        // setUser({ uid: localStorage.getItem("uid"), admin: ggg.admin })    
     };
 
     function ShowGroupMembers() {
@@ -133,7 +134,8 @@ export default function Group() {
     
     
     function handleNewGroup() {
-        history.push("/admin/newgroup");        
+        // history.push("/admin/newgroup");        
+        setTab(101);
     };
 
 
@@ -195,13 +197,17 @@ export default function Group() {
             <Button key={"progile"} variant="contained" color="primary" size="small"
                className={classes.button} onClick={EditGroupProfile}>Profile
             </Button> */}
-            <Switch> {/* The Switch decides which component to show based on the current URL.*/}
-                <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
-                <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route>
-                {/* <Route  path='/admin/groupdetails/:groupName' component={GroupDetails} key="MemberList"/> */}
-                <Route  path='/admin/groupdetails' component={GroupDetails} key="MemberList"/>
-            </Switch>
+            {/* <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route> */}
         </div>
         );
     
 }
+
+
+/***
+<Switch> {/* The Switch decides which component to show based on the current URL.}
+    <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
+    <Route  path='/admin/groupdetails/:groupName' component={GroupDetails} key="MemberList"/>
+    <Route  path='/admin/groupdetails' component={GroupDetails} key="MemberList"/>
+</Switch>
+ */

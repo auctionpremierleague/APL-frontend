@@ -76,7 +76,7 @@ const useStyles = makeStyles((theme) => ({
 //     return tableData;
 // }
 
-export default function App() {
+export default function MyTeam() {
     // const { user } = useContext(UserContext);
     // const theme = useTheme();
 

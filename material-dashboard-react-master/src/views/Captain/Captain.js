@@ -68,10 +68,10 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-export default function Group() {
+export default function Captain() {
 
-    window.onbeforeunload = () => setUser(null)
-    const { setUser } = useContext(UserContext);
+    window.onbeforeunload = () => setUser("")
+    // const { setUser } = useContext(UserContext);
     const classes = useStyles();
     const [selectedViceCaptain, SetSelectedViceCaptain] = useState("");
     const [selectedCaptain, SetSelectedCaptain] = useState("");

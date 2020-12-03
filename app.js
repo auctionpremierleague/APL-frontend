@@ -555,16 +555,16 @@ updateTournamentStarted = async function (tournamentName) {
 
 // set tournament Over
 updateTournamentOver = async function (tournamentName) {
-  let tRec = await Tournament.findOne({name: tournamentName, over: false});
-  if (tRec) {
+  let tRec = await Tournament.findOne({name: tournamentName});
+  if (!tRec.over) {
     tRec.over = true;
     tRec.save();
-  }
+  } 
 };
 
 // check if all matches complete. If yes then set tournament over
 checkTournamentOver = async function (tournamentName) {
-  // check if any uncomplete match
+  // check if any uncomplete match  
   let matchesNotOver = await CricapiMatch.find({tournament: tournamentName, matchEnded: false});
   // if no uncomplete match then declare tournament as over
   if (matchesNotOver.length === 0) {
