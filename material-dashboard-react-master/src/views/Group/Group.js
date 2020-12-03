@@ -157,13 +157,14 @@ export default function Group() {
                                 if (x.defaultGroup) currentChar =  currentChar + cdDefault();
                                 // console.log(x);
                                 const arr = [
-                                    // <Text >I am blue</Text>,
-                                    <Typography>{myName}</Typography>,
-                                    <Typography className={classes.symbolText}>{currentChar}</Typography>,
-                                    <Typography>{((x.admin) ? "Admin" : "")}</Typography>,
                                     <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
-                                    Details
-                                    </Link>
+                                    <Typography>{myName}</Typography>
+                                    </Link>,
+                                    <Typography className={classes.symbolText}>{currentChar}</Typography>,
+                                    <Typography>{((x.admin) ? "Admin" : "")}</Typography>
+                                    // <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
+                                    // Details
+                                    // </Link>
                                     // <FormControlLabel 
                                     // key={"fc-"+x.groupName}
                                     // className={classes.groupName} 

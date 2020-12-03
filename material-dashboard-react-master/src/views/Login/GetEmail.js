@@ -18,7 +18,7 @@ import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
 import SignIn from "./SignIn.js";
 import {BlankArea} from "CustomComponents/CustomComponents.js"
-import {validateSpecialCharacters, validateEmail} from "views/functions.js";
+import {validateSpecialCharacters, validateEmail, cdRefresh} from "views/functions.js";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -85,7 +85,7 @@ export default function SignUp() {
   // const [repeatPassword, setRepeatPassword] = useState("");
   const [registerStatus, setRegisterStatus] = useState(0);
 
-  const { setUser } = useContext(UserContext);
+  // const { setUser } = useContext(UserContext);
 
   // const handleChange = (event) => {
   //   const { user } = this.state;
@@ -102,7 +102,9 @@ export default function SignUp() {
 
   function handleLogin() {
     // console.log("Call for login here");
-    history.push("/signin")
+    // history.push("/signin")
+    localStorage.setItem("currentLogin", "SIGNIN");
+    cdRefresh();
   }
 
   function ShowResisterStatus() {

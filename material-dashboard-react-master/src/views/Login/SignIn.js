@@ -78,11 +78,15 @@ export default function SignIn() {
   function handleForgot() {
     console.log("Call forgot password here")
     history.push('/admin/emailpassword');
+    localStorage.setItem("currentLogin", "RESET");
+    cdRefresh();
   }
 
   function handleRegister() {
     console.log("Call for register here");
-    history.push("/admin/register")
+    // history.push("/admin/register")
+    localStorage.setItem("currentLogin", "SIGNUP");
+    cdRefresh();
   }
 
   const handleClick = async () => {

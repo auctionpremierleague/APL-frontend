@@ -3,11 +3,12 @@ import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { UserContext } from "./UserContext";
 import Admin from "layouts/Admin.js";
-import SignIn from "views/Login/SignIn.js";
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 // import { DesktopWindows } from "@material-ui/icons";
 import CricDreamTabs from "CustomComponents/CricDreamTabs"
-
+import SignIn from "views/Login/SignIn.js";
+import SignUp from "views/Login/SignUp.js";
+import Reset from "views/Login/GetEmail.js";
 
 const hist = createBrowserHistory();
 
@@ -28,12 +29,18 @@ function AppRouter() {
   }
 
   function DispayTabs() {
-    console.log(localStorage.getItem("uid"));
-    console.log(`Status is ${isUserLogged()}`)
+    // console.log(localStorage.getItem("uid"));
+    // console.log(`Status is ${isUserLogged()}`)
     if (isUserLogged())
       return (<CricDreamTabs/>)  
-    else
-      return (<SignIn/>)
+    else {
+      if (localStorage.getItem("currentLogin") === "SIGNUP")
+        return (<SignUp/>)
+      else if (localStorage.getItem("currentLogin") === "RESET")
+        return (<Reset/>)
+      else
+        return (<SignIn/>)
+    }
   }
   // localStorage.clear()
   window.onbeforeunload = () => Router.refresh();
