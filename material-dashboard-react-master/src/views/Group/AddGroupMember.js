@@ -39,7 +39,7 @@ import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 export default function AddGroupMember() {
 
-  const history = useHistory();
+  // const history = useHistory();
 
   function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -403,13 +403,13 @@ function ShowGmButtons() {
             // disabled={tournamentStated || (localStorage.getItem("gdAdmin").length === 0)}
             className={classes.button} onClick={UpdateMemberList}>Update List
         </Button>
-        <Button variant="contained" color="primary" size="small"
+        {/* <Button variant="contained" color="primary" size="small"
             className={classes.button} onClick={() => { setTab(0) }}>Done
-        </Button>
-        <Switch>
+        </Button> */}
+        {/* <Switch>
             <Route  path='/admin/groupmember' component={GroupMember} key="MemberList"/>
             <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route>
-        </Switch>
+        </Switch> */}
     </div>)
 }
 

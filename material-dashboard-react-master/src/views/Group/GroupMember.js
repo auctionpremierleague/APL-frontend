@@ -110,13 +110,9 @@ export default function GroupMember() {
                 disabled={tournamentStated || (localStorage.getItem("gdAdmin") !== "true")}
                 className={classes.button} onClick={handleAddGroupMember}>Edit Member List
             </Button>
-            <Button className={classes.button} variant="contained" color="primary" size="small"
+            {/* <Button className={classes.button} variant="contained" color="primary" size="small"
                 className={classes.button} onClick={handleMyGroup}>Back
-            </Button>
-            <Switch>
-                <Route  path='/admin/addgroupmember' component={AddGroupMember} key="List"/>
-                {/* <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup" /> */}
-            </Switch>
+            </Button> */}
         </div>)
     }
 

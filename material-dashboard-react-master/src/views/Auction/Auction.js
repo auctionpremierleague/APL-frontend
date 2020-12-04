@@ -349,10 +349,7 @@ export default function Auction() {
     async function handleMyBid(newBid) {
         var value = parseInt(newBid) + parseInt(bidAmount);
 
-        // console.log(localStorage.getItem("gid"));
-        // console.log(localStorage.getItem("uid"));
-        // console.log(value);        
-        let myURL=`/auction/nextbid/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${value}`;
+        let myURL=`/auction/nextbid/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${playerId}/${value}`;
         // console.log(myURL);
         var resp = await axios(myURL);
         // console.log(`Bid for value ${newBid}`)
@@ -374,12 +371,7 @@ export default function Auction() {
             btnMsg = "+"+props.value;
             let newValue = parseInt(bidAmount) + parseInt(props.value);
             btnDisable = (newValue > parseInt(myBalanceAmount));
-            //     btnDisable = false;
-            // } else {
-            //     btnMsg = "---"
-            //     btnDisable = true;
-            // }
-            // btnSize = "small";
+            btnSize = "small";
         }
         if (btnDisable) {
             return (
@@ -411,26 +403,16 @@ export default function Auction() {
                     <BidButton value="NAME"/>
                 </div>
                 <div align="center">
-                    {/* <BidButton value="1" />
-                    <BidButton value="2" />
-                    <BidButton value="3" />
-                    <BidButton value="4" />
-                    <BidButton value="5" /> */}
-                    <BidButton value="1" />
-                    <BidButton value="2" />
-                    <BidButton value="3" />
-                    <BidButton value="4" />
-                </div>
-                <div align="center">
-                    {/* <BidButton value="10" />
-                    <BidButton value="15" />
-                    <BidButton value="20" />
-                    <BidButton value="25" />
-                    <BidButton value="50" /> */}
                     <BidButton value="5" />
                     <BidButton value="10" />
+                    <BidButton value="15" />
+                    <BidButton value="20" />
+                </div>
+                <div align="center">
                     <BidButton value="25" />
                     <BidButton value="50" />
+                    <BidButton value="75" />
+                    <BidButton value="100" />
                 </div>
             </div>);
         else

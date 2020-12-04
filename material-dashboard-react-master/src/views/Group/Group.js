@@ -21,7 +21,7 @@ import { UserContext } from "../../UserContext";
 import GroupMember from "views/Group/GroupMember.js"
 import NewGroup from "views/Group/NewGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
-import { cdCurrent, cdDefault } from "views/functions.js"
+import { cdCurrent, cdDefault, hasGroup } from "views/functions.js"
 import green from '@material-ui/core/colors/green';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 const rPrefix = "radio-";
@@ -70,7 +70,22 @@ export default function Group() {
             var myUrl = `/group/memberof/${localStorage.getItem("uid")}`;
             const teamResponse = await axios.get(myUrl);
             // var hasgroup = false;
+            console.log(teamResponse.data[0].groups.length);
             if (teamResponse.data[0].groups.length > 0) {
+                // console.log(localStorage.getItem("gid"));
+                if (!hasGroup()) {
+                    // user might have just created the group. Thus
+                    // current group is not set. Create the 1st one as current
+                    var myGroup = teamResponse.data[0].groups[0];
+                    // console.log(myGroup);
+                    localStorage.setItem("gid", myGroup.gid.toString());
+                    localStorage.setItem("groupName", myGroup.name);
+                    // localStorage.setItem("displayName", myDisplayName);
+                    localStorage.setItem("tournament", myGroup.tournament);
+                    localStorage.setItem("admin", false)
+                    setNewCurrentGroup(myGroup.name);
+                    // setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "true")})                
+                }
                 setMyGroupTableData(teamResponse.data[0].groups);
                 // console.log(teamResponse.data[0].groups);
             }
@@ -117,20 +132,20 @@ export default function Group() {
         // setUser({ uid: localStorage.getItem("uid"), admin: ggg.admin })    
     };
 
-    function ShowGroupMembers() {
-        var grpName = localStorage.getItem("groupName");
-        var ggg = myGroupTableData.find(x=> x.groupName === grpName);
-        console.log(ggg);
-        window.localStorage.setItem("gdGid", ggg.gid.toString());
-        window.localStorage.setItem("gdName", ggg.groupName)
-        window.localStorage.setItem("gdAdmin", ggg.admin);
-        // console.log("abou to call /admin/membergroup ")
-        history.push("/admin/membergroup");        
-    };
+    // function ShowGroupMembers() {
+    //     var grpName = localStorage.getItem("groupName");
+    //     var ggg = myGroupTableData.find(x=> x.groupName === grpName);
+    //     console.log(ggg);
+    //     window.localStorage.setItem("gdGid", ggg.gid.toString());
+    //     window.localStorage.setItem("gdName", ggg.groupName)
+    //     window.localStorage.setItem("gdAdmin", ggg.admin);
+    //     // console.log("abou to call /admin/membergroup ")
+    //     //history.push("/admin/membergroup");        
+    // };
 
-    function EditGroupProfile() {
-        console.log("edit profile")
-    }   
+    // function EditGroupProfile() {
+    //     console.log("edit profile")
+    // }   
     
     
     function handleNewGroup() {

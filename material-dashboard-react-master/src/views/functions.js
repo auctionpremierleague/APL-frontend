@@ -45,5 +45,47 @@ export function validateEmail(sss) {
 
 
 export function hasGroup() {
-  return ((localStorage.getItem("gid") !== "") && (localStorage.getItem("gid") !== "0"));
+  var sts = false;
+    if (localStorage.getItem("gid") !== null) 
+    if (localStorage.getItem("gid") !== "") 
+    if (localStorage.getItem("gid") !== "0")
+      sts = true;
+  return sts;
+}
+
+
+const AMPM = [
+  "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM",
+  "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM", "PM"
+];
+  /**
+ * @param {Date} d The date
+ */
+const TZ_IST={hours: 5, minutes: 30};
+export function cricDate(d) {
+  var xxx = new Date(d.getTime());
+  xxx.setHours(xxx.getHours()+TZ_IST.hours);
+  xxx.setMinutes(xxx.getMinutes()+TZ_IST.minutes);
+  var myHour = xxx.getHours();
+  var myampm = AMPM[myHour];
+  if (myHour > 12) myHour -= 12;
+  var tmp = `${MONTHNAME[xxx.getMonth()]} ${("0" + xxx.getDate()).slice(-2)} ${("0" + myHour).slice(-2)}:${("0" +  xxx.getMinutes()).slice(-2)}${myampm}`
+  return tmp;
+}
+
+const notToConvert = ['XI', 'ARUN']
+/**
+ * @param {string} t The date
+ */
+
+export function cricTeamName(t) {
+    var tmp = t.split(' ');
+  for(i=0; i < tmp.length; ++i)  {
+    var x = tmp[i].trim().toUpperCase();
+    if (notToConvert.includes(x))
+      tmp[i] = x;
+    else
+      tmp[i] = x.substr(0, 1) + x.substr(1, x.length - 1).toLowerCase();
+  }
+  return tmp.join(' ');
 }

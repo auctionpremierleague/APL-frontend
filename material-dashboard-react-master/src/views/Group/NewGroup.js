@@ -129,8 +129,8 @@ export default function CreateGroup() {
     //  /group/create/TeSt/8/1250/AUSINDT20
     // groupName  bidAmount selectedTournament
     const response = await axios.get(`/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}`);
-    setErrorMessage(`Successfully create group ${groupName}`);
-    setTab(0);
+      setErrorMessage(`Successfully create group ${groupName}`);
+      setTab(0);
   }
 
   function handleCancel() {

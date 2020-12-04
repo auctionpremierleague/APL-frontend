@@ -1,3 +1,5 @@
+// const { all } = require(".");
+
 var router = express.Router();
 let TournamentRes;
 
@@ -140,6 +142,56 @@ router.use('/team/:tournamentName', function(req, res, next) {
     publish_teams({tournament: tournamentName});
 });
 
+async function getMatchDetails(tournamentName) {
+  let allMatches = await CricapiMatch.find({tournament: tournamentName});
+  // allMatches =  _.map(allMatches, o => _.pick(o, ['team1', 'team2', 'matchStartTime']));
+  allMatches = _.sortBy(allMatches, 'matchStartTime');
+  let myData=[]
+  await allMatches.forEach(m => {
+    myData.push({team1: m.team1, team2: m.team2, matchStartTime: cricDate(m.matchStartTime)});
+  });
+  return myData;
+}
+
+
+router.use('/tournament', async function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+  
+  let startTime = new Date();
+  startTime.setDate(startTime.getDate()-90);
+  // console.log(startTime);
+
+  //CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
+  let allTournament = await Tournament.find({enabled: true});
+  let matchesOfTournament=[];
+  for(i=0; i<allTournament.length; ++i) {
+    let tournamentStatus = "";
+    if (allTournament[i].started) {
+      if (allTournament[i].over)
+        tournamentStatus = "Complete";
+      else
+        tournamentStatus = "Running";
+    } else
+      tournamentStatus = "Upcoming"
+    let firstMatch = await CricapiMatch.find({tournament: allTournament[i].name}).limit(1).sort({ "matchStartTime": 1 });
+    // if (allTournament[i].name === "IPL2020") console.log(firstMatch);
+    if (firstMatch.length > 0) {
+      let diffTime = firstMatch[0].matchStartTime.getTime() - startTime.getTime();
+      if (diffTime > 0) {
+        let myMatches = await getMatchDetails(allTournament[i].name);
+        matchesOfTournament.push({tournament: allTournament[i].name, 
+          type: allTournament[i].type,
+          status: tournamentStatus, 
+          startTime: firstMatch[0].matchStartTime, 
+          matches: myMatches})
+      }
+    }
+  }
+  matchesOfTournament = _.sortBy(matchesOfTournament, 'startTime');
+  sendok(matchesOfTournament);
+});
 
 async function sendTournamentStatus(tname, started)
 {

@@ -1887,7 +1887,7 @@ cron.schedule('*/1 * * * * *', () => {
     update_cricapi_data_r1(false);
     updateTournamentBrief();
     checkallover();
-    // console.log("match update over")
+    // // console.log("match update over")
   }
 
   if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {

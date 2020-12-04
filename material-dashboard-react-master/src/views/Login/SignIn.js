@@ -12,7 +12,7 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import SignUp from "../Login/SignUp.js";
-import Reset from "../Login/GetEmail.js";
+import ForgotPassword from "./ForgotPassword.js";
 import { useHistory } from "react-router-dom";
 import { UserContext } from "../../UserContext";
 import axios from "axios";
@@ -53,6 +53,7 @@ const useStyles = makeStyles((theme) => ({
 const handleSubmit = e => {
   e.preventDefault();
 };
+
 export default function SignIn() {
   const classes = useStyles();
   const history = useHistory();
@@ -77,7 +78,7 @@ export default function SignIn() {
 
   function handleForgot() {
     console.log("Call forgot password here")
-    history.push('/admin/emailpassword');
+    // history.push('/admin/emailpassword');
     localStorage.setItem("currentLogin", "RESET");
     cdRefresh();
   }
@@ -102,7 +103,7 @@ export default function SignIn() {
     if (response.status === 200) {
       var myUID = response.data;
       response = await axios.get(`/group/default/${myUID}`);
-      // console.log(response.data);
+      console.log(response.data);
       // SAMPLE OUTPUT
       // {"uid":"8","gid":2,"displayName":"Salgia Super Stars",
       // "groupName":"Happy Home Society Grp 2","tournament":"ENGAUST20","ismember":true,"admin":true}

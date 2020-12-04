@@ -8,7 +8,7 @@ import "assets/css/material-dashboard-react.css?v=1.9.0";
 import CricDreamTabs from "CustomComponents/CricDreamTabs"
 import SignIn from "views/Login/SignIn.js";
 import SignUp from "views/Login/SignUp.js";
-import Reset from "views/Login/GetEmail.js";
+import ForgotPassword from "views/Login/ForgotPassword.js";
 
 const hist = createBrowserHistory();
 
@@ -37,7 +37,7 @@ function AppRouter() {
       if (localStorage.getItem("currentLogin") === "SIGNUP")
         return (<SignUp/>)
       else if (localStorage.getItem("currentLogin") === "RESET")
-        return (<Reset/>)
+        return (<ForgotPassword/>)
       else
         return (<SignIn/>)
     }

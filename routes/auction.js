@@ -243,15 +243,24 @@ function sendNewBidToClient(groupRec) {
   });
 }
 
-router.get('/nextbid/:groupId/:userId/:bidAmount', async function(req, res, next) {
+router.get('/nextbid/:groupId/:userId/:playerId/:bidAmount', async function(req, res, next) {
   AuctionRes = res;
   setHeader();
-  var {groupId,userId,bidAmount}=req.params;
-  if (isNaN(bidAmount)) { senderr(710, `Invalid Group ${groupId}`); return; }   
+  var {groupId, userId, playerId, bidAmount}=req.params;
+  
+  if (isNaN(bidAmount)) { senderr(713, `Incorrect Bid amount ${bidAmount}`); return; }   
   let iamount = parseInt(bidAmount);
+  
+  var groupRec = await IPLGroup.findOne({gid: groupId});
+  if (!groupRec) { senderr(711, `Invalid Group ${groupId}`); return; }  
+
+  if (groupRec.auctionStatus !== AUCT_RUNNING) { senderr(714, `Auction not running`); return; }  
+  if (groupRec.currentBidUid == userId) { senderr(711, `User bid already registred`); return; }  
+  if (groupRec.auctionPlayer != playerId) { senderr(712, `Bid for incorrect player`); return; }  
+  if ((iamount > groupRec.maxBidAmount) || (iamount <= groupRec.auctionBid )) { senderr(713, `Incorrect Bid Amount`); return; }  
+  
   var tmp = await GroupMember.findOne({gid: groupId, uid: userId});
   if (!tmp) { senderr(711, `Invalid Group ${groupId}`); return; }   
-  var groupRec = await IPLGroup.findOne({gid: groupId});
   var userRec = await User.findOne({uid: userId})
   /*
    auctionStatus: String,

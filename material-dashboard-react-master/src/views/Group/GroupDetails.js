@@ -263,12 +263,12 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
       <Button key={"members"} variant="contained" color="primary"
             className={classes.button} onClick={ShowGroupMembers}>Members
       </Button>
-      <Button variant="contained" color="primary" className={classes.button}
+      {/* <Button variant="contained" color="primary" className={classes.button}
           onClick={() => {setTab(0)}}
           type="cancel">
         Done
       </Button>
-      <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
+      <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/> */}
       </div>
     );
   }
