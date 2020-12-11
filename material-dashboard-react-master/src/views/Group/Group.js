@@ -21,7 +21,8 @@ import { UserContext } from "../../UserContext";
 import GroupMember from "views/Group/GroupMember.js"
 import NewGroup from "views/Group/NewGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
-import { cdCurrent, cdDefault, hasGroup } from "views/functions.js"
+import { cdCurrent, cdDefault, hasGroup, getUserBalance} from "views/functions.js"
+import {BlankArea, NothingToDisplay, DisplayBalance} from "CustomComponents/CustomComponents.js"
 import green from '@material-ui/core/colors/green';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 const rPrefix = "radio-";
@@ -57,20 +58,20 @@ export default function Group() {
     const [myGroupTableData, setMyGroupTableData] = useState([]);
     const history = useHistory();
     const [newCurrentGroup, setNewCurrentGroup] = useState(localStorage.getItem("groupName"));
+    const [balance, setBalance] = useState(0);
 
       
     useEffect(() => {
         const a = async () => {
-			// console.log("Start");
-			// console.log(process.env.REACT_APP_LOGO_PATH);
-			// console.log("END");
-            // get start of tournamnet (i.e. start of 1st match)
-            // var mygroup  = 1;
+            let myBalance = await getUserBalance();
+            setBalance(myBalance);
+            console.log(myBalance); 
+
             window.localStorage.setItem("groupMember", "");
             var myUrl = `/group/memberof/${localStorage.getItem("uid")}`;
             const teamResponse = await axios.get(myUrl);
             // var hasgroup = false;
-            console.log(teamResponse.data[0].groups.length);
+            // console.log(teamResponse.data[0].groups.length);
             if (teamResponse.data[0].groups.length > 0) {
                 // console.log(localStorage.getItem("gid"));
                 if (!hasGroup()) {
@@ -80,7 +81,6 @@ export default function Group() {
                     // console.log(myGroup);
                     localStorage.setItem("gid", myGroup.gid.toString());
                     localStorage.setItem("groupName", myGroup.name);
-                    // localStorage.setItem("displayName", myDisplayName);
                     localStorage.setItem("tournament", myGroup.tournament);
                     localStorage.setItem("admin", false)
                     setNewCurrentGroup(myGroup.name);
@@ -132,25 +132,32 @@ export default function Group() {
         // setUser({ uid: localStorage.getItem("uid"), admin: ggg.admin })    
     };
 
-    // function ShowGroupMembers() {
-    //     var grpName = localStorage.getItem("groupName");
-    //     var ggg = myGroupTableData.find(x=> x.groupName === grpName);
-    //     console.log(ggg);
-    //     window.localStorage.setItem("gdGid", ggg.gid.toString());
-    //     window.localStorage.setItem("gdName", ggg.groupName)
-    //     window.localStorage.setItem("gdAdmin", ggg.admin);
-    //     // console.log("abou to call /admin/membergroup ")
-    //     //history.push("/admin/membergroup");        
-    // };
+    /*
+    function ShowGroupMembers() {
+        var grpName = localStorage.getItem("groupName");
+        var ggg = myGroupTableData.find(x=> x.groupName === grpName);
+        console.log(ggg);
+        window.localStorage.setItem("gdGid", ggg.gid.toString());
+        window.localStorage.setItem("gdName", ggg.groupName)
+        window.localStorage.setItem("gdAdmin", ggg.admin);
+        // console.log("abou to call /admin/membergroup ")
+        //history.push("/admin/membergroup");        
+    };
 
-    // function EditGroupProfile() {
-    //     console.log("edit profile")
-    // }   
+    function EditGroupProfile() {
+        console.log("edit profile")
+    }   
     
-    
+    */
+
     function handleNewGroup() {
         // history.push("/admin/newgroup");        
         setTab(101);
+    };
+
+    function handleJoinGroup() {
+        // history.push("/admin/newgroup");        
+        setTab(105);
     };
 
 
@@ -201,29 +208,17 @@ export default function Group() {
 
     return (
         <div className={classes.root} align="center" key="groupinfo">
-            {/* <h3 align="center">My Groups ({localStorage.getItem("displayName")})</h3> */}
+            <DisplayBalance balance={balance} />
             <h3 align="center">My Groups</h3>
             <ShowAllGroups/>
             <Button key={"create"} variant="contained" color="primary" size="small"
                 className={classes.button} onClick={handleNewGroup}>New Group
             </Button>
-            {/* <Button key={"members"} variant="contained" color="primary" size="small"
-               className={classes.button} onClick={ShowGroupMembers}>Members
-            </Button>
             <Button key={"progile"} variant="contained" color="primary" size="small"
-               className={classes.button} onClick={EditGroupProfile}>Profile
-            </Button> */}
-            {/* <Route  path='/admin/newgroup' component={NewGroup} key="NewGroup"></Route> */}
+               className={classes.button} onClick={handleJoinGroup}>Join Group
+            </Button>
         </div>
         );
     
 }
 
-
-/***
-<Switch> {/* The Switch decides which component to show based on the current URL.}
-    <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
-    <Route  path='/admin/groupdetails/:groupName' component={GroupDetails} key="MemberList"/>
-    <Route  path='/admin/groupdetails' component={GroupDetails} key="MemberList"/>
-</Switch>
- */

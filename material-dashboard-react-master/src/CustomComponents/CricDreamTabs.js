@@ -14,6 +14,7 @@ import MyTeam from "views/MyTeam/MyTeam"
 import Match from "views/UpcomingMatch/UpcomingMatch"
 import Stats from "views/Statistics/Statistics"
 import NewGroup from "views/Group/NewGroup.js"
+import JoinGroup from "views/Group/JoinGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
 import GroupMember from "views/Group/GroupMember.js"
 import { useHistory } from "react-router-dom";
@@ -86,7 +87,7 @@ function getTabPos() {
       pos = 0;
   else
     pos = parseInt(localStorage.getItem("tabpos"));
-    console.log(`Tab position ${pos}`);
+    // console.log(`Tab position ${pos}`);
   return pos;
 }
 
@@ -140,6 +141,7 @@ export default function CricDreamTabs() {
       <TabPanel value={value} index={102}><GroupDetails /></TabPanel>
       <TabPanel value={value} index={103}><GroupMember /></TabPanel>
       <TabPanel value={value} index={104}><AddGroupMember /></TabPanel>
+      <TabPanel value={value} index={105}><JoinGroup /></TabPanel>
     </div>
   );
 }

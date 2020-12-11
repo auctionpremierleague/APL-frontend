@@ -37,6 +37,8 @@ teamRouter = require('./routes/team');
 statRouter = require('./routes/playerstat');
 matchRouter = require('./routes/match');
 tournamentRouter = require('./routes/tournament');
+walletRouter = require('./routes/wallet');
+prizeRouter = require('./routes/prize');
 
 // maintaing list of all active client connection
 connectionArray  = [];
@@ -117,6 +119,8 @@ app.use('/team', teamRouter);
 app.use('/stat', statRouter);
 app.use('/match', matchRouter);
 app.use('/tournament', tournamentRouter);
+app.use('/wallet', walletRouter);
+app.use('/prize', prizeRouter);
 
 // ---- start of globals
 // connection string for database
@@ -150,6 +154,9 @@ IPLGroupSchema = mongoose.Schema({
   auctionBid: Number,
   currentBidUid: Number,
   currentBidUser: String,
+  memberCount: Number,
+  memberFee: Number,
+  prizeCount: Number,
   enable: Boolean
 });
 
@@ -185,6 +192,9 @@ GroupMemberSchema = mongoose.Schema({
   userName: String,
   balanceAmount: Number,        // balance available to be used for bid
   displayName: String,
+  score: Number,
+  rank: Number,
+  prize: Number,
   enable: Boolean
 });
 
@@ -201,6 +211,7 @@ TeamSchema = mongoose.Schema({
   fullname: String,
   tournament: String
 })
+
 TournamentSchema = mongoose.Schema({
   name: String,
   desc: String,
@@ -209,6 +220,33 @@ TournamentSchema = mongoose.Schema({
   over: Boolean,
   enabled: Boolean
 })
+
+WalletSchema = mongoose.Schema({
+  transNumber: Number,
+  transDate: String,
+  transType: String,
+  transSubType: String,
+  uid: Number,
+  gid: Number,
+  rank: Number,
+  transLink: Number,
+  amount: Number,
+  transStatus: Boolean,
+})
+
+PrizeSchema = mongoose.Schema({
+  prizeCount: Number,
+  prize1: Number,
+  prize2: Number,
+  prize3: Number,
+  prize4: Number,
+  prize5: Number,
+  prize6: Number,
+  prize7: Number,
+  prize8: Number,
+  prize9: Number,
+  prize10: Number,
+});
 // USE CRICMATCHSCHEMA since match details will be imported from CRICAPI 
 // Avoid createing match database
 // MatchSchema = mongoose.Schema({
@@ -269,6 +307,7 @@ CricapiMatchSchema = mongoose.Schema({
   matchEndTime: Date,
   squad: Boolean
 })
+
 BriefStatSchema = mongoose.Schema({
   sid: Number,    // 0 => data, 1 => maxRUn, 2 => maxWick
   pid: Number,
@@ -322,6 +361,8 @@ Tournament = mongoose.model("tournaments", TournamentSchema);
 MasterData = mongoose.model("MasterSettings", MasterSettingsSchema)
 SkippedPlayer = mongoose.model("skippedplayers", SkippedPlayerSchema)
 CricapiMatch = mongoose.model("cricApiMatch", CricapiMatchSchema)
+Wallet = mongoose.model('wallet', WalletSchema);
+Prize = mongoose.model('prize', PrizeSchema);
 
 nextMatchFetchTime = new Date();
 router = express.Router();
@@ -338,7 +379,7 @@ weekShortDays = new Array("Sun", "Mon", "Tue", "Wedn", "Thu", "Fri", "Sat");
 
 // if match type not provided by cric api and
 // team1/team2 both contains any of these string then
-// set match type as T20 (used in playerstat)
+// set match type as T20  (used in playerstat)
 IPLSPECIAL = ["MUMBAI", "HYDERABAD", "CHENNAI", "RAJASTHAN",
  "KOLKATA", "BANGALORE", "DELHI", "PUNJAB",
  "VELOCITY", "SUPERNOVAS", "TRAILBLAZERS"
@@ -359,6 +400,19 @@ allUSER = 99999999;
 
 // Number of hours after which match details to be read frpom cricapi.
 MATCHREADINTERVAL = 3;
+
+// Wallet 
+// WalletStatus = {success: "success", failed: "success"};
+WalletTransType = {
+  accountOpen: "accountOpen",
+  refill: "refill",
+  withdrawl: "withdrawl",
+  offer: "offer",
+  bonus: "bonus",
+  prize: "prize",
+  groupJoin: "groupJoin",
+  groupCancel: "groupCancel"
+};
 
 // match id for record which has bonus score for  Maximum Run and Maximum Wicket
 // Note that it has be be set -ve
@@ -510,10 +564,10 @@ getDisplayName = function (name) {
 
 masterRec = null;
 fetchMasterSettings = async function () {
-  if (masterRec === null) {
+  // if (masterRec === null) {
     let tmp = await MasterData.find();
     masterRec = tmp[0];  
-  }  
+  // }  
 }
 
 USERTYPE = { TRIAL: 0, SUPERUSER: 1, PAID: 2}
@@ -539,16 +593,46 @@ userAlive = async function (uRec) {
         break;
     }
   }
-  // 
   return sts;
 }
+
+refundGroupFee = async function(groupid, amount) {
+  let allMembers = await GroupMember.find({gid: groupid});
+  await allMembers.forEach(gm => {
+    WalletAccountGroupCancel(gm.gid, gm.uid, amount)
+  })
+}
+
+doDisableAndRefund = async function(g) {
+  let memberCount = await GroupMemberCount(g.gid);
+  // let groupRec = await IPLGroup.findOne({gid: g.gid});
+  if (memberCount !== g.memberCount) {
+    groupRec.enable = false;
+    groupRec.save();
+    // refund wallet amount since group is disabled.
+    await refundGroupFee(g.gid, g.memberFee);
+  }
+}
+
+disableIncompleteGroup = async function(tournamentName) {
+  // this will disable all groups in which reqiured numbers of members
+  // have not joined. Remember to refund the member fee amount to their wallet
+  allGroups = await IPLGroup.find({tournament: tournamentName, enable: true});
+  await allGroups.forEach(g => {
+    doDisableAndRefund(g);
+  });
+}
+
+
 
 // set tournament Started
 updateTournamentStarted = async function (tournamentName) {
   let tRec = await Tournament.findOne({name: tournamentName, started: false});
   if (tRec) {
+    // disable group for which required number of members have not been formed.
     tRec.started = true;
     tRec.save();
+    await disableIncompleteGroup(tournamentName);
   }
 };
 
@@ -564,13 +648,253 @@ updateTournamentOver = async function (tournamentName) {
 
 // check if all matches complete. If yes then set tournament over
 checkTournamentOver = async function (tournamentName) {
+  // await update brief of this tournament
+  await updatePendingBrief(tournamentName);
   // check if any uncomplete match  
   let matchesNotOver = await CricapiMatch.find({tournament: tournamentName, matchEnded: false});
   // if no uncomplete match then declare tournament as over
   if (matchesNotOver.length === 0) {
+    // set tournamet as over
     await updateTournamentOver(tournamentName);
+    // add min and max run of the tournamenet and assign points to user
+    await updateTournamentMaxRunWicket(tournamentName);
+    // update group with rank / score. Also allocate prize money
+    await awardRankPrize(tournamentName);
   }
 }
+
+
+
+getBlankStatRecord = function(tournamentStat) {
+  return new tournamentStat( {
+    mid: 0,
+    pid: 0,
+    score: 0,
+    inning: 0,
+    playerName: "",
+  // batting details
+    run: 0,
+    four: 0,
+    six: 0,
+    fifty: 0,
+    hundred:  0,
+    ballsPlayed: 0,
+    // bowling details
+    wicket: 0,
+    wicket3: 0,
+    wicket5: 0,
+    hattrick: 0,
+    maiden: 0,
+    oversBowled: 0,
+    maxTouramentRun: 0,
+    maxTouramentWicket: 0,
+    // fielding details
+    runout: 0,
+    stumped: 0,
+    bowled: 0,
+    lbw: 0,
+    catch: 0,
+    // overall performance
+    manOfTheMatch: false
+  });
+}
+
+getBlankBriefRecord = function(tournamentStat) {
+  let tmp = new tournamentStat( {
+    sid: RUNNINGMATCH,
+    pid: 0,
+    playerName: "",
+    score: 0,
+    inning: 0,
+  // batting details
+    run: 0,
+    four: 0,
+    six: 0,
+    fifty: 0,
+    hundred:  0,
+    ballsPlayed: 0,
+    // bowling details
+    wicket: 0,
+    wicket3: 0,
+    wicket5: 0,
+    hattrick: 0,
+    maiden: 0,
+    oversBowled: 0,
+    // fielding details
+    runout: 0,
+    stumped: 0,
+    bowled: 0,
+    lbw: 0,
+    catch: 0,
+    // overall performance
+    manOfTheMatch: 0,
+    maxTouramentRun: 0,
+    maxTouramentWicket: 0,
+  });
+  // console.log(tmp);
+  return(tmp);
+}
+
+awardRankPrize = async function(tournamentName) {
+
+}
+
+
+updateTournamentMaxRunWicket = async function(tournamentName) {
+//--- start
+  // ------------ Assuming tournament as over
+  // let myTournament = await Tournament.findOne({name: tournamentName});
+  // if (!myTournament) return false;
+  // if (!myTournament.over) return false;
+
+  let tournamentStat = mongoose.model(tournamentName, StatSchema);
+  let BriefStat = mongoose.model(tournamentName+BRIEFSUFFIX, BriefStatSchema);
+
+  let tdata = await BriefStat.find({});
+  let tmp = _.filter(tdata, x => x.sid === MaxRunMid);
+  if (tmp.length > 0) return true;    // max run already assigned. Assuming same done for max wicket
+
+  tmp = _.filter(tdata, x => x.sid == MaxWicketMid);
+  if (tmp.length > 0) return true;
+
+  let pidList = _.map(tdata, 'pid');
+  pidList = _.uniqBy(pidList);
+
+  // calculate total runs and total wickets of each player (played in tournament matches)
+  let sumList = [];
+  pidList.forEach( mypid => {
+    tmp = _.filter(tdata, x => x.pid === mypid);
+    if (tmp.length > 0) {
+      var iRun = _.sumBy(tmp, 'run');
+      var iWicket = _.sumBy(tmp, 'wicket');
+      sumList.push({pid: mypid, playerName: tmp[0].playerName, totalRun: iRun, totalWicket: iWicket});
+    }
+  });
+
+  // now get list of players who have score max runs (note there can be more than 1)
+  tmp = _.maxBy(sumList, x => x.totalRun);
+  //console.log(tmp);
+  let maxList = _.filter(sumList, x => x.totalRun == tmp.totalRun);
+  let bonusAmount  = BonusMaxRun / maxList.length;
+  maxList.forEach( mmm => {
+    let myrec = getBlankStatRecord(tournamentStat);
+    myrec.mid = MaxRunMid;
+    myrec.pid = mmm.pid;
+    myrec.playerName = mmm.playerName;
+    myrec.score = bonusAmount;
+    myrec.maxTouramentRun = mmm.totalRun;  
+    myrec.save(); 
+
+    let mybrief = getBlankBriefRecord(BriefStat);
+    mybrief.sid = MaxRunMid;
+    mybrief.pid = mmm.pid;
+    mybrief.playerName = mmm.playerName;
+    mybrief.score = bonusAmount;
+    mybrief.maxTouramentRun = mmm.totalRun;  
+    mybrief.save(); 
+  });
+
+  // now get list of players who have taken max wickets (note there can be more than 1)
+  tmp = _.maxBy(sumList, x => x.totalWicket);
+  //console.log(tmp);
+  maxList = _.filter(sumList, x => x.totalWicket == tmp.totalWicket);
+  bonusAmount  = BonusMaxWicket / maxList.length;
+  maxList.forEach( mmm => {
+    let myrec = getBlankStatRecord(tournamentStat);
+    myrec.mid = MaxWicketMid;
+    myrec.pid = mmm.pid;
+    myrec.playerName = mmm.playerName;
+    myrec.score = bonusAmount;
+    myrec.maxTouramentWicket = mmm.totalWicket;
+    myrec.save(); 
+
+    let mybrief = getBlankBriefRecord(BriefStat);
+    mybrief.sid = MaxWicketMid;
+    mybrief.pid = mmm.pid;
+    mybrief.playerName = mmm.playerName;
+    mybrief.score = bonusAmount;
+    mybrief.maxTouramentRun = mmm.totalWicket;  
+    mybrief.save(); 
+  });
+
+  // all done
+  return true;
+}
+
+
+
+updatePendingBrief = async function (mytournament) {
+  // get match if the matches that are completed in this tournament
+  let ttt = mytournament.toUpperCase();
+  let completedMatchList = await CricapiMatch.find({tournament: ttt, matchEnded: true});
+  // console.log(`${ttt} Completed match status ${completedMatchList.length}`)
+  if (completedMatchList.length <= 0) return;
+  let midList = _.map(completedMatchList, 'mid');
+
+  // get gets record in brief table which are not yet merge
+  let BriefStat = mongoose.model(mytournament+BRIEFSUFFIX, BriefStatSchema);
+  var briefList = await BriefStat.find({ sid: { $in: midList } });
+  if (briefList.length === 0) return;
+  console.log("Pending procesing started");
+  // some pending reocrd to be update
+  sidList = _.map(briefList, 'sid');
+  sidList = _.uniq(sidList);
+  console.log(sidList);
+  // console.log( `Completed match is ${PROCESSOVER}`)
+  let masterList = await BriefStat.find({ sid: PROCESSOVER });
+  console.log(`Compltetd: ${masterList.length}    Pedning: ${briefList.length}`);
+  for(sidx=0; sidx < sidList.length; ++sidx) {
+    let myList = _.filter(briefList, x => x.sid === sidList[sidx]);
+    for(i=0; i<myList.length; ++i) {
+      var myMasterRec = _.find(masterList, x => x.pid === myList[i].pid);
+      if (!myMasterRec) {
+        myMasterRec = new getBlankBriefRecord(BriefStat);
+        myMasterRec.sid = PROCESSOVER;
+        myMasterRec.pid = myList[i].pid;
+        myMasterRec.playerName = myList[i].playerName;
+        masterList.push(myMasterRec);
+      }
+      myMasterRec.score += myList[i].score;
+      myMasterRec.inning += myList[i].inning;
+      // batting details
+      myMasterRec.run += myList[i].run;
+      myMasterRec.four += myList[i].four;
+      myMasterRec.six += myList[i].six;
+      myMasterRec.fifty += myList[i].fifty;
+      myMasterRec.hundred += myList[i].hundred;
+      myMasterRec.ballsPlayed += myList[i].ballsPlayed;
+      // bowling details
+      myMasterRec.wicket += myList[i].wicket;
+      myMasterRec.wicket3 += myList[i].wicket3;
+      myMasterRec.wicket5 + myList[i].wicket5;
+      myMasterRec.hattrick += myList[i].hattrick;
+      myMasterRec.maiden += myList[i].maiden;
+      // console.log(`${myMasterRec.pid} ${myMasterRec.playerName} ${myMasterRec.oversBowled}   ${myList[i].oversBowled}`);
+      myMasterRec.oversBowled += myList[i].oversBowled
+      // fielding details
+      // runout: 0,
+      // stumped: 0,
+      // bowled: 0,
+      // lbw: 0,
+      // catch: 0,
+      myMasterRec.runout += myList[i].runout;
+      myMasterRec.stumped += myList[i].stumped;
+      myMasterRec.bowled += myList[i].bowled;
+      myMasterRec.lbw += myList[i].lbw;
+      myMasterRec.catch += myList[i].catch;
+      // overall performance
+      myMasterRec.manOfTheMatch += myList[i].manOfTheMatch;
+      myMasterRec.maxTouramentRun += myList[i].maxTouramentRun;
+      myMasterRec.maxTouramentWicket += myList[i].maxTouramentWicket;
+    }
+    console.log(`Now deleting recrods with sid ${sidList[sidx]}`)
+    await BriefStat.deleteMany({sid: sidList[sidx]})
+  }
+  masterList.forEach(x => {
+    x.save();
+  })
+}
+
 
 EMAILERROR="";
 CRICDREAMEMAILID='cricketpwd@gmail.com';
@@ -622,6 +946,87 @@ sendEmailToUser = async function(userEmailId, userSubject, userText) {
     return(status);
   });
 }
-  
+
+//------------- wallet function
+
+createWalletTransaction = function () {
+  myTrans = new Wallet();
+  currTime = new Date();
+  // Tue Dec 08 2020 14:22:21 GMT+0530 (India Standard Time)"
+  myTrans.transNumber = currTime.getTime();
+  let tmp = currTime.toString();
+  let xxx = tmp.split(' ');
+  myTrans.transDate = `${xxx[2]}-${xxx[1]}-${xxx[3]} ${xxx[4]}`;  
+  myTrans.transType = "";
+  myTrans.transSubType = "";
+  myTrans.uid = 0;
+  myTrans.gid = 0;
+  myTrans.rank = 0;
+  myTrans.transLink = 0;
+  myTrans.amount = 0;
+  myTrans.transStatus = true;
+  return (myTrans);
+}
+
+WalletAccountOpen = async function (userid, openamount) {
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.accountOpen;
+  myTrans.uid = userid;
+  myTrans.amount = openamount;
+  await myTrans.save();
+  return myTrans;
+}
+
+
+WalletAccountOffer = async function (userid, offeramount) {
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.offer;
+  myTrans.uid = userid;
+  myTrans.amount = offeramount;
+  await myTrans.save();
+  return myTrans;
+}
+
+WalletAccountOpen = async function (userid, openamount) {
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.offer;
+  myTrans.uid = userid;
+  myTrans.amount = openamount;
+  await myTrans.save();
+  return myTrans;
+}
+
+WalletAccountGroupJoin = async function (groupid, userid, groupfee) {
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.groupJoin;
+  myTrans.gid = groupid;
+  myTrans.uid = userid;
+  myTrans.amount = -groupfee;
+  await myTrans.save();
+  return myTrans;
+}
+
+WalletAccountGroupCancel = async function (groupid, userid, groupfee) {
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.groupCancel;
+  myTrans.uid = userid;
+  myTrans.gid = groupid;
+  myTrans.amount = groupfee;
+  await myTrans.save();
+  return myTrans;
+}
+
+WalletBalance = async function (userid) {
+  let tmp = 0;
+  let allRec = await Wallet.find({uid: userid});
+  if (allRec.length > 0)
+    tmp = _.sumBy(allRec, x => x.amount);
+  return tmp;
+}
+
+GroupMemberCount = async function (groupid) {
+  let allRec = await GroupMember.find({gid: groupid});
+  return allRec.length;
+}
 // module.exports = app;
 

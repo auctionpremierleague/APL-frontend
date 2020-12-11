@@ -500,6 +500,7 @@ router.use('/updatemax/:tournamentName', async function(req, res, next) {
     senderr(724, "Bonus point for Maximum wicket already assigned");
     return;
   }
+
   pidList = _.map(tdata, 'pid');
   pidList = _.uniqBy(pidList);
 
@@ -1127,11 +1128,17 @@ async function statCalculation (igroup) {
       grandScore: totscore, 
       rank: 0});
 
-	var tmpRun = _.maxBy(userMaxList, x => x.totalRun);
-	  if (tmpRun.totalRun === 0) {
+  var tmpRun = _.maxBy(userMaxList, x => x.totalRun);
+
+  let dataAvailable = false;
+  if (tmpRun)
+  if (tmpRun.totalRun > 0)
+      dataAvailable = true;
+
+  if (!dataAvailable) {
 		userMaxRunList.push({ uid: gm.uid, gid: igroup, userName: "", displayName: "",
 		maxRunPlayerId: 0,  maxRunPlayerName: "", maxRun: 0});
-	  } else {
+  } else {
 		var maxRun = _.filter(userMaxList, x => x.totalRun == tmpRun.totalRun );
 		maxRun.forEach( runrec => {
 		  userMaxRunList.push({ 
@@ -1144,27 +1151,32 @@ async function statCalculation (igroup) {
 			maxRun: runrec.totalRun,
 		  });
 		});
-	  }
+  }
 
-    var tmpWicket = _.maxBy(userMaxList, x => x.totalWicket);
-      if (tmpWicket.totalWicket === 0) {
-        userMaxWicketList.push({ uid: gm.uid, gid: igroup, userName: "", displayName: "", maxWicketPlayerId: 0,
-        maxWicketPlayerName: "", maxWicket: 0});
-      } else {
-        var maxWicket = _.filter(userMaxList, x => x.totalWicket === tmpWicket.totalWicket );
-        maxWicket.forEach( wktrec => {
-          userMaxWicketList.push({ 
-            uid: gm.uid, 
-            gid: igroup,
-            userName: wktrec.userName,
-            displayName: wktrec.displayName,
-            maxWicketPlayerId: wktrec.pid,
-            maxWicketPlayerName: wktrec.playerName,
-            maxWicket: wktrec.totalWicket
-          });
-        });
-      }
-  });
+  var tmpWicket = _.maxBy(userMaxList, x => x.totalWicket);
+  dataAvailable = false
+  if (tmpWicket)
+  if (tmpWicket.totalWicket > 0)
+      dataAvailable = true;
+
+  if (!dataAvailable) {
+      userMaxWicketList.push({ uid: gm.uid, gid: igroup, userName: "", displayName: "", maxWicketPlayerId: 0,
+      maxWicketPlayerName: "", maxWicket: 0});
+  } else {
+    var maxWicket = _.filter(userMaxList, x => x.totalWicket === tmpWicket.totalWicket );
+    maxWicket.forEach( wktrec => {
+      userMaxWicketList.push({ 
+        uid: gm.uid, 
+        gid: igroup,
+        userName: wktrec.userName,
+        displayName: wktrec.displayName,
+        maxWicketPlayerId: wktrec.pid,
+        maxWicketPlayerName: wktrec.playerName,
+        maxWicket: wktrec.totalWicket
+      });
+    });
+  }
+});
   
   // assign ranking. Sort by score. Highest first
   userRank = _.sortBy(userRank, 'grandScore').reverse();
@@ -1332,11 +1344,19 @@ async function update_cricapi_data_r1(logToResponse)
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
       if (cricData != null)
       if (cricData.data != null) {
-        var newstats = updateMatchStats_r1(mmm, cricData.data);
+        var manofthematchPID = updateMatchStats_r1(mmm, cricData.data);
+        // match over if man of the match declared 
+        // OR
+        // current time > matchEndTime
+        let thisMatchOver = false;
+        if (manofthematchPID > 0) {
+          thisMatchOver = true;
+        } else if (mmm.matchEndTime < new Date()) {
+          thisMatchOver = true;
+        }
         // if pasrt end time. Then set matchended as true
-        var currdate = new Date();
         console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
-        if (mmm.matchEndTime < new Date()) {
+        if (thisMatchOver) {
           mmm.matchEnded = true;
           mmm.save();
           delRunningMatch(mmm);
@@ -1352,6 +1372,7 @@ async function updateMatchStats_r1(mmm, cricdata)
 {
   let briefIndex = -1;
   var currMatch = mmm.mid;
+  var manOfTheMatchPid = 0;  
   console.log(`Match: ${currMatch} data update. Tournamen; ${mmm.tournament}`)  
   // from tournament name identify the name
   var tournamentStat = mongoose.model(mmm.tournament, StatSchema);
@@ -1375,7 +1396,6 @@ async function updateMatchStats_r1(mmm, cricdata)
   else
     fieldingArray = [];
 
-  var manOfTheMatchPid = 0;  
   if (cricdata["man-of-the-match"] != undefined) 
   if (cricdata["man-of-the-match"].pid != undefined)
   if (cricdata["man-of-the-match"].pid.length > 0)
@@ -1576,7 +1596,7 @@ async function updateMatchStats_r1(mmm, cricdata)
     ps.save();
   })
 
-  return;
+  return (manOfTheMatchPid);
 }
 
 
@@ -1610,75 +1630,6 @@ function getMatchDetails(cricapiRec, mymatch, tournamentName) {
 }
 
 
-function getBlankStatRecord(tournamentStat) {
-  return new tournamentStat( {
-    mid: 0,
-    pid: 0,
-    score: 0,
-    inning: 0,
-    playerName: "",
-  // batting details
-    run: 0,
-    four: 0,
-    six: 0,
-    fifty: 0,
-    hundred:  0,
-    ballsPlayed: 0,
-    // bowling details
-    wicket: 0,
-    wicket3: 0,
-    wicket5: 0,
-    hattrick: 0,
-    maiden: 0,
-    oversBowled: 0,
-    maxTouramentRun: 0,
-    maxTouramentWicket: 0,
-    // fielding details
-    runout: 0,
-    stumped: 0,
-    bowled: 0,
-    lbw: 0,
-    catch: 0,
-    // overall performance
-    manOfTheMatch: false
-  });
-}
-
-function getBlankBriefRecord(tournamentStat) {
-  let tmp = new tournamentStat( {
-    sid: RUNNINGMATCH,
-    pid: 0,
-    playerName: "",
-    score: 0,
-    inning: 0,
-  // batting details
-    run: 0,
-    four: 0,
-    six: 0,
-    fifty: 0,
-    hundred:  0,
-    ballsPlayed: 0,
-    // bowling details
-    wicket: 0,
-    wicket3: 0,
-    wicket5: 0,
-    hattrick: 0,
-    maiden: 0,
-    oversBowled: 0,
-    // fielding details
-    runout: 0,
-    stumped: 0,
-    bowled: 0,
-    lbw: 0,
-    catch: 0,
-    // overall performance
-    manOfTheMatch: 0,
-    maxTouramentRun: 0,
-    maxTouramentWicket: 0,
-  });
-  // console.log(tmp);
-  return(tmp);
-}
 
 function calculateScore(mystatrec) {
   //console.log(mystatrec);
@@ -1766,10 +1717,12 @@ async function processConnection(i) {
   var myTournament = await getTournameDetails(connectionArray[i].gid);
   if (myTournament.length === 0) return;
 
+  // console.log(clientData);
   var myData = _.find(clientData, x => x.tournament === myTournament);
   let sts = false;
   if (!myData) {
     // no data of this tournament with us. Read database and do calculation
+    // console.log("------------------reading database");
     sts = await readDatabase(connectionArray[i].gid );
     // console.log(`Status is ${sts} for tournamenet data ${myTournament}`);
     if (sts) {
@@ -1783,6 +1736,8 @@ async function processConnection(i) {
       console.log(`Total calculation Time: ${duration}`)
     }
   }
+  // else
+  //   console.log("----- data already availanle");
   // console.log(clientData);
   // console.log(`Will send data of ${myData.tournament} to UID ${connectionArray[i].uid}  with GID ${connectionArray[i].gid}`);
   // console.log(connectionArray[i].page);
@@ -1835,9 +1790,13 @@ async function sendDashboardData() {
   // clientData.forEach(ccc => {
   //   console.log(ccc.tournament);
   // })
+  // console.log("Running match array");
+  // console.log(runningMatchArray);
+  // console.log(clientData);
   runningMatchArray.forEach( ccc => {
     _.remove(clientData, x => x.tournament === ccc.tournament);
   });
+  // clientData=[];
   // console.log(`After client Data list ${clientData.length}`);
   // clientData.forEach(ccc => {
   //   console.log(ccc.tournament);
@@ -1858,16 +1817,15 @@ async function sendDashboardData() {
 
 async function updateTournamentBrief() {
   var currDate = new Date();
-  console.log("in update")
-  if (currDate.getHours() === 0) {
+  // console.log(`in update: ${currDate.getHours()}`)
+  if (currDate.getHours() === 2) {
     console.log(currDate);
     await check_all_tournaments();
   }
-  console.log("out of update");
 }
 
 async function checkallover() {
-  var allTRec = await Tournament.find({});
+  var allTRec = await Tournament.find({started: true, over: false});
   for(i=0; i <allTRec.length; ++i) {
     await checkTournamentOver(allTRec[i].name);
   }
@@ -1992,9 +1950,9 @@ function getMatchStartTime(cricapiRec) {
   return mytime;
 }
 
-const OdiMinutes = 570;   // 9.5 hours is 570 minutes
-const testMinutes = 570;    
-const t20Minutes = 300;    //  5 hours is 300 minutes
+const OdiMinutes = 600;   // 10 hours i.e. 600 minutes
+const testMinutes = 600;    
+const t20Minutes = 330;    //  5 hours 30 minutes is 330 minutes
 
 function getMatchEndTime(cricapiRec) {
   var tmp = getMatchStartTime(cricapiRec);       // clone start date
@@ -2054,71 +2012,8 @@ async function check_all_tournaments() {
   let allTournaments = _.map(tmp, 'name');
   console.log(allTournaments);
   for(i=0; i < allTournaments.length; ++i) {
-    await completePendingBrief(allTournaments[i]);
+    await updatePendingBrief(allTournaments[i]);
   }
-}
-
-
-async function completePendingBrief(mytournament) {
-  // get match if the matches that are completed in this tournament
-  let ttt = mytournament.toUpperCase();
-  let completedMatchList = await CricapiMatch.find({tournament: ttt, matchEnded: true});
-  // console.log(`${ttt} Completed match status ${completedMatchList.length}`)
-  if (completedMatchList.length <= 0) return;
-  let midList = _.map(completedMatchList, 'mid');
-
-  // get gets record in brief table which are not yet merge
-  let BriefStat = mongoose.model(mytournament+BRIEFSUFFIX, BriefStatSchema);
-  var briefList = await BriefStat.find({ sid: { $in: midList } });
-  if (briefList.length === 0) return;
-  console.log("Pending procesing started");
-  // some pending reocrd to be update
-  sidList = _.map(briefList, 'sid');
-  sidList = _.uniq(sidList);
-  console.log(sidList);
-  // console.log( `Completed match is ${PROCESSOVER}`)
-  let masterList = await BriefStat.find({ sid: PROCESSOVER });
-  console.log(`Compltetd: ${masterList.length}    Pedning: ${briefList.length}`);
-  for(sidx=0; sidx < sidList.length; ++sidx) {
-    let myList = _.filter(briefList, x => x.sid === sidList[sidx]);
-    for(i=0; i<myList.length; ++i) {
-      var myMasterRec = _.find(masterList, x => x.pid === myList[i].pid);
-      if (!myMasterRec) {
-        myMasterRec = new getBlankBriefRecord(BriefStat);
-        myMasterRec.sid = PROCESSOVER;
-        myMasterRec.pid = myList[i].pid;
-        myMasterRec.playerName = myList[i].playerName;
-        masterList.push(myMasterRec);
-      }
-      myMasterRec.score += myList[i].score;
-      myMasterRec.inning += myList[i].inning;
-      // batting details
-      myMasterRec.run += myList[i].run;
-      myMasterRec.four += myList[i].four;
-      myMasterRec.six += myList[i].six;
-      myMasterRec.fifty += myList[i].fifty;
-      myMasterRec.hundred += myList[i].hundred;
-      myMasterRec.ballsPlayed += myList[i].ballsPlayed;
-      // bowling details
-      myMasterRec.wicket += myList[i].wicket;
-      myMasterRec.wicket3 += myList[i].wicket3;
-      myMasterRec.wicket5 + myList[i].wicket5;
-      myMasterRec.hattrick += myList[i].hattrick;
-      myMasterRec.maiden += myList[i].maiden;
-      // console.log(`${myMasterRec.pid} ${myMasterRec.playerName} ${myMasterRec.oversBowled}   ${myList[i].oversBowled}`);
-      myMasterRec.oversBowled += myList[i].oversBowled
-      // console.log("over bowled")
-      // overall performance
-      myMasterRec.manOfTheMatch += myList[i].manOfTheMatch;
-      myMasterRec.maxTouramentRun += myList[i].maxTouramentRun;
-      myMasterRec.maxTouramentWicket += myList[i].maxTouramentWicket;
-    }
-    console.log(`Now deleting recrods with sid ${sidList[sidx]}`)
-    await BriefStat.deleteMany({sid: sidList[sidx]})
-  }
-  masterList.forEach(x => {
-    x.save();
-  })
 }
 
 

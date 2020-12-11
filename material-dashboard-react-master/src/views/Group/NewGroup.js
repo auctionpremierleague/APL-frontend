@@ -9,19 +9,32 @@ import { Switch, Route } from 'react-router-dom';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
+// import Table from '@material-ui/core/Table';
+// import TableBody from '@material-ui/core/TableBody';
+// import TableCell from '@material-ui/core/TableCell';
+// import TableContainer from '@material-ui/core/TableContainer';
+// import TableHead from '@material-ui/core/TableHead';
+// import TableRow from '@material-ui/core/TableRow';
+// import Paper from '@material-ui/core/Paper';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
 import Container from '@material-ui/core/Container';
 import Select from "@material-ui/core/Select";
 import MenuItem from '@material-ui/core/MenuItem';
-import { UserContext } from "../../UserContext";
-// import axios from "axios";
+// import TextField from '@material-ui/core/TextField';
+// import { UserContext } from "../../UserContext";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import { useHistory } from "react-router-dom";
-import {validateSpecialCharacters, validateEmail} from "views/functions.js";
-import {BlankArea} from "CustomComponents/CustomComponents.js"
-import red from '@material-ui/core/colors/red';
-import blue from '@material-ui/core/colors/blue';
+import {validateSpecialCharacters, validateEmail, getUserBalance} from "views/functions.js";
+import {BlankArea, NothingToDisplay, DisplayPrizeTable, DisplayBalance} from "CustomComponents/CustomComponents.js"
+import {red, blue} from '@material-ui/core/colors';
+// import blue from '@material-ui/core/colors/blue';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
-
+// import copy from 'copy-clipboard';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -47,10 +60,13 @@ const useStyles = makeStyles((theme) => ({
  error:  {
       // right: 0,
       fontSize: '12px',
-      color: blue[700],
+      color: red[700],
       // position: 'absolute',
       alignItems: 'center',
       marginTop: '0px',
+  },
+  table: {
+    // minWidth: 650,
   },
 }));
 
@@ -66,18 +82,20 @@ class ChildComp extends React.Component {
       return (value.length >= 6)
     });
 
+    ValidatorForm.addValidationRule('lessthanbalance', (value) => {
+      // console.log(`${value}  ${this.props.p1}`)
+      return (value <= this.props.p1);
+    });
+
     ValidatorForm.addValidationRule('noSpecialCharacters', (value) => {
       return validateSpecialCharacters(value);
     });    
   }
 
-  
   componentWillUnmount() {
     // remove rule when it is not needed
-    // ValidatorForm.removeValidationRule('isPasswordMatch');
-    // ValidatorForm.removeValidationRule('isEmailOK');
-    // ValidatorForm.removeValidationRule('minLength1');
     ValidatorForm.removeValidationRule('minLength');
+    ValidatorForm.removeValidationRule('lessthanbalance');
     ValidatorForm.removeValidationRule('noSpecialCharacters');
   }
 
@@ -93,15 +111,27 @@ export default function CreateGroup() {
   const classes = useStyles();
   const history = useHistory();
   const [groupName, setGroupName] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  // const [displayName, setDisplayName] = useState("");
   const [bidAmount, setBidAmount] = useState(1000);
-//   const [email, setEmail] = useState("");
-//   const [repeatPassword, setRepeatPassword] = useState("");
+  const [memberCount, setMemberCount] =useState(2);
+  const [memberFee, setMemberFee] = useState(50);
   const [registerStatus, setRegisterStatus] = useState(0);
   const [tournamentData, setTournamentData] = useState([]);
   const [selectedTournament, SetSelectedTournament] = useState("");
-  // const { setUser } = useContext(UserContext);
-  const [ errorMessage, setErrorMessage ] = useState("");
+  // const [ errorMessage, setErrorMessage ] = useState("");
+  const [created, setCreate] = useState(false);
+  const [groupCode, setGroupCode] = useState("");
+  const [copyState, setCopyState] = useState({value: '', copied: false});
+  const [balance, setBalance] = useState(0);
+  const [prizeCount, setPrizeCount] = useState(1);
+  const [prizeTable, setPrizeTable] = useState([]);
+  const [masterPrizeTable, setMasterPrizeTable] = useState([]);
+  const [newGid, setNewGid] = useState(0);
+
+  // state = {
+  //   value: 'arunsalgia',
+  //   copied: false,
+  // };
 
   const handleSelectedTournament = (event) => {
     SetSelectedTournament(event.target.value);
@@ -109,6 +139,9 @@ export default function CreateGroup() {
   
   useEffect(() => {
     const a = async () => {
+        var balres = await axios.get(`/wallet/balance/${localStorage.getItem("uid")}`);
+        setBalance(balres.data.balance);
+
         var response = await axios.get(`/tournament/list/notstarted`); 
         // console.log("Getting tournament list");
         // console.log(response.data);
@@ -128,52 +161,175 @@ export default function CreateGroup() {
     console.log("Submit command provided");
     //  /group/create/TeSt/8/1250/AUSINDT20
     // groupName  bidAmount selectedTournament
-    const response = await axios.get(`/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}`);
-      setErrorMessage(`Successfully create group ${groupName}`);
-      setTab(0);
+    try {
+      const response = await axios.get(`/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}/${memberCount}/${memberFee}`);
+      setNewGid(response.data.gid)      
+      // successfully created group. Now reduce user wallet balance
+      // setBalance(balance-memberFee);
+      let myBalance = await getUserBalance();
+      setBalance(myBalance);
+      // SET PRIZE is not required here since create by default will set it to 1
+      // let myURL=`/group/setprize/${response.data.gid}/1`;
+      // console.log(myURL);
+      // let xxx = await axios.get(myURL);
+      let totprize = memberFee*memberCount;
+      var prizeres = await axios.get(`/prize/all/${totprize}`)
+      setMasterPrizeTable(prizeres.data)
+      setPrizeTable(prizeres.data[prizeCount-1]);
+      setCopyState({value: response.data._id})
+      setGroupCode(response.data._id);
+    } catch (err) {
+      console.log(`error code is ${err.response.status}`)
+      setRegisterStatus(err.response.status);
+    }
   }
 
-  function handleCancel() {
-    // history.push("/admin/mygroup")
-    setTab(0);
+  // function handleCopyCode() {
+  //   // const el = this.textArea
+  //   // el.select()
+  //   // document.execCommand("copy")
+  //   // this.setState({copySuccess: true})
+  //   const xxx = document.getElementById("codestring");
+  //   console.log(xxx);
+  //   xxx.select();
+  //   // setRegisterStatus(1000);
+  // }
+
+  async function handleCountChange(event) {
+    let idx = parseInt(event.target.value);
+    let xxx = axios.get(`/group/setprize/${newGid}/${idx}`);
+    setPrizeTable(masterPrizeTable[idx-1])
+    setPrizeCount(idx);
+    await xxx;
+  };
+
+/*
+  function org_DisplayPrizeTable() {
+    return (
+      <Table
+      tableKey="t-cvc"
+      id="t-cvc"
+      size="small"
+      tableHeaderColor="warning"
+      tableHead={["Rank", "Prize"]}
+      tableData={prizeTable.map(x => {
+          const arr = [x.rank,  x.prize]
+          return { data: arr, collapse: [] }
+      })}
+      />
+    );
   }
+*/
+
+
+  function DisplayPrizeRadio(props) {
+    let inumber = parseInt(props.number);
+    return(
+      <FormControlLabel
+      value={props.number} label={((inumber === 1) ? "Prize Count " : "") +  props.number} labelPlacement="start" disabled={inumber > memberCount} checked={prizeCount === inumber}
+      control={<Radio color="primary" />}
+      />
+    );
+  } 
+
+  function DisplayMemberCount() {
+    return (
+    <div>
+      <FormControl component="fieldset" align="center">
+      {/* <FormLabel component="legend" color="primary" align="center">Prize Count</FormLabel> */}
+        <RadioGroup aria-label="position" name="position" value={prizeCount} onChange={handleCountChange} row>
+          <DisplayPrizeRadio number="1"/>
+          <DisplayPrizeRadio number="2"/>
+          <DisplayPrizeRadio number="3"/>
+          <DisplayPrizeRadio number="4"/>
+          <DisplayPrizeRadio number="5"/>
+        </RadioGroup>
+      </FormControl>
+    </div>
+    );
+  }
+
+  function SelectPrizeCount() {
+    if (groupCode.length > 0) {
+      return (
+        <div>
+          <DisplayMemberCount/>
+          <DisplayPrizeTable tableName={prizeTable}/>
+        </div>
+      )
+    } else {
+      return  <NothingToDisplay/>;
+    }
+  }
+
+  function DisplayGroupCode() {
+    if (groupCode.length > 0) {
+      return (
+      <div>
+        <Typography>Group Code: {groupCode}</Typography>
+        <CopyToClipboard text={copyState.value}
+            onCopy={() => setCopyState({copied: true})}>
+            <button>Copy to clipboard with button</button>
+        </CopyToClipboard>
+        {copyState.copied ? <span style={{color: 'blue'}}>Copied.</span> : null}
+      </div>       
+      )
+    } else {
+      return  <NothingToDisplay/>;
+    }
+  }
+  // function handleCancel() {
+  //   // history.push("/admin/mygroup")
+  //   setTab(0);
+  // }
+
 
   function ShowResisterStatus() {
     // console.log(`Status is ${registerStatus}`);
     let myMsg;
+    let errmsg = true;
     switch (registerStatus) {
+      case 1000:
+        myMsg = `Successfully copied code to clipboard.`;
+        errmsg = false;
+        break;      
       case 200:
         // setGroupName("");
         // setPassword("");
         // setRepeatPassword("");
         // setEmail("");
         myMsg = `User ${groupName} successfully regisitered.`;
+        errmsg = false;
         break;
-      case 602:
-        myMsg = "User Name already in use";
+      case 0:
+        myMsg = "";
+        errmsg = false;
         break;
-      case 603:
-        myMsg = "Email id already in use";
+        case 629:
+        myMsg = "Duplicate group Name";
+        break;
+      case 622:
+        myMsg = "Invalid User Id";
+        break;
+      case 629:
+        myMsg = "Invalid Tournament";
         break;
       default:
-          myMsg = "";
-          break;
+        myMsg = "unknown error";
+        break;
     }
+    let myClass = (errmsg) ? classes.error : classes.root;
     return(
       <div>
-        <Typography className={(registerStatus === 200) ? classes.root : classes.error}>{myMsg}</Typography>
-        {/* <Typography className={classes.root}>
-            <Link href="#" onClick={handleLogin} variant="body2">
-            Already have an account? Sign in
-          </Link>
-        </Typography> */}
+        <Typography className={myClass}>{myMsg}</Typography>
       </div>
-    )
+    );
   }
 
   
   return (
     <Container component="main" maxWidth="xs">
+      <DisplayBalance balance={balance} />
       <CssBaseline />
       <div className={classes.paper}>
         {/* <Avatar className={classes.avatar}>
@@ -195,21 +351,8 @@ export default function CreateGroup() {
           errorMessages={['Group Name to be provided', 'Group Name should be of minimum 6 characters', 'Special characters not permitted']}
           value={groupName}
       />
-      {/* <BlankArea/>
-      <TextValidator
-          variant="outlined"
-          required
-          fullWidth      
-          label="Group Display Name"
-          onChange={(event) => setDisplayName(event.target.value)}
-          name="displayname"
-        //   type="email"
-          validators={[['required', 'minLength', 'noSpecialCharacters' ]]}
-          errorMessages={['Group display name to be provided', 'Group Name should be of minimum 6 characters', , 'Special characters not permitted']}
-          value={displayName}
-      /> */}
       <BlankArea/>
-      <TextValidator
+      {/* <TextValidator
           variant="outlined"
           required
           fullWidth      
@@ -220,7 +363,36 @@ export default function CreateGroup() {
           validators={['required', 'minNumber:1000', 'maxNumber:5000']}
           errorMessages={['Bid Amount to be provided', 'Bid Amount cannot be less than 1000', 'Bid Amount cannot be greater than 5000']}
           value={bidAmount}
+      /> */}
+      <div>
+      <TextValidator
+          variant="outlined"
+          required
+          fullWidth      
+          // size="small"  
+          label="MemberCount"
+          onChange={(event) => setMemberCount(event.target.value)}
+          name="membercount"
+          type="number"
+          validators={['required', 'minNumber:2', 'maxNumber:25']}
+          errorMessages={['Member count to be provided', 'Group members cannot be less than 2', 'Group members cannot be more than 25']}
+          value={memberCount}
       />
+      <BlankArea/>
+      <TextValidator
+          variant="outlined"
+          required
+          fullWidth    
+          // size="small"  
+          label="MemberFee"
+          onChange={(event) => setMemberFee(event.target.value)}
+          name="membercount"
+          type="number"
+          validators={['required', 'minNumber:50', 'lessthanbalance']}
+          errorMessages={['Member count to be provided', 'Member fee cannot be less than 50', 'Insufficient Balance']}
+          value={memberFee}
+      />
+      </div>
       <BlankArea/>
       <Select labelId='tournament' id='tournament'
         variant="outlined"
@@ -233,24 +405,24 @@ export default function CreateGroup() {
         displayEmpty onChange={handleSelectedTournament}>
         {tournamentData.map(x =>
         <MenuItem key={x.name} value={x.name}>{x.name}</MenuItem>)}
-    </Select>
+      </Select>
       <BlankArea/>
-      <div>
-        <Typography className={classes.error} align="left">{errorMessage}</Typography>
-      </div>
+      <ShowResisterStatus/>
       <BlankArea/>
       <div align="center">
         <Button type="submit" key={"create"} variant="contained" color="primary" size="small"
             className={classes.button}>Create
         </Button>
-        <Button key={"members"} variant="contained" color="primary" size="small"
+        {/* <Button key={"members"} variant="contained" color="primary" size="small"
             className={classes.button} onClick={handleCancel}>Cancel
-        </Button>
-       </div>
+        </Button> */}
+      </div>
     </ValidatorForm>
-    <ShowResisterStatus/>
     </div>
-    <ChildComp p3={selectedTournament}/>    
+    <ChildComp p1={balance} p3={selectedTournament}/>   
+    <BlankArea/> 
+    <SelectPrizeCount/>
+    <DisplayGroupCode/>
     {/* <Switch>
       <Route  path='/admin/signin' component={SignIn} key="MemberList"/>
     </Switch> */}

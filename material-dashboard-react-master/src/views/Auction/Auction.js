@@ -516,9 +516,14 @@ export default function Auction() {
     // }
 
     const startAuction = async () => {
-        const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/RUNNING`);
-        if (response.data) {
+        try {
+            const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/RUNNING`);
             setAuctionStatus("RUNNING");
+        } catch (err) {
+            // should show the display
+            // console.log("cannot start auction");
+            // console.log(err.response.status);
+            DisplayBidOverMsg("Insufficient members in Group.")
         }
     }
 
@@ -553,6 +558,7 @@ export default function Auction() {
                     <div align="center">
                         <DisplayPendingOver message="Auction has not yet started"/>
                         <DisplayPendingButton/>
+                        <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={playerStatus} />
                     </div>);
             } else if (auctionStatus === "OVER") {
                 return (

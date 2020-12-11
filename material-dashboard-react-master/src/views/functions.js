@@ -1,10 +1,13 @@
 // export const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
 // export const ENDPOINT = "http://localhost:4000";
 
+import axios from "axios";
+
 
 export function cdRefresh(complteRefresh) {
   window.location.reload(complteRefresh);
 }
+
 export function cdCurrent() {
   return String.fromCharCode(169);
 }
@@ -88,4 +91,16 @@ export function cricTeamName(t) {
       tmp[i] = x.substr(0, 1) + x.substr(1, x.length - 1).toLowerCase();
   }
   return tmp.join(' ');
+}
+
+
+export async function getUserBalance() {
+  let myBalance = 0;
+  try {
+    let response = await axios.get(`/wallet/balance/${localStorage.getItem("uid")}`);
+    myBalance = (await response).data.balance;
+  } catch(err) {
+    myBalance = 0;
+  }
+  return myBalance;
 }

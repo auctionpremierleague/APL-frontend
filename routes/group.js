@@ -114,18 +114,18 @@ router.get('/getauctionstatus/:groupid', async function (req, res, next) {
   setHeader();
 
   var { groupid } = req.params;
-  // groupAction = groupAction.toLowerCase();
-  // if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-
-    var gdoc = await IPLGroup.findOne({ gid: groupid });  
-    if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
-    // // if ((gdoc.auctionStatus === "RUNNING")) {
-    //   const playerList = await Player.find({pid: gdoc.auctionPlayer});
-    //   const balanceDetails = await fetchBalance(groupid);
-    //   // console.log(`In Get Status: length is ${playerList.length}`);
-    //   sendDataToClient(groupid, playerList[0], balanceDetails);
-      sendok(gdoc.auctionStatus);
-  });
+  
+  var gdoc = await IPLGroup.findOne({ gid: groupid});  
+  if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+  // let memberCount = GroupMemberCount(groupid);
+  // if (memberCount !== gdoc.memberCount) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+  // // // if ((gdoc.auctionStatus === "RUNNING")) {
+  //   const playerList = await Player.find({pid: gdoc.auctionPlayer});
+  //   const balanceDetails = await fetchBalance(groupid);
+  //   // console.log(`In Get Status: length is ${playerList.length}`);
+  //   sendDataToClient(groupid, playerList[0], balanceDetails);
+    sendok(gdoc.auctionStatus);
+});
 
 
 
@@ -135,12 +135,17 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
   var { groupid, newstate } = req.params;
   var stateReq = newstate.toUpperCase().substring(0,3);
 
-  var gdoc = await IPLGroup.findOne({ gid: groupid });
+  var gdoc = await IPLGroup.findOne({ gid: groupid, enable: true});
   if (!gdoc) { 
     senderr(621, `Invalid group ${groupid}`); 
     return 
   }
 
+  let memberCount = GroupMemberCount(groupid);
+  if (memberCount !== gdoc.memberCount) {
+    senderr(622, "Insufficient member count"); 
+    return; 
+  }
 
   // console.log(gdoc);
   var aplayer = gdoc.auctionPlayer;
@@ -342,12 +347,35 @@ router.get('/owner', function (req, res, next) {
 });
 
 
-router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (req, res, next) {
+router.get('/setprize/:groupid/:prizecount', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
-  var { groupName, ownerid, maxbid, mytournament } = req.params;
+  var { groupid, prizecount} = req.params;
 
+  let gRec = await IPLGroup.findOne({gid: groupid});
+  if (!gRec) {senderr(601, "invalid parameter"); return;}
+
+  // let icount = parseInt(membercount);
+  // if (isNaN(icount)) {senderr(601, "invalid parameter"); return;}
+  // let ifee = parseInt(memberfee);
+  // if (isNaN(ifee)) {senderr(601, "invalid parameter"); return;}
+  
+  // verify prize is not greater than member count
+  let iprize = parseInt(prizecount);
+  if (isNaN(iprize)) {senderr(601, "invalid parameter"); return;}
+  if (iprize > gRec.memberCount) {senderr(601, "invalid parameter"); return;}
+  gRec.prizeCount = iprize;
+  gRec.save();
+  sendok(gRec);
+});
+
+
+router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var { groupName, ownerid, maxbid, mytournament, membercount, memberfee} = req.params;
   var tmp = await IPLGroup.find({});
   var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
   if (tmp.length > 0) { senderr(629, `Duplicate Group name ${groupName}`); return; }
@@ -363,8 +391,7 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
 
   //Goods.find({}).sort({ price: 1 }).limit(1).then(goods => goods[0].price);
   var maxGid = await IPLGroup.find({}).sort({ gid: -1 }).limit(1);
-  var myRec = new IPLGroup();
-  //console.log(maxGid);
+
   // gid: Number,
   // name: String,
   // owner: Number,
@@ -375,7 +402,12 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
   // auctionBid: Number,
   // currentBidUid: Number,
   // currentBidUser: String,
+  // memberCount: Number,
+  // memberFee: Number,
+  // prizeCount: Number,
   // enable: Boolean
+
+  var myRec = new IPLGroup();
   myRec.gid = maxGid[0].gid + 1;
   myRec.name = groupName;
   myRec.owner = ownerRec.uid;
@@ -387,15 +419,26 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
   myRec.currentBidUid = 0;
   myRec.currentBidUser = "";
   myRec.enable = true;
+  // new fields set default prize count as 1
+  myRec.memberCount = membercount;
+  myRec.memberFee = memberfee;
+  myRec.prizeCount = 1;
   myRec.save();
+  // console.log(myRec._id);
 
+  await WalletAccountGroupJoin(myRec.gid, myRec.owner, memberfee);
+  
   // Also add owner as group member
   // gid: Number,
   // uid: Number,
   // userName: String,
   // balanceAmount: Number,        // balance available to be used for bid
   // displayName: String,
+  // score: Number,
+  // rank: Number,
+  // prize: Number,
   // enable: Boolean
+
   myGroupMemberRec = new GroupMember();
   myGroupMemberRec.gid = myRec.gid;
   myGroupMemberRec.uid = myRec.owner
@@ -403,12 +446,80 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament', async function (
   myGroupMemberRec.balanceAmount = imaxbid;
   myGroupMemberRec.displayName = ownerRec.displayName;
   myGroupMemberRec.enable = true;
+  // new fields
+  myGroupMemberRec.score = 0;
+  myGroupMemberRec.rank = 0;
+  myGroupMemberRec.prize = 0;
   myGroupMemberRec.save();
 
-  // now save okay to user
+  // now save and say okay to user
   sendok(myRec);
 
 }); // end of get
+
+
+router.get('/join/:groupCode/:userid', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var { groupCode, userid } = req.params;
+
+  /*
+  Validation list
+  1) validate correct group id
+  2) validate correct user id
+  3) validate user has sufficeint balance
+  4) validate current member count is less than configured by group owner
+  5) validate tournament has not yet started
+  6) validate user is not member of this group
+  */
+ let groupRec;
+  try {
+    let xxx = IPLGroup.findOne({_id: groupCode});
+    groupRec = await xxx;
+  } catch (err) {
+    senderr(611, `Invalid Group code ${groupCode}`); return;
+  }
+
+  // this validation has to be streamline in more detail
+  if (groupRec.auctionStatus !== "PENDING") { senderr(614, `Auction already started of Group code ${groupCode}`); return; }
+
+  let userRec = await User.findOne({uid: userid});
+  if (!userRec) { senderr(613, `Invalid user ${userid}`); return; }
+  let userBalance = await WalletBalance(userRec.uid);
+  if (userBalance < groupRec.memberFee) { senderr(615, `Insufficient User Balance`); return; }
+  if (GroupMemberCount(groupRec.gid) >= groupRec.membercount) { senderr(616, `Member count exceed limit`); return; }
+
+  let gmRec = await GroupMember.findOne({gid: groupRec.gid, uid: userRec.uid})
+  if (gmRec) { senderr(612, `User already belongs to  Group with code ${groupCode}`); return; }
+
+  // gid: Number,
+  // uid: Number,
+  // userName: String,
+  // balanceAmount: Number,        // balance available to be used for bid
+  // displayName: String,
+  // score: Number,
+  // rank: Number,
+  // prize: Number,
+  // enable: Boolean
+
+  await WalletAccountGroupJoin(groupRec.gid, userRec.uid, groupRec.memberFee);
+
+  let myGroupMemberRec = new GroupMember();
+  myGroupMemberRec.gid = groupRec.gid;
+  myGroupMemberRec.uid = userRec.uid;
+  myGroupMemberRec.userName = userRec.displayName;
+  myGroupMemberRec.balanceAmount = 1000;
+  myGroupMemberRec.displayName = userRec.displayName;
+  myGroupMemberRec.enable = true;
+  myGroupMemberRec.score = 0;
+  myGroupMemberRec.rank = 0;
+  myGroupMemberRec.prize = 0;  
+  myGroupMemberRec.save();
+  // now save okay to user
+  sendok(groupRec);
+}); 
+
 
 // who is the owner of the group. Returns user record of the owner
 function owneradmin() {
@@ -423,11 +534,14 @@ function owneradmin() {
   });
 };
 
-router.get('/test', function (req, res, next) {
+router.get('/test', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
-  update_tournament_max(1);
+  let ankit = await User.findOne({uid: 8});
+  let ankit1 = await User.findOne({_id: ankit._id})
+  console.log(ankit1);
+  sendok(ankit1);
 });
 
 // requred duting sign in

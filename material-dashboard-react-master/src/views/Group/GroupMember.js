@@ -11,7 +11,7 @@ import { makeStyles } from '@material-ui/core/styles';
 // import CardAvatar from "components/Card/CardAvatar.js";
 // import CardBody from "components/Card/CardBody.js";
 // import { useLocation } from "react-router-dom";
-import AddGroupMember from "views/Group/AddGroupMember.js"
+// import AddGroupMember from "views/Group/AddGroupMember.js"
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 import {DisplayPageHeader,MessageToUser} from "CustomComponents/CustomComponents.js"
 
@@ -93,23 +93,23 @@ export default function GroupMember() {
     }, []);
 
 
-    function handleAddGroupMember() {
-        // history.push('/admin/addgroupmember');
-        setTab(104);
-    }
+    // function handleAddGroupMember() {
+    //     // history.push('/admin/addgroupmember');
+    //     setTab(104);
+    // }
 
-    function handleMyGroup() {
-        // history.push("/admin/mygroup")
-        setTab(0);
-    }
+    // function handleMyGroup() {
+    //     // history.push("/admin/mygroup")
+    //     setTab(0);
+    // }
 
     function ShowGmButtons() {
         return (
         <div align="center">
-            <Button className={classes.button}  variant="contained" color="primary" size="small"
+            {/* <Button className={classes.button}  variant="contained" color="primary" size="small"
                 disabled={tournamentStated || (localStorage.getItem("gdAdmin") !== "true")}
                 className={classes.button} onClick={handleAddGroupMember}>Edit Member List
-            </Button>
+            </Button> */}
             {/* <Button className={classes.button} variant="contained" color="primary" size="small"
                 className={classes.button} onClick={handleMyGroup}>Back
             </Button> */}
