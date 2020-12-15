@@ -563,6 +563,8 @@ getDisplayName = function (name) {
 }
 
 masterRec = null;
+joinOffer=500;
+
 fetchMasterSettings = async function () {
   // if (masterRec === null) {
     let tmp = await MasterData.find();
@@ -736,7 +738,27 @@ getBlankBriefRecord = function(tournamentStat) {
 }
 
 awardRankPrize = async function(tournamentName) {
-
+  let allGroups = await IPLGroup.find({tournament: tournamentName, enable: true});
+  // allGroups.forEach(g => {
+  for(const g of allGroups) {
+    // arun
+    // memberCount: Number,
+    // memberFee: Number,
+    // prizeCount: Number,
+    let prizeTable = await getPrizeTable(g.prizeCount, g.memberCount*memberFee);
+    let allgmRec = await GroupMember.find({gid: g.gid});
+    // allgmRec.forEach(gmRec => {
+    for (const gmRec of allgmRec) {
+      // arun
+      if (gmRec.rank <= g.prizeCount) {
+        gmRec.prize = prizeTable[gmRec.rank-1].prizeAmount;
+        await WalletArun(gmRec.gid, gmRec.uid, prizeTable[gmRec.rank-1].prizeAmount)
+      } else {
+        gmRec.prize = 0;
+      }
+      gmRec.save();
+    }
+  }
 }
 
 
@@ -1022,6 +1044,23 @@ WalletBalance = async function (userid) {
   if (allRec.length > 0)
     tmp = _.sumBy(allRec, x => x.amount);
   return tmp;
+}
+
+
+getPrizeTable = async function (count, amount) {
+  let myPrize = await Prize.findOne({prizeCount: count})
+  // we will keep 5% of amount
+  // rest (i.e. 95%) will be distributed among users
+  let totPrize = Math.floor(amount*0.95)
+  let allotPrize = 0;
+  let prizeTable=[]
+  for(i=1; i<count; ++i) {
+    let thisPrize = Math.floor(totPrize*myPrize["prize"+i.toString()]/100);
+    prizeTable.push({rank: i, prize: thisPrize})
+    allotPrize += thisPrize;
+  }
+  prizeTable.push({rank: count, prize: totPrize-allotPrize});
+  return prizeTable;
 }
 
 GroupMemberCount = async function (groupid) {

@@ -65,31 +65,39 @@ export default function Group() {
         const a = async () => {
             let myBalance = await getUserBalance();
             setBalance(myBalance);
-            console.log(myBalance); 
+            // console.log(myBalance); 
 
             window.localStorage.setItem("groupMember", "");
             var myUrl = `/group/memberof/${localStorage.getItem("uid")}`;
             const teamResponse = await axios.get(myUrl);
-            // var hasgroup = false;
-            // console.log(teamResponse.data[0].groups.length);
-            if (teamResponse.data[0].groups.length > 0) {
-                // console.log(localStorage.getItem("gid"));
-                if (!hasGroup()) {
-                    // user might have just created the group. Thus
-                    // current group is not set. Create the 1st one as current
+            console.log(teamResponse.data[0].groups);
+            let setnew = true;
+            if (hasGroup()) {
+                // just check if current group is part of group list 
+                let tmp = teamResponse.data[0].groups.find(x => x.gid == localStorage.getItem("gid"));
+                if (tmp) setnew = false;
+            }
+            console.log(`Set new is ${setnew}`);
+            if (setnew) {
+                if (teamResponse.data[0].groups.length > 0) {
                     var myGroup = teamResponse.data[0].groups[0];
                     // console.log(myGroup);
                     localStorage.setItem("gid", myGroup.gid.toString());
-                    localStorage.setItem("groupName", myGroup.name);
+                    localStorage.setItem("groupName", myGroup.groupName);
                     localStorage.setItem("tournament", myGroup.tournament);
                     localStorage.setItem("admin", false)
                     setNewCurrentGroup(myGroup.name);
-                    // setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "true")})                
+                } else {
+                    localStorage.setItem("gid", "");
+                    localStorage.setItem("groupName", "");
+                    localStorage.setItem("tournament", "");
+                    localStorage.setItem("admin", false)
+                    setNewCurrentGroup("");
                 }
-                setMyGroupTableData(teamResponse.data[0].groups);
-                // console.log(teamResponse.data[0].groups);
             }
-        }
+            setMyGroupTableData(teamResponse.data[0].groups);
+            // console.log(teamResponse.data[0].groups);
+            }
         a();
     }, [])
 

@@ -58,6 +58,18 @@ router.get('/allopen', async function (req, res, next) {
   sendok("ok");
 }); 
 
+router.get('/alloffer', async function (req, res, next) {
+  WalletRes = res;
+  setHeader();
+
+  // var { userid } = req.params;
+  let alluserRec = await User.find({});
+  for(i=0; i<alluserRec.length; ++i) {
+    await WalletAccountOffer(alluserRec[i].uid, joinOffer);
+  };
+  sendok("ok");
+}); 
+
 
 
 function sendok(usrmsg) { WalletRes.send(usrmsg); }

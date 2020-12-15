@@ -11,21 +11,6 @@ router.use('/', function(req, res, next) {
 });
 
 
-async function getPrizeTable(count, amount) {
-  let myPrize = await Prize.findOne({prizeCount: count})
-  // we will keep 5% of amount
-  // rest (i.e. 95%) will be distributed among users
-  let totPrize = Math.floor(amount*0.95)
-  let allotPrize = 0;
-  let prizeTable=[]
-  for(i=1; i<count; ++i) {
-    let thisPrize = Math.floor(totPrize*myPrize["prize"+i.toString()]/100);
-    prizeTable.push({rank: i, prize: thisPrize})
-    allotPrize += thisPrize;
-  }
-  prizeTable.push({rank: count, prize: totPrize-allotPrize});
-  return prizeTable;
-}
 
 
 router.get('/all/:amount', async function (req, res, next) {

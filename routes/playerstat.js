@@ -559,7 +559,7 @@ router.use('/updatemax/:tournamentName', async function(req, res, next) {
     mybrief.pid = mmm.pid;
     mybrief.playerName = mmm.playerName;
     mybrief.score = bonusAmount;
-    mybrief.maxTouramentRun = mmm.totalWicket;  
+    mybrief.maxTouramentWicket = mmm.totalWicket;  
     mybrief.save(); 
 
   });
@@ -1086,7 +1086,7 @@ async function statCalculation (igroup) {
         MF = Captain_MultiplyingFactor;
       } else {
         //console.log(`None of the above: ${p.pid}`);
-		MF = 1;
+		    MF = 1;
       }
       //console.log(`Mul factor: ${MF}`);
 
@@ -1360,6 +1360,8 @@ async function update_cricapi_data_r1(logToResponse)
           mmm.matchEnded = true;
           mmm.save();
           delRunningMatch(mmm);
+          // update rank score in all group
+          await updateAllGroupRankScore(mmm.tournament);
           await checkTournamentOver(mmm.tournament);
         }     
       }
@@ -1367,6 +1369,35 @@ async function update_cricapi_data_r1(logToResponse)
     return;
 }
 
+async function updateGroupRankScore(groupRec) {
+  await getTournameDetails(groupRec.gid);
+  let sts = await readDatabase(groupRec.gid );
+  let myDB_Data = await statCalculation(groupRec.gid );
+  // let mySTAT_Data = await statBrief(connectionArray[i].gid , 0 , SENDSOCKET);
+
+  // uid: userPid, 
+  // gid: igroup,
+  // userName: urec[0].displayName,   //  curruserName, 
+  // displayName: gm.displayName,    //  currdisplayName,
+  // grandScore: totscore, 
+  // rank: 0});
+  // myDB_Data.rank.forEach(rec => {
+  for (const rec of myDB_Data.rank) {
+    let gmRec = await GroupMember.findOne({gid: rec.gid, uid: rec.uid});
+    gmRec.rank = rec.rank;
+    gmRec.score = rec.grandScore;
+    await gmRec.save();
+  };
+}
+
+
+async function updateAllGroupRankScore(tournamentName)  {
+  let allGroups = await IPLGroup.find({tournamnet: tournamentName, enable: true});
+  // allGroups.forEach(g => {
+  for (const g of allGroups) {
+    await updateGroupRankScore(g);
+  };
+}
 
 async function updateMatchStats_r1(mmm, cricdata)
 {

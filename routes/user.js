@@ -72,7 +72,7 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
     });
   user1.save();
   // open user wallet with 0 balance
-  await WalletAccountOpen(user1.uid, 0);
+  await WalletAccountOpen(user1.uid, joinOffer);
 
   // console.log(user1);
   sendok("OK"); 
