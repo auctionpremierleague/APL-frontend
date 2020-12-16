@@ -1042,9 +1042,19 @@ WalletAccountGroupCancel = async function (groupid, userid, groupfee) {
 
 WalletBalance = async function (userid) {
   let tmp = 0;
-  let allRec = await Wallet.find({uid: userid});
-  if (allRec.length > 0)
-    tmp = _.sumBy(allRec, x => x.amount);
+  // let allRec = await Wallet.find({uid: userid});
+  // if (allRec.length > 0)
+  //   tmp = _.sumBy(allRec, x => x.amount);
+  // db.articles.aggregate( [
+  //   { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
+  //   { $group: { _id: null, count: { $sum: 1 } } }
+  // ] );
+  // iuserid = ;
+  let xxx = await Wallet.aggregate([
+    {$match: {uid: parseInt(userid)}},
+    {$group : {_id : "$uid", balance : {$sum : "$amount"}}}
+  ]);
+  if (xxx.length === 1) tmp = xxx[0].balance;
   return tmp;
 }
 
@@ -1066,8 +1076,18 @@ getPrizeTable = async function (count, amount) {
 }
 
 GroupMemberCount = async function (groupid) {
-  let allRec = await GroupMember.find({gid: groupid});
-  return allRec.length;
+  // let allRec = await GroupMember.find({gid: groupid});
+  // return allRec.length;
+//   > db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
+// { "_id" : "tutorials point", "num_tutorial" : 2 }
+// { "_id" : "Neo4j", "num_tutorial" : 1 }
+  let memberCount = 0;
+  let xxx = await GroupMember.aggregate([
+    {$match: {gid: parseInt(groupid)}},
+    {$group : {_id : "$gid", num_members : {$sum : 1}}}
+  ]);
+  if (xxx.length === 1) memberCount = xxx[0].num_members;
+  return(memberCount);
 }
 // module.exports = app;
 
