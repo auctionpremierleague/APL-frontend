@@ -71,6 +71,7 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
       userPlan: USERTYPE.TRIAL,
     });
   user1.save();
+  console.log(`user user record for ${lname}`);
   // open user wallet with 0 balance
   await WalletAccountOpen(user1.uid, joinOffer);
 
@@ -165,6 +166,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
     text: 'That was easy!'
   };
 
+  /*
   mailOptions.to = uRec.email;
   mailOptions.text = `Dear User,
   
@@ -178,6 +180,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
 
     Regards,
     for Cricdream.`
+*/
 
   transporter.sendMail(mailOptions, function(error, info){
     if (error) {

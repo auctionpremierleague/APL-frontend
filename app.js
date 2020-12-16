@@ -991,11 +991,13 @@ createWalletTransaction = function () {
 }
 
 WalletAccountOpen = async function (userid, openamount) {
+  // console.log(`Account open for user ${userid} for amount ${openamount}`)
   let myTrans = createWalletTransaction();
   myTrans.transType = WalletTransType.accountOpen;
   myTrans.uid = userid;
   myTrans.amount = openamount;
   await myTrans.save();
+  // console.log(myTrans);
   return myTrans;
 }
 
@@ -1009,14 +1011,14 @@ WalletAccountOffer = async function (userid, offeramount) {
   return myTrans;
 }
 
-WalletAccountOpen = async function (userid, openamount) {
-  let myTrans = createWalletTransaction();
-  myTrans.transType = WalletTransType.offer;
-  myTrans.uid = userid;
-  myTrans.amount = openamount;
-  await myTrans.save();
-  return myTrans;
-}
+//  = async function (userid, openamount) {
+//   let myTrans = createWalletTransaction();
+//   myTrans.transType = WalletTransType.offer;
+//   myTrans.uid = userid;
+//   myTrans.amount = openamount;
+//   await myTrans.save();
+//   return myTransWalletAccountOpen;
+// }
 
 WalletAccountGroupJoin = async function (groupid, userid, groupfee) {
   let myTrans = createWalletTransaction();
