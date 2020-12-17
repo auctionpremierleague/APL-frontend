@@ -600,19 +600,21 @@ userAlive = async function (uRec) {
 
 refundGroupFee = async function(groupid, amount) {
   let allMembers = await GroupMember.find({gid: groupid});
-  await allMembers.forEach(gm => {
-    WalletAccountGroupCancel(gm.gid, gm.uid, amount)
-  })
+  for(gm of allMembers) {
+    await WalletAccountGroupCancel(gm.gid, gm.uid, amount)
+  };
 }
 
 doDisableAndRefund = async function(g) {
+  // console.log(`Disable group ${g.gid}`)
   let memberCount = await GroupMemberCount(g.gid);
   // let groupRec = await IPLGroup.findOne({gid: g.gid});
   if (memberCount !== g.memberCount) {
-    groupRec.enable = false;
-    groupRec.save();
+    g.enable = false;
+    g.save();
     // refund wallet amount since group is disabled.
     await refundGroupFee(g.gid, g.memberFee);
+    console.log(`Refund compeletd fpr group ${g.gid}`)
   }
 }
 
@@ -620,15 +622,19 @@ disableIncompleteGroup = async function(tournamentName) {
   // this will disable all groups in which reqiured numbers of members
   // have not joined. Remember to refund the member fee amount to their wallet
   allGroups = await IPLGroup.find({tournament: tournamentName, enable: true});
-  await allGroups.forEach(g => {
-    doDisableAndRefund(g);
-  });
+  // console.log("----in Disable");
+  // console.log(allGroups);
+  for(const g of allGroups ) {
+    console.log(`Group is ${g.gid} to be DISABLED-------------------------`)
+    await doDisableAndRefund(g);
+  };
 }
 
 
 
 // set tournament Started
 updateTournamentStarted = async function (tournamentName) {
+  // console.log("in update tournament started")
   let tRec = await Tournament.findOne({name: tournamentName, started: false});
   if (tRec) {
     // disable group for which required number of members have not been formed.
