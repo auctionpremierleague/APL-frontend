@@ -94,16 +94,18 @@ export default function MatchInfo() {
     }, []);
 
     function MatchDetails(props) {
+    let uteam1 = props.team1.toUpperCase();
+    let uteam2 = props.team2.toUpperCase();
     return (
         <Paper elevation={6} >
         <Box border={1}>
         <Grid m={0} spacing={0} shadow={5} container>
-            <Grid  m={0} justify="start" alignItems="start" item xs={1}>
-                <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.team1}.JPG`} className={classes.medium} />                      
+            <Grid  m={0} justify="start" alignItems="start" item xs={2}>
+                <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${uteam1}.JPG`} className={classes.medium} />                      
             </Grid>
-            <Grid  m={0} item xs={10}><Typography align="center">{props.matchTime}</Typography></Grid>
-            <Grid m={0} justify="right" alignItems="right" item xs={1}>
-                <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.team2}.JPG`} className={classes.medium} />                      
+            <Grid  m={0} item xs={8}><Typography align="center">{props.matchTime}</Typography></Grid>
+            <Grid m={0} justify="right" alignItems="right" item xs={2}>
+                <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${uteam2}.JPG`} className={classes.medium} />                      
             </Grid>
             <Grid item m={0} xs={6}><Typography className={classes.team} align="left">{props.team1}</Typography></Grid>
             <Grid item m={0} xs={6}><Typography className={classes.team} align="right">{props.team2}</Typography></Grid>
