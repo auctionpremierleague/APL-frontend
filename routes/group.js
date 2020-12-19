@@ -681,11 +681,15 @@ router.get('/memberof/:userid', async function(req, res, next) {
   // console.log(`${userid} is valid`)
 
   var myGmRec = await GroupMember.find ({uid: userid});
+  // console.log(myGmRec);
   var allGroups = await IPLGroup.find({enable: true});
+  // console.log(allGroups);
   // console.log(allGroups);
   var gData = [];
   allGroups.forEach(ggg => {
     var tmp = myGmRec.find(x => x.gid === ggg.gid);
+    // console.log(ggg.gid);
+    // console.log(tmp);
     if (tmp) {
       var isDefault = tmp.gid === myUser.defaultGroup;
       var adminSts = (tmp.uid === ggg.owner) //? "Admin" : "";

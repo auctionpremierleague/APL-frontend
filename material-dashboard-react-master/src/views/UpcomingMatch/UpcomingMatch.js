@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import Grid from "@material-ui/core/Grid";
+import Box from "@material-ui/core/Box";
 import Table from "components/Table/Table.js";
 import { makeStyles } from '@material-ui/core/styles';
 import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
+import Avatar from "@material-ui/core/Avatar";
+import Paper from "@material-ui/core/Paper";
+import Typography from '@material-ui/core/Typography';
+import {red, blue} from '@material-ui/core/colors';
 import { NothingToDisplay, NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
 import {hasGroup} from 'views/functions'
 
@@ -56,7 +61,15 @@ const useStyles = makeStyles((theme) => ({
         width: theme.spacing(12),
         height: theme.spacing(12),
     },
-}));
+    team:  {
+        // right: 0,
+        fontSize: '12px',
+        color: blue[700],
+        // position: 'absolute',
+        alignItems: 'center',
+        marginTop: '0px',
+    },
+  }));
 
 
 export default function MatchInfo() {
@@ -69,6 +82,7 @@ export default function MatchInfo() {
     useEffect(() => { 
         const fetchMatch = async () => {
             try {
+
                 var response = await axios.get(`/match/matchinfo/${localStorage.getItem("gid")}`);
                 setCurrentArray(response.data.current);
                 setUpcomingArray(response.data.upcoming);
@@ -79,19 +93,36 @@ export default function MatchInfo() {
         if (hasGroup()) fetchMatch();
     }, []);
 
+    function MatchDetails(props) {
+    return (
+        <Paper elevation={6} >
+        <Box border={1}>
+        <Grid m={0} spacing={0} shadow={5} container>
+            <Grid  m={0} justify="start" alignItems="start" item xs={1}>
+                <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.team1}.JPG`} className={classes.medium} />                      
+            </Grid>
+            <Grid  m={0} item xs={10}><Typography align="center">{props.matchTime}</Typography></Grid>
+            <Grid m={0} justify="right" alignItems="right" item xs={1}>
+                <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.team2}.JPG`} className={classes.medium} />                      
+            </Grid>
+            <Grid item m={0} xs={6}><Typography className={classes.team} align="left">{props.team1}</Typography></Grid>
+            <Grid item m={0} xs={6}><Typography className={classes.team} align="right">{props.team2}</Typography></Grid>
+        </Grid>
+        </Box>
+        </Paper>
+    );        
+    }
 
+    
     function MatchTable(props) {
-        if (props.myTable.length > 0)
+            // console.log(props.myTable);
+            if (props.myTable.length > 0)
             return (
-            <Table
-            tableHeaderColor="warning"
-            tableHead={["Team1", "Team2", "Start Time"]}
-            tableData={props.myTable.map(x => {
-                const arr = [x.team1, x.team2, x.matchTime]
-                return { data: arr, collapse: [] }
-            })}
-            />);
-        else
+                props.myTable.map((x) => (
+                    <MatchDetails team1={x.team1} team2={x.team2} matchTime={x.matchTime}  />
+                ))
+                );
+            else
             return (<NothingToDisplay />);
     }
 
@@ -99,44 +130,35 @@ export default function MatchInfo() {
         var myHeader = (currentArray.length > 0)
             ? "Match running just now" : "Currently No Matches running";
         return(
-        <Grid container justify="center" alignItems="center" >
-            <GridItem xs={12} sm={12} md={12} lg={12} >
             <Card profile>
             <CardBody profile>
-            <h4 className={classes.cardTitle}>{myHeader}</h4>
+                <h4 className={classes.cardTitle}>{myHeader}</h4>
                 <MatchTable myTable={currentArray}/>
             </CardBody>
             </Card>
-            </GridItem>
-        </Grid>
         )
     }
 
     function ShowUpcomingMatch() {
         var myHeader = "Upcoming Matches";
         return(
-        <Grid container justify="center" alignItems="center" >
-            <GridItem xs={12} sm={12} md={12} lg={12} >
             <Card profile>
             <CardBody profile>
                 <h4 className={classes.cardTitle}>{myHeader}</h4>
                 <MatchTable myTable={upcomingArray}/>
             </CardBody>
             </Card>
-            </GridItem>
-        </Grid>
+
         )
     }
 
     if (localStorage.getItem("tournament").length > 0)
         return (
-            <div>
-                {/* <h3 align="center">Tournament ({localStorage.getItem("tournament")})</h3> */}
-                {/* <h3 align="center">Matches</h3> */}
-                <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
-                <ShowCurrentMatch/>
-                <ShowUpcomingMatch/>
-            </div>
+        <div>
+            <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
+            <ShowCurrentMatch/>
+            <ShowUpcomingMatch/>
+        </div>
         )
     else
         return <NoGroup/>

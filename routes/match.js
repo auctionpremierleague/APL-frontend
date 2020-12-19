@@ -143,8 +143,10 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   var tmp = _.filter(myMatches, x => _.gte (currTime, x.matchStartTime) && _.lte(currTime,x.matchEndTime));
   var currMatches = [];
   tmp.forEach(m => {
+    // console.log(m.matchStartTime);
     currMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
   })
+  // console.log(currMatches);
   // now get upcoming match. Limit it to 5
   const upcominCount = 5;
   tmp = _.filter(myMatches, x => _.gte(x.matchStartTime, currTime));
@@ -152,6 +154,7 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   tmp = _.slice(tmp, 0, upcominCount);
   var upcomingMatches = [];
   tmp.forEach(m => {
+    // console.log(m.matchStartTime);
     upcomingMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
   })
   // console.log(upcomingMatches);
