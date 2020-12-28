@@ -18,7 +18,7 @@ import JoinGroup from "views/Group/JoinGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
 import GroupMember from "views/Group/GroupMember.js"
 import { useHistory } from "react-router-dom";
-import {cdRefresh} from "views/functions.js"
+import {cdRefresh, specialSetPos} from "views/functions.js"
 import AddGroupMember from "views/Group/AddGroupMember.js"
 
 function TabPanel(props) {
@@ -79,20 +79,26 @@ function Logout() {
   return (<div></div>);
 }
 
+
 function getTabPos() {
   let pos = 0;
+  //console.log(`My tab position is ${localStorage.getItem("tabpos")}`)
   if ((localStorage.getItem("tabpos") === null)  ||
-      (localStorage.getItem("tabpos") === "") ||
-      (localStorage.getItem("tabpos") === "0"))
-      pos = 0;
-  else
+        (localStorage.getItem("tabpos") === "") ||
+        (localStorage.getItem("tabpos") === "0")) {
+        //console.log("Setting TABPOS to 0")
+        pos = 0;  
+  } else {
+    //console.log(`Settab as per setting which is ${localStorage.getItem("tabpos")}`)
     pos = parseInt(localStorage.getItem("tabpos"));
-    // console.log(`Tab position ${pos}`);
+  }
+  //console.log(`Tab position ${pos}`);
   return pos;
 }
 
-export default function CricDreamTabs() {
+export function CricDreamTabs() {
   const classes = useStyles();
+  //console.log("in Cric Dream Tabs");
   const [value, setValue] = React.useState(getTabPos());
   // localStorage.setItem("tabpos", "0");
   const handleChange = (event, newValue) => {
@@ -109,6 +115,7 @@ export default function CricDreamTabs() {
   // variant="scrollable"
   // scrollButtons="auto"
   // aria-label="scrollable auto tabs example"
+  console.log(`value is ${value}`);
   return (
     <div className={classes.root}>
       <AppBar position="static">

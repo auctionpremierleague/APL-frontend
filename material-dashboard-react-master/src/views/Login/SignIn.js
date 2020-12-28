@@ -18,7 +18,7 @@ import { UserContext } from "../../UserContext";
 import axios from "axios";
 import red from '@material-ui/core/colors/red';
 import { DesktopWindows } from '@material-ui/icons';
-import { cdRefresh } from "views/functions.js"
+import { cdRefresh, specialSetPos } from "views/functions.js"
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 
@@ -116,7 +116,9 @@ export default function SignIn() {
       window.localStorage.setItem("admin", response.data.admin)
       // setUser({ uid: myUID, admin: response.data.admin });
       // cdRefresh(true);
-      setTab(0);
+      let newPos = specialSetPos();
+      //if (newPos < 0) newPos = 0;
+      setTab(newPos);
     }
 
   }

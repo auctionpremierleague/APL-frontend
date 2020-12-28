@@ -17,7 +17,7 @@ const doMaxWicket = 2;
 // ]; 
 
 // use for testing
-// const keylist= [ "bbdCNNOKBtPnL54mvGSgpToFUlA2" ];
+const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
 
 // const keylist = [
 // "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -29,13 +29,13 @@ const doMaxWicket = 2;
 // ]
 
 // list provided by ANKIT
-const keylist = [
-  "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
-  "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
-  "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
-  "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
-  "8LweszMN9vMnjb4W9UjjeQzTgEx1"
-]
+// const keylist = [
+//   "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
+//   "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
+//   "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
+//   "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
+//   "8LweszMN9vMnjb4W9UjjeQzTgEx1"
+// ]
 
 // to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
@@ -1420,6 +1420,7 @@ async function updateMatchStats_r1(mmm, cricdata)
     battingArray = cricdata.batting;
   else
     battingArray = [];
+  // console.log(battingArray);
 
   var fieldingArray;
   if (!(cricdata.fielding === undefined))
@@ -1432,6 +1433,7 @@ async function updateMatchStats_r1(mmm, cricdata)
   if (cricdata["man-of-the-match"].pid.length > 0)
     manOfTheMatchPid = parseInt(cricdata["man-of-the-match"].pid);
   // console.log(`Man of the match is ${manOfTheMatchPid} as per cric api ${cricdata["man-of-the-match"]}`)
+  // console.log(cricdata["man-of-the-match"].pid)
 
   var allplayerstats = await tournamentStat.find({mid: mmm.mid});
   var allbriefstats = await briefStat.find({sid: mmm.mid});
@@ -1873,9 +1875,9 @@ cron.schedule('*/1 * * * * *', () => {
     cricTimer = 0;
     // console.log("======== match update start");
     // console.log("TIme to getch cric data");
-    update_cricapi_data_r1(false);
-    updateTournamentBrief();
-    checkallover();
+    // update_cricapi_data_r1(false);
+    // updateTournamentBrief();
+    // checkallover();
     // // console.log("match update over")
   }
 

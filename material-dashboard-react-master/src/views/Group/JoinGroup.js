@@ -51,10 +51,11 @@ export default function JoinGroup() {
   const history = useHistory();
   const [registerStatus, setRegisterStatus] = useState(0);
   // const [ errorMsg, setErrorMessage ] = useState("");
-  const [groupCode, setGroupCode] = useState("");
+  const [groupCode, setGroupCode] = useState(localStorage.getItem("joinGroupCode"));
   const [balance, setBalance] = useState(0);
 
-  
+  console.log(localStorage.getItem("joinGroupCode"));
+  // setTab(0); 
   useEffect(() => {
     const a = async () => {
       // var balres = await axios.get(`/wallet/balance/${localStorage.getItem("uid")}`);
@@ -73,7 +74,8 @@ export default function JoinGroup() {
       console.log("Group Join Success");
       let myBalance = await getUserBalance();
       setBalance(myBalance);
-      setTab(0);
+      setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_GROUP));
+      //setTab(0);
     } catch (err) {
         setRegisterStatus(err.response.status);
     }

@@ -159,13 +159,14 @@ export default function Group() {
     */
 
     function handleNewGroup() {
-        // history.push("/admin/newgroup");        
-        setTab(101);
+        //history.push("/newgroup");        
+        setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_NEWGROUP));
     };
 
     function handleJoinGroup() {
-        // history.push("/admin/newgroup");        
-        setTab(105);
+        // history.push("/admin/newgroup"); 
+        localStorage.setItem("joinGroupCode", "");       
+        setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_JOINGROUP));
     };
 
 

@@ -100,16 +100,16 @@ export default function MatchInfo() {
         <Paper elevation={6} >
         <Box border={1}>
         <Grid m={0} spacing={0} shadow={5} container>
-            <Grid  m={0} justify="start" alignItems="start" item xs={2}>
+            <GridItem  m={0} justify="start" alignItems="start"  xs={2}>
                 <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${uteam1}.JPG`} className={classes.medium} />                      
-            </Grid>
-            <Grid  m={0} item xs={8}><Typography align="center">{props.matchTime}</Typography></Grid>
-            <Grid m={0} justify="right" alignItems="right" item xs={2}>
+            </GridItem>
+            <GridItem  m={0} xs={8}><Typography align="center">{props.matchTime}</Typography></GridItem>
+            <GridItem m={0} justify="right" alignItems="right" xs={2}>
                 <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${uteam2}.JPG`} className={classes.medium} />                      
-            </Grid>
-            <Grid item m={0} xs={6}><Typography className={classes.team} align="left">{props.team1}</Typography></Grid>
-            <Grid item m={0} xs={6}><Typography className={classes.team} align="right">{props.team2}</Typography></Grid>
-        </Grid>
+            </GridItem>
+            <GridItem  m={0} xs={6}><Typography className={classes.team} align="left">{props.team1}</Typography></GridItem>
+            <GridItem  m={0} xs={6}><Typography className={classes.team} align="right">{props.team2}</Typography></GridItem>
+        </Grid> 
         </Box>
         </Paper>
     );        
@@ -117,53 +117,50 @@ export default function MatchInfo() {
 
     
     function MatchTable(props) {
-            // console.log(props.myTable);
-            if (props.myTable.length > 0)
-            return (
-                props.myTable.map((x) => (
-                    <MatchDetails team1={x.team1} team2={x.team2} matchTime={x.matchTime}  />
-                ))
-                );
-            else
-            return (<NothingToDisplay />);
+    // console.log(props.myTable);
+    if (props.myTable.length > 0)
+        return (
+            props.myTable.map((x) => (
+                <MatchDetails team1={x.team1} team2={x.team2} matchTime={x.matchTime}  />
+            ))
+        );
+    else
+        return (<NothingToDisplay />);
     }
 
     function ShowCurrentMatch() {
-        var myHeader = (currentArray.length > 0)
-            ? "Match running just now" : "Currently No Matches running";
-        return(
-            <Card profile>
-            <CardBody profile>
-                <h4 className={classes.cardTitle}>{myHeader}</h4>
-                <MatchTable myTable={currentArray}/>
-            </CardBody>
-            </Card>
-        )
+    var myHeader = (currentArray.length > 0)
+        ? "Match running just now" : "Currently No Matches running";
+    return(
+        <Card profile>
+        <CardBody profile>
+            <h4 className={classes.cardTitle}>{myHeader}</h4>
+            <MatchTable myTable={currentArray}/>
+        </CardBody>
+        </Card>
+    );
     }
 
     function ShowUpcomingMatch() {
-        var myHeader = "Upcoming Matches";
-        return(
-            <Card profile>
-            <CardBody profile>
-                <h4 className={classes.cardTitle}>{myHeader}</h4>
-                <MatchTable myTable={upcomingArray}/>
-            </CardBody>
-            </Card>
-
-        )
+    var myHeader = "Upcoming Matches";
+    return(
+        <Card profile>
+        <CardBody profile>
+            <h4 className={classes.cardTitle}>{myHeader}</h4>
+            <MatchTable myTable={upcomingArray}/>
+        </CardBody>
+        </Card>
+    )
     }
 
     if (localStorage.getItem("tournament").length > 0)
         return (
         <div>
-            <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
-            <ShowCurrentMatch/>
-            <ShowUpcomingMatch/>
+        <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
+        <ShowCurrentMatch/>
+        <ShowUpcomingMatch/>
         </div>
         )
     else
         return <NoGroup/>
 };
-
-

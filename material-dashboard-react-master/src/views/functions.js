@@ -4,8 +4,8 @@
 import axios from "axios";
 
 
-export function cdRefresh(complteRefresh) {
-  window.location.reload(complteRefresh);
+export function cdRefresh() {
+  window.location.reload();
 }
 
 export function cdCurrent() {
@@ -103,4 +103,13 @@ export async function getUserBalance() {
     myBalance = 0;
   }
   return myBalance;
+}
+
+export function specialSetPos() {
+  //console.log(`in SSP: ${localStorage.getItem("joinGroupCode")}`)
+  let retval = 0;
+  if (localStorage.getItem("joinGroupCode").length > 0)
+    retval = 105;
+  //console.log(`in SSP: ${retval}`)
+  return retval;
 }

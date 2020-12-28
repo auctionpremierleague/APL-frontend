@@ -166,7 +166,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
     text: 'That was easy!'
   };
 
-  /*
+  
   mailOptions.to = uRec.email;
   mailOptions.text = `Dear User,
   
@@ -180,7 +180,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
 
     Regards,
     for Cricdream.`
-*/
+
 
   transporter.sendMail(mailOptions, function(error, info){
     if (error) {
