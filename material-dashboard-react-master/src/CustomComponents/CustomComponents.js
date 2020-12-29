@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -162,4 +163,12 @@ export class Copyright extends React.Component {
       {'.'}
     </Typography>
   }
+}
+
+export function CricDreamLogo () {
+  let mylogo = `${process.env.PUBLIC_URL}/CricDream.ico`;
+  const classes = useStyles();
+  return (
+    <Avatar className={classes.avatar}  src={mylogo}/>
+);
 }

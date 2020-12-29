@@ -20,6 +20,7 @@ import red from '@material-ui/core/colors/red';
 import { DesktopWindows } from '@material-ui/icons';
 import { cdRefresh, specialSetPos } from "views/functions.js"
 import {setTab} from "CustomComponents/CricDreamTabs.js"
+import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -122,13 +123,15 @@ export default function SignIn() {
     }
 
   }
+  
   return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <div className={classes.paper}>
-          <Avatar className={classes.avatar}>
+          <CricDreamLogo />        
+          {/* <Avatar className={classes.avatar}>
             <LockOutlinedIcon />
-          </Avatar>
+          </Avatar> */}
           <Typography component="h1" variant="h5">
             Sign in
         </Typography>
