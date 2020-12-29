@@ -1864,7 +1864,7 @@ async function checkallover() {
   }
 }
 
-// schedule task
+// schedule task 
 cron.schedule('*/1 * * * * *', () => {
   if (!db_connection) {
     console.log("============= No mongoose connection");
