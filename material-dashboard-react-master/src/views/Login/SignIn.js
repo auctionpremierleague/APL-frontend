@@ -94,7 +94,7 @@ export default function SignIn() {
   const handleClick = async () => {
     let response = ""
     try { 
-      response = await axios.get(`/user/login/${userName}/${password}`); 
+      response = await axios.get(`https://ankitipl.herokuapp.com/user/login/${userName}/${password}`); 
       setErrorMessage("");
     } catch (err) {
       // setOpen(true)
@@ -103,7 +103,7 @@ export default function SignIn() {
     // console.log(response.status)
     if (response.status === 200) {
       var myUID = response.data;
-      response = await axios.get(`/group/default/${myUID}`);
+      response = await axios.get(`https://ankitipl.herokuapp.com/group/default/${myUID}`);
       console.log(response.data);
       // SAMPLE OUTPUT
       // {"uid":"8","gid":2,"displayName":"Salgia Super Stars",
