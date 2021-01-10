@@ -109,9 +109,9 @@ export default function SignUp() {
 
   const handleSubmit = async() => {
     console.log("Submit command provided");
-    let response = await fetch(`/user/signup/${userName}/${password}/${email}`);
+    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/signup/${userName}/${password}/${email}`);
     if (response.status === 200) {
-      let setemailresp = await fetch(`/user/emailwelcome/${email}`);
+      let setemailresp = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/emailwelcome/${email}`);
       // history.push("/signin");
       localStorage.setItem("currentLogin", "SIGNIN");
       cdRefresh();

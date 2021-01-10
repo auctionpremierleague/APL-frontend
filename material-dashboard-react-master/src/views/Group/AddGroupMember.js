@@ -256,9 +256,9 @@ const [userMessage, setUserMessage] = React.useState("");
   useEffect(() => {       
     const fetchMember = async () => {
       try {
-            var response = await axios.get(`/user/group/${localStorage.getItem("gdGid")}`);
+            var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/group/${localStorage.getItem("gdGid")}`);
             setOriginalData(response.data);
-            var response1 = await axios.get(`/user`);
+            var response1 = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user`);
             // let tmp = response1.data.sortBy(x => x.displayName);
             let tmp = response1.data;
             tmp.sort(function(a,b){
@@ -376,7 +376,7 @@ const handleClick = (event, myUid) => {
     }
     // console.log(addMember);
     for(uidx=0; uidx<addMember.length; ++uidx) {
-      let response = await axios.get(`/group/add/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${addMember[uidx]}`)
+      let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/add/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${addMember[uidx]}`)
     }
 
     let delMember = [];
@@ -386,7 +386,7 @@ const handleClick = (event, myUid) => {
     }
     // console.log(delMember);
     for(uidx=0; uidx<delMember.length; ++uidx) {
-      let response = await axios.get(`/group/delete/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${delMember[uidx]}`)
+      let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/delete/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${delMember[uidx]}`)
       // console.log(response);
     }
     // setErrorMessage(`Successfully added and/or removed members of group ${localStorage.getItem("gdName")}`)

@@ -83,7 +83,7 @@ export default function MatchInfo() {
         const fetchMatch = async () => {
             try {
 
-                var response = await axios.get(`/match/matchinfo/${localStorage.getItem("gid")}`);
+                var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/match/matchinfo/${localStorage.getItem("gid")}`);
                 setCurrentArray(response.data.current);
                 setUpcomingArray(response.data.upcoming);
             } catch (e) {

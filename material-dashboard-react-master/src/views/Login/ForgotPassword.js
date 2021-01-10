@@ -95,7 +95,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = async() => {
     // console.log("Submit command provided");
-    let response = await fetch(`/user/emailpassword/${email}`);
+    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/emailpassword/${email}`);
     setRegisterStatus(response.status);
     console.log(`Status is ${response.status}`);
   }

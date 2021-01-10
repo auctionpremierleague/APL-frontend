@@ -97,7 +97,7 @@ export function cricTeamName(t) {
 export async function getUserBalance() {
   let myBalance = 0;
   try {
-    let response = await axios.get(`/wallet/balance/${localStorage.getItem("uid")}`);
+    let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/wallet/balance/${localStorage.getItem("uid")}`);
     myBalance = (await response).data.balance;
   } catch(err) {
     myBalance = 0;

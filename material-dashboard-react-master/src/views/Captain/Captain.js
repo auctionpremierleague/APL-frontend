@@ -93,12 +93,12 @@ export default function Captain() {
             // get start of tournamnet (i.e. start of 1st match)
             var gameStarted = false;  
             var mygroup  = localStorage.getItem("gid")
-            var response = await axios.get(`/group/gamestarted/${localStorage.getItem("gid")}`);
+            var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/gamestarted/${localStorage.getItem("gid")}`);
             gameStarted = (response.data.length > 0);
             setTournamentStarted(gameStarted);
 
 
-            var response = await axios.get(`/user/getcaptain/${mygroup}/${localStorage.getItem("uid")}`);
+            var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/getcaptain/${mygroup}/${localStorage.getItem("uid")}`);
             // console.log(response.data[0]);
             if (response.data.length > 0) {
                 SetSelectedCaptain(response.data[0].captainName);
@@ -106,7 +106,7 @@ export default function Captain() {
             }
 
             // get list of player purchased by user for aelecting captain / vice captain
-            var myUrl = `/user/myteamwos/${mygroup}/${localStorage.getItem("uid")}`;
+            var myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/user/myteamwos/${mygroup}/${localStorage.getItem("uid")}`;
             const teamResponse = await axios.get(myUrl);
             setMyTeamTableData(teamResponse.data[0].players);
             // console.log(teamResponse.data[0].players) ;
@@ -134,7 +134,7 @@ export default function Captain() {
         // console.log("upd captin vc details");
         var tmp1 = myTeamTableData.find(x => x.playerName === selectedCaptain);
         var tmp2 = myTeamTableData.find(x => x.playerName === selectedViceCaptain);
-        var myUrl = `/user/captainvicecaptain/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${tmp1.pid}/${tmp2.pid}`;
+        var myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/user/captainvicecaptain/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${tmp1.pid}/${tmp2.pid}`;
         // console.log(myUrl);
         const resp = await  axios.get(myUrl);
         // console.log(resp.status)

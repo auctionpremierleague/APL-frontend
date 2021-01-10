@@ -88,7 +88,7 @@ export default function MyTeam() {
                 var myTeamUrl = "";
                 if (hasGroup())
                 {
-                    var response = await axios.get(`/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`);
+                    var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/myteam/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`);
                     setTeamArray(response.data);
                 }
             } catch (e) {

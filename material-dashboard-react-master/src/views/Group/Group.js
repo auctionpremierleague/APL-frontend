@@ -68,7 +68,7 @@ export default function Group() {
             // console.log(myBalance); 
 
             window.localStorage.setItem("groupMember", "");
-            var myUrl = `https://ankitipl.herokuapp.com/group/memberof/${localStorage.getItem("uid")}`;
+            var myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/${localStorage.getItem("uid")}`;
             const teamResponse = await axios.get(myUrl);
             console.log(teamResponse.data[0].groups);
             let setnew = true;
