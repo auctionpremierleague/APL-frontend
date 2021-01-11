@@ -9,6 +9,7 @@ _ = require("lodash");
 cron = require('node-cron');
 nodemailer = require('nodemailer');
 app = express();
+PRODUCTION=true;
 
 PORT = process.env.PORT || 4000;
 http = require('http');
@@ -457,12 +458,16 @@ serverUpdateInterval = 10; // in seconds. INterval after which data to be update
 
 // ----------------  end of globals
 
-/**
+
 // make mogoose connection
 
 // Create the database connection 
 //mongoose.connect(mongoose_conn_string);
-mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
+if (PRODUCTION)
+  console.log(`No mongoose connection in PRODUCTION`);
+else
+  mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
+
 
 // CONNECTION EVENTS
 // When successfully connected
@@ -494,15 +499,16 @@ process.on('SIGINT', function () {
   });
   process.exit(0);
 });
-***/
 
 // schedule task
-// cron.schedule('*/15 * * * * *', () => {
-//   // console.log('running every 15 second');
-//   // console.log(`db_connection: ${db_connection}    connectREquest: ${connectRequest}`);
-//   if (!connectRequest)
-//     mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
-// });
+if (!PRODUCTION) {
+cron.schedule('*/15 * * * * *', () => {
+  // console.log('running every 15 second');
+  // console.log(`db_connection: ${db_connection}    connectREquest: ${connectRequest}`);
+    if (!connectRequest)
+      mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
+});
+}
 
 
 

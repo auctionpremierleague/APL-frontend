@@ -48,6 +48,7 @@ export function validateEmail(sss) {
 
 
 export function hasGroup() {
+  console.log(`current gis is ${localStorage.getItem("gid")}`)
   var sts = false;
     if (localStorage.getItem("gid") !== null) 
     if (localStorage.getItem("gid") !== "") 

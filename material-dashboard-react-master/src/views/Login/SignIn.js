@@ -100,11 +100,11 @@ export default function SignIn() {
       // setOpen(true)
       setErrorMessage("Invalid Username / Password");
     }
-    // console.log(response.status)
+    console.log(`Signin status ${response.status}`);
     if (response.status === 200) {
       var myUID = response.data;
       response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/default/${myUID}`);
-      console.log(response.data);
+      // console.log(response.data);
       // SAMPLE OUTPUT
       // {"uid":"8","gid":2,"displayName":"Salgia Super Stars",
       // "groupName":"Happy Home Society Grp 2","tournament":"ENGAUST20","ismember":true,"admin":true}

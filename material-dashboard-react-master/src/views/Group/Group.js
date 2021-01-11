@@ -68,16 +68,16 @@ export default function Group() {
             // console.log(myBalance); 
 
             window.localStorage.setItem("groupMember", "");
-            var myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/group//memberof/${localStorage.getItem("uid")}`;
+            var myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/memberof/${localStorage.getItem("uid")}`;
             const teamResponse = await axios.get(myUrl);
-            console.log(teamResponse.data[0].groups);
+            // console.log(teamResponse.data[0].groups);
             let setnew = true;
             if (hasGroup()) {
                 // just check if current group is part of group list 
                 let tmp = teamResponse.data[0].groups.find(x => x.gid == localStorage.getItem("gid"));
                 if (tmp) setnew = false;
             }
-            console.log(`Set new is ${setnew}`);
+            // console.log(`Set new is ${setnew}`);
             if (setnew) {
                 if (teamResponse.data[0].groups.length > 0) {
                     var myGroup = teamResponse.data[0].groups[0];
