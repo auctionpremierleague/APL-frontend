@@ -1865,31 +1865,32 @@ async function checkallover() {
 }
 
 // schedule task 
-cron.schedule('*/1 * * * * *', () => {
-  if (!db_connection) {
-    console.log("============= No mongoose connection");
-    return;
-  }   
+// cron.schedule('*/1 * * * * *', () => {
+//   if (!db_connection) {
+//     console.log("============= No mongoose connection");
+//     return;
+//   }   
 
-  if (++cricTimer >= CRICUPDATEINTERVAL) {
-    cricTimer = 0;
-    // console.log("======== match update start");
-    // console.log("TIme to getch cric data");
-    update_cricapi_data_r1(false);
-    updateTournamentBrief();
-    checkallover();
-    // // console.log("match update over")
-  }
+//   if (++cricTimer >= CRICUPDATEINTERVAL) {
+//     cricTimer = 0;
+//     // console.log("======== match update start");
+//     // console.log("TIme to getch cric data");
+//     update_cricapi_data_r1(false);
+//     updateTournamentBrief();
+//     checkallover();
+//     // // console.log("match update over")
+//   }
 
-  if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
-    // console.log("======== clinet update start");
-    // console.log(connectionArray);
-    sendDashboardData(); 
-    clientUpdateCount = 0;
-    // console.log("client update over")
-  }
+//   if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
+//     // console.log("======== clinet update start");
+//     // console.log(connectionArray);
+//     sendDashboardData(); 
+//     clientUpdateCount = 0;
+//     // console.log("client update over")
+//   }
 
-});
+// });
+
 
 
 var keyIndex = 0;

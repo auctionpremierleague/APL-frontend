@@ -457,6 +457,7 @@ serverUpdateInterval = 10; // in seconds. INterval after which data to be update
 
 // ----------------  end of globals
 
+/**
 // make mogoose connection
 
 // Create the database connection 
@@ -493,14 +494,15 @@ process.on('SIGINT', function () {
   });
   process.exit(0);
 });
+***/
 
 // schedule task
-cron.schedule('*/15 * * * * *', () => {
-  // console.log('running every 15 second');
-  // console.log(`db_connection: ${db_connection}    connectREquest: ${connectRequest}`);
-  if (!connectRequest)
-    mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
-});
+// cron.schedule('*/15 * * * * *', () => {
+//   // console.log('running every 15 second');
+//   // console.log(`db_connection: ${db_connection}    connectREquest: ${connectRequest}`);
+//   if (!connectRequest)
+//     mongoose.connect(mongoose_conn_string, { useNewUrlParser: true, useUnifiedTopology: true });
+// });
 
 
 
