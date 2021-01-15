@@ -112,34 +112,29 @@ const classes = useStyles();
 const history = useHistory();
 const [registerStatus, setRegisterStatus] = useState(0);
 
-const [myDisplayName, setDisplayName] = useState("");
-const [masterDisplayName, setMasterDisplayName] = useState("");
+const [franchiseeName, setFranchiseeName] = useState("");
+//const [masterDisplayName, setMasterDisplayName] = useState("");
 
-const [myAdminSwitch, setMyAdminSwitch] = useState(false);
-const [myDefaultSwitch, setMyDefaultSwitch] = useState(false);
-const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
+const [myAdminSwitch, setMyAdminSwitch] = useState(localStorage.getItem("gdAdmin") === "true");
+const [myDefaultSwitch, setMyDefaultSwitch] = useState(localStorage.getItem("gdDefault") === "true");
+const [myCurrentSwitch, setMyCurrentSwitch] = useState(localStorage.getItem("gdCurrent") === "true");
 
-// const [masterDefaultSwitch, setMasterDefaultSwitch] = useState(false);
-// const [masterCurrentSwitch, setMasterCurrentSwitch] = useState(false);
-
-  // const { setUser } = useContext(UserContext);
-  const [backDropOpen, setBackDropOpen] = React.useState(false);
-  const [userMessage, setUserMessage] = React.useState("");
+// const { setUser } = useContext(UserContext);
+const [backDropOpen, setBackDropOpen] = React.useState(false);
+const [userMessage, setUserMessage] = React.useState("");
 
 
   useEffect(() => {
 
     const updateGroupDetailData = async () => { 
-      myGroupName = window.localStorage.getItem("gdName")
+      //myGroupName = window.localStorage.getItem("gdName")
       const sts = await axios.get(`/group/getfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}`);
-      setDisplayName(sts.data);
-      setMasterDisplayName(sts.data);
+      setFranchiseeName(sts.data);
+      //setMasterDisplayName(sts.data);
 
       setMyAdminSwitch(window.localStorage.getItem("gdAdmin") === "true");
-  
       setMyCurrentSwitch(window.localStorage.getItem("gdCurrent") === "true");
       // setMasterCurrentSwitch(window.localStorage.getItem("gdCurrent").toLowerCase() === "true");
-  
       setMyDefaultSwitch(window.localStorage.getItem("gdDefault") === "true");
       // setMasterDefaultSwitch(window.localStorage.getItem("gdDefault").toLowerCase() === "true");
     }
@@ -207,7 +202,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
         // window.localStorage.setItem("gdTournament", ggg.tournament);
         localStorage.setItem("gid", localStorage.getItem("gdGid"));
         localStorage.setItem("groupName", localStorage.getItem("gdName"));
-        // localStorage.setItem("displayName", myDisplayName);
+        // localStorage.setItem("displayName", franchiseeName);
         localStorage.setItem("tournament", localStorage.getItem("gdTournament"));
         localStorage.setItem("admin", localStorage.getItem("gdAdmin"))
         // setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "true")})    
@@ -282,11 +277,11 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
     );
   }
 
-  async function SetFranchiseName() {
+  async function handleFranchiseName() {
     const newName = document.getElementById("franchise").value;
-    if (newName !== myDisplayName) {
+    if (newName !== franchiseeName) {
       // console.log(`New display name ${newName}`);
-      setDisplayName(newName);
+      setFranchiseeName(newName);
       await updateFranchiseName(localStorage.getItem("gdGid"), newName);
       setUserMessage("Successfully updated Franchise details");
       setBackDropOpen(true);
@@ -296,12 +291,12 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
   }
 
   function DisplayFranchise() {
-    // console.log(`Frnachise is ${myDisplayName}`);
+    // console.log(`Frnachise is ${franchiseeName}`);
     return (
       <div className={classes.filter} align="center">
-        <TextField className={classes.filter} id="franchise" margin="none" size="small" defaultValue={myDisplayName}/>        
+        <TextField className={classes.filter} id="franchise" margin="none" size="small" defaultValue={franchiseeName}/>        
         <Button key="filterbtn" variant="contained" color="primary" size="small"
-          className={classes.button} onClick={SetFranchiseName}>set Franchise
+          className={classes.button} onClick={handleFranchiseName}>set Franchise
         </Button>
         <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={userMessage} />
       </div>
@@ -322,11 +317,11 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
         //   required
           fullWidth      
           label="Franchise Name"
-          onChange={(event) => setDisplayName(event.target.value)}
+          onChange={(event) => setFranchiseeName(event.target.value)}
           name="displayname"
           validators={['noSpecialCharacters']}
           errorMessages={['Special characters not permitted']}
-          value={myDisplayName}
+          value={franchiseeName}
       /> */}
       <BlankArea/>
       <DisplaySwitch/>
