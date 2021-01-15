@@ -105,6 +105,7 @@ export default function Group() {
     function handleGroupDetails(grpName) {
         // console.log(`Show group details of ${grpName}`)
         var ggg = myGroupTableData.find(x => x.groupName === grpName);
+        //console.log(ggg);
         window.localStorage.setItem("gdGid", ggg.gid.toString());
         window.localStorage.setItem("gdName", ggg.groupName)
         window.localStorage.setItem("gdDisplay", ggg.displayName)
@@ -139,6 +140,8 @@ export default function Group() {
         window.localStorage.setItem("admin", ggg.admin)
         // setUser({ uid: localStorage.getItem("uid"), admin: ggg.admin })    
     };
+
+
 
     /*
     function ShowGroupMembers() {

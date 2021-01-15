@@ -313,7 +313,7 @@ const [myCurrentSwitch, setMyCurrentSwitch] = useState(false);
       <CssBaseline />
       <div className={classes.paper} align="center">
         {/* <DisplayHeader/> */}
-    <DisplayPageHeader headerName="Group Details" groupName={myGroupName} tournament={localStorage.getItem("gdTournament")}/>
+    <DisplayPageHeader headerName="Group Details" groupName={localStorage.getItem("gdName")} tournament={localStorage.getItem("gdTournament")}/>
      <BlankArea/>
     <ValidatorForm className={classes.form} onSubmit={handleSubmit}>
       <DisplayFranchise/>
