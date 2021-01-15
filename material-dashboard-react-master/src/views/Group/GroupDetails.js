@@ -128,14 +128,14 @@ const [userMessage, setUserMessage] = React.useState("");
 
     const updateGroupDetailData = async () => { 
       //myGroupName = window.localStorage.getItem("gdName")
-      const sts = await axios.get(`/group/getfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}`);
+      const sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/getfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}`);
       setFranchiseeName(sts.data);
       //setMasterDisplayName(sts.data);
 
-      setMyAdminSwitch(window.localStorage.getItem("gdAdmin") === "true");
-      setMyCurrentSwitch(window.localStorage.getItem("gdCurrent") === "true");
+      // setMyAdminSwitch(window.localStorage.getItem("gdAdmin") === "true");
+      // setMyCurrentSwitch(window.localStorage.getItem("gdCurrent") === "true");
       // setMasterCurrentSwitch(window.localStorage.getItem("gdCurrent").toLowerCase() === "true");
-      setMyDefaultSwitch(window.localStorage.getItem("gdDefault") === "true");
+      // setMyDefaultSwitch(window.localStorage.getItem("gdDefault") === "true");
       // setMasterDefaultSwitch(window.localStorage.getItem("gdDefault").toLowerCase() === "true");
     }
   
@@ -144,12 +144,12 @@ const [userMessage, setUserMessage] = React.useState("");
   }, [])
 
   async function updateFranchiseName(newGid, newName) {
-    let sts = await fetch(`/group/setfranchisename/${localStorage.getItem("uid")}/${newGid}/${newName}`);
+    let sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setfranchisename/${localStorage.getItem("uid")}/${newGid}/${newName}`);
   }
 
 
   async function updateDefaultGroup(newGid) {
-    let sts = await fetch(`/group/setdefaultgroup/${localStorage.getItem("uid")}/${newGid}`)
+    let sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setdefaultgroup/${localStorage.getItem("uid")}/${newGid}`)
   }
 
   const handleSubmit = async() => {

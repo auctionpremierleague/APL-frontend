@@ -139,10 +139,10 @@ export default function CreateGroup() {
   
   useEffect(() => {
     const a = async () => {
-        var balres = await axios.get(`/wallet/balance/${localStorage.getItem("uid")}`);
+        var balres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/wallet/balance/${localStorage.getItem("uid")}`);
         setBalance(balres.data.balance);
 
-        var response = await axios.get(`/tournament/list/notstarted`); 
+        var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/tournament/list/notstarted`); 
         // console.log("Getting tournament list");
         // console.log(response.data);
         setTournamentData(response.data);
@@ -162,18 +162,18 @@ export default function CreateGroup() {
     //  /group/create/TeSt/8/1250/AUSINDT20
     // groupName  bidAmount selectedTournament
     try {
-      const response = await axios.get(`/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}/${memberCount}/${memberFee}`);
+      const response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}/${memberCount}/${memberFee}`);
       setNewGid(response.data.gid)      
       // successfully created group. Now reduce user wallet balance
       // setBalance(balance-memberFee);
       let myBalance = await getUserBalance();
       setBalance(myBalance);
       // SET PRIZE is not required here since create by default will set it to 1
-      // let myURL=`/group/setprize/${response.data.gid}/1`;
+      // let myURL=`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setprize/${response.data.gid}/1`;
       // console.log(myURL);
       // let xxx = await axios.get(myURL);
       let totprize = memberFee*memberCount;
-      var prizeres = await axios.get(`/prize/all/${totprize}`)
+      var prizeres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/prize/all/${totprize}`)
       setMasterPrizeTable(prizeres.data)
       setPrizeTable(prizeres.data[prizeCount-1]);
       setCopyState({value: response.data._id})
@@ -197,7 +197,7 @@ export default function CreateGroup() {
 
   async function handleCountChange(event) {
     let idx = parseInt(event.target.value);
-    let xxx = axios.get(`/group/setprize/${newGid}/${idx}`);
+    let xxx = axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setprize/${newGid}/${idx}`);
     setPrizeTable(masterPrizeTable[idx-1])
     setPrizeCount(idx);
     await xxx;

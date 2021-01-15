@@ -224,17 +224,17 @@ export default function Auction() {
         const a = async () => {
             if (!hasGroup()) return;
             // console.log("Calling get auction status");
-            const response = await axios.get(`/group/getauctionstatus/${localStorage.getItem("gid")}`);
+            const response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/getauctionstatus/${localStorage.getItem("gid")}`);
             // console.log(response.data)
             setAuctionStatus(response.data);
             if (response.data === "RUNNING") {
                 // get current player details
                 //same as when data rcvd in socket msg playerChange
-                const response2 = await axios.get(`/auction/current/${localStorage.getItem("gid")}`)
+                const response2 = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/auction/current/${localStorage.getItem("gid")}`)
                 // console.log("Calling updatePlayerChange from currentr");
                 updatePlayerChange(response2.data.a, response2.data.b);
                 // get whi has bidded
-                const response1 = await axios.get(`/auction/getbid/${localStorage.getItem("gid")}`);
+                const response1 = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/auction/getbid/${localStorage.getItem("gid")}`);
                 // console.log("GETBID");
                 // console.log(response1.data)
                 if (response1.status === 200) {
@@ -259,12 +259,12 @@ export default function Auction() {
 
     async function sellPlayer() {
         setBidPaused(true);
-        let myUrl = `/auction/add/${localStorage.getItem("gid")}/${bidUid}/${playerId}/${bidAmount}`
+        let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/auction/add/${localStorage.getItem("gid")}/${bidUid}/${playerId}/${bidAmount}`
         // console.log(myUrl);
         let response = await fetch(myUrl);
         if (response.status == 200) {
             // console.log("getting balance");
-            // const balance = await axios.get(`/user/balance/${localStorage.getItem("gid")}/all`);
+            // const balance = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/balance/${localStorage.getItem("gid")}/all`);
             // setAuctionTableData(balance.data);
         } else {
             var msg;
@@ -281,7 +281,7 @@ export default function Auction() {
     }
 
     async function handleAuctionOver() {
-        const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/OVER`);
+        const response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setauctionstatus/${localStorage.getItem("gid")}/OVER`);
         if (response.data) {
             setAuctionStatus("OVER");
         }
@@ -290,7 +290,7 @@ export default function Auction() {
 
     async function skipPlayer() {
         setBidPaused(true);
-        await fetch(`/auction/skip/${localStorage.getItem("gid")}/${playerId}`);
+        await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/auction/skip/${localStorage.getItem("gid")}/${playerId}`);
     }
 
     function DisplayRunningAuction() {
@@ -349,7 +349,7 @@ export default function Auction() {
     async function handleMyBid(newBid) {
         var value = parseInt(newBid) + parseInt(bidAmount);
 
-        let myURL=`/auction/nextbid/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${playerId}/${value}`;
+        let myURL=`${process.env.REACT_APP_AXIOS_BASEPATH}/auction/nextbid/${localStorage.getItem("gid")}/${localStorage.getItem("uid")}/${playerId}/${value}`;
         // console.log(myURL);
         var resp = await axios(myURL);
         // console.log(`Bid for value ${newBid}`)
@@ -517,7 +517,7 @@ export default function Auction() {
 
     const startAuction = async () => {
         try {
-            const response = await axios.get(`/group/setauctionstatus/${localStorage.getItem("gid")}/RUNNING`);
+            const response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setauctionstatus/${localStorage.getItem("gid")}/RUNNING`);
             setAuctionStatus("RUNNING");
         } catch (err) {
             // should show the display

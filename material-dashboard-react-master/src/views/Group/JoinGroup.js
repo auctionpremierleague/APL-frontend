@@ -58,7 +58,7 @@ export default function JoinGroup() {
   // setTab(0); 
   useEffect(() => {
     const a = async () => {
-      // var balres = await axios.get(`/wallet/balance/${localStorage.getItem("uid")}`);
+      // var balres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/wallet/balance/${localStorage.getItem("uid")}`);
       // setBalance(balres.data.balance);
       let myBalance = await getUserBalance();
       setBalance(myBalance);
@@ -70,7 +70,7 @@ export default function JoinGroup() {
   const handleSubmit = async() => {
     console.log("Submit command provided");
     try {
-      let response = await axios.get(`/group/join/${groupCode}/${localStorage.getItem("uid")}`);
+      let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/join/${groupCode}/${localStorage.getItem("uid")}`);
       console.log("Group Join Success");
       let myBalance = await getUserBalance();
       setBalance(myBalance);

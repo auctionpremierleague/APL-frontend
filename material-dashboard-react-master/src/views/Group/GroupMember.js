@@ -80,9 +80,9 @@ export default function GroupMember() {
        
         const fetchMember = async () => {
             try {
-                var response = await axios.get(`/user/group/${localStorage.getItem("gdGid")}`);
+                var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/group/${localStorage.getItem("gdGid")}`);
                 setMemberArray(response.data);
-                var response1 = await axios.get(`/group/gamestarted/${localStorage.getItem("gdGid")}`);
+                var response1 = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/gamestarted/${localStorage.getItem("gdGid")}`);
                 var gameStarted = (response1.data.length > 0);
                 setTournamentStarted(gameStarted);    
             } catch (e) {
