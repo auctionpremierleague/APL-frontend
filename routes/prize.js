@@ -28,6 +28,20 @@ router.get('/all/:amount', async function (req, res, next) {
 }); 
 
 
+router.get('/group/:groupId', async function (req, res, next) {
+  PrizeRes = res;
+  setHeader();
+
+  var { groupId } = req.params;
+  
+  let groupRec =  await IPLGroup.findOne({gid: groupId});
+  if (groupRec) {
+    let myTable = await getPrizeTable(groupRec.prizeCount, groupRec.memberCount * groupRec.memberFee);
+    sendok(myTable);
+  }
+  senderr(601, 'Invalid group number');
+}); 
+
 
 router.get('/addprize', async function (req, res, next) {
   PrizeRes = res;

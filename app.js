@@ -530,8 +530,10 @@ const AMPM = [
 const TZ_IST={hours: 5, minutes: 30};
 cricDate = function (d)  {
   var xxx = new Date(d.getTime());
-  xxx.setHours(xxx.getHours()+TZ_IST.hours);
-  xxx.setMinutes(xxx.getMinutes()+TZ_IST.minutes);
+  if (PRODUCTION) {
+    xxx.setHours(xxx.getHours()+TZ_IST.hours);
+    xxx.setMinutes(xxx.getMinutes()+TZ_IST.minutes);
+  }
   var myHour = xxx.getHours();
   var myampm = AMPM[myHour];
   if (myHour > 12) myHour -= 12;

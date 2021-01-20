@@ -57,34 +57,6 @@ router.use('/', async function(req, res, next) {
   PlayerStatRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
-
-  // if (forceGroupInfo) {
-  //   var tmp = req.url.split("/")
-  //   var tmpgroup = parseInt(tmp[1]);
-  //   var myrec = null;
-  //   if (!isNaN(tmpgroup))
-  //     myrec = await IPLGroup.findOne({gid: tmpgroup});
-  //   //console.log(tmp.length);
-  //   if (!myrec) {
-  //     senderr(722, `Invalid gourp number specified`);
-  //     return; 
-  //   }
-  //   //console.log(myrec);
-  //   _group = myrec.gid;
-  //   _tournament = myrec.tournament;
-  //   tmp.splice(1, 2);
-  //   req.url = tmp.join("/");
-  //   if (req.url.length === 0) req.url = '/';
-  // }
-  // else {
-  //   _group = 1;
-  //   _tournament = "IPL2020";
-  // }
-
-  // if (req.url == "/")
-  //   publish_stats();
-  // else
-  //   next('route');
 });
 
 
@@ -96,54 +68,6 @@ router.get('/updatebrieftable/:tournamnet', async function(req, res) {
   await check_all_tournaments();
   sendok("OK");
 
-});
-
-router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
-  var {gid1, gid2} = req.params;
-  if (isNaN(gid1)) { senderr(400, "Invalid GID1"); return}
-  if (isNaN(gid2)) { senderr(400, "Invalid GID2"); return}
-  var igid1 = parseInt(gid1);
-  var igid2 = parseInt(gid2);
-
-  var tmp = await IPLGroup.findOne({gid: igid1});
-  if (!tmp) { senderr(400, "Invalid GID1"); return}
-  tmp = await IPLGroup.findOne({gid: igid2});
-  if (!tmp) { senderr(400, "Invalid GID2"); return}
-
-  // swap GROUP 
-  var allRecs = await IPLGroup.find({gid: {$in: [igid1, igid2]} })
-  //console.log(allRecs);
-  allRecs.forEach( x => {
-    if      (x.gid == igid1)  x.gid = igid2;
-    else if (x.gid == igid2)  x.gid = igid1;
-    x.save();   
-  })
-  // swap GROUP Members
-  var allRecs = await GroupMember.find({gid: {$in: [igid1, igid2]} })
-  //console.log(allRecs);
-  allRecs.forEach( x => {
-    if      (x.gid == igid1)  x.gid = igid2;
-    else if (x.gid == igid2)  x.gid = igid1;
-    x.save();   
-  })
-  // swap Auction
-  var allRecs = await Auction.find({gid: {$in: [igid1, igid2]} })
-  allRecs.forEach( x => {
-    if      (x.gid == igid1)  x.gid = igid2;
-    else if (x.gid == igid2)  x.gid = igid1;
-    x.save();   
-  })
-  // swap Captain
-  var allRecs = await Captain.find({gid: {$in: [igid1, igid2]} })
-
-  allRecs.forEach( x => {
-    if      (x.gid == igid1)  x.gid = igid2;
-    else if (x.gid == igid2)  x.gid = igid1;
-    x.save();   
-  })
-  sendok("OK");
 });
 
 router.get('/test/:myGroup', async function(req, res, next) {
@@ -298,68 +222,6 @@ router.use('/test', async function(req, res, next) {
 
   await update_cricapi_data_r1(true);
   sendok("OK");
-});
-
-// provide scrore of users beloging to the group
-// currently only group 1 supported
-
-router.use('/junked/internal/score', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
-
-  // get list of users in group
-  var igroup = _group;
-  var myGroup = await IPLGroup.findOne({gid: igroup})
-  var gmembers = await GroupMember.find({gid: igroup});
-  var auctionList = await Auction.find({gid: igroup});
-  var captainlist = await Captain.find({gid: igroup});
-
-  // Set collection name 
-  var tournamentStat = mongoose.model(myGroup.tournament, StatSchema);
-  var statList = await tournamentStat.find({});
-  
-  var userScoreList = [];    
-  // now calculate score for each user
-  gmembers.forEach( u  => {
-    var userPid = u.uid;
-    //console.log(`User: ${userPid}`);
-    //var myUserScore = [];
-
-    // find out captain and vice captain selected by user
-    var capinfo = _.find(captainlist, x => x.gid == igroup && x.uid == userPid);
-    if (capinfo === undefined)
-      capinfo = new Captain ({ gid: igroup, uid: userPid, captain: 0, viceCaptain: 0});
-
-    // find out players of this user
-    var myplayers = _.filter(auctionList, a => a.gid === igroup && a.uid === userPid); 
-    //console.log(myplayers);
-    //console.log("Just shown my players")
-    //var playerScoreList = [];
-    myplayers.forEach( p => {
-      var MF = 1;
-      if (p.pid === capinfo.viceCaptain)
-        MF = ViceCaptain_MultiplyingFactor;
-      else if (p.pid === capinfo.captain)
-        MF = Captain_MultiplyingFactor;
-      //console.log(`Mul factor: ${MF}`);
-
-      // now get the statistics of this player in various maches
-      var myplayerstats = _.filter(statList, x => x.pid === p.pid);
-      //console.log(myplayerstats)
-
-      // update score of each match played by user
-      // myplayerstats.forEach(s => {
-      //   s.score = calculateScore(s)*MF;
-      // })
-      //var myScore = _.sumBy(myplayerstats, x => x.score);
-      var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
-      var tmp = { uid: userPid, pid: p.pid, playerScrore: myScore, stat: myplayerstats};
-      //console.log(tmp);
-      userScoreList.push(tmp);
-    });
-  })
-  //console.log(userScoreList);
-  sendok(userScoreList);
 });
 
 

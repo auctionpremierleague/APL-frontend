@@ -114,7 +114,7 @@ const [registerStatus, setRegisterStatus] = useState(0);
 
 const [franchiseeName, setFranchiseeName] = useState("");
 //const [masterDisplayName, setMasterDisplayName] = useState("");
-
+const [prizeTable, setPrizeTable] = useState({});
 const [myAdminSwitch, setMyAdminSwitch] = useState(localStorage.getItem("gdAdmin") === "true");
 const [myDefaultSwitch, setMyDefaultSwitch] = useState(localStorage.getItem("gdDefault") === "true");
 const [myCurrentSwitch, setMyCurrentSwitch] = useState(localStorage.getItem("gdCurrent") === "true");
@@ -131,7 +131,8 @@ const [userMessage, setUserMessage] = React.useState("");
       const sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/getfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}`);
       setFranchiseeName(sts.data);
       //setMasterDisplayName(sts.data);
-
+      const sts1 = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/prize/group/${localStorage.getItem("gdGid")}`);
+      setPrizeTable(sts1.data);
       // setMyAdminSwitch(window.localStorage.getItem("gdAdmin") === "true");
       // setMyCurrentSwitch(window.localStorage.getItem("gdCurrent") === "true");
       // setMasterCurrentSwitch(window.localStorage.getItem("gdCurrent").toLowerCase() === "true");
