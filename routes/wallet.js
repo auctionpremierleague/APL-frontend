@@ -56,6 +56,30 @@ router.get('/balance/:userid', async function (req, res, next) {
   sendok({balance: tmp});
 }); 
 
+router.get('/details/:userid', async function (req, res, next) {
+  WalletRes = res;
+  setHeader();
+    let { userid } = req.params;
+    
+    let userTrans=[];
+    let myTrans = await Wallet.find({uid: userid})
+    myTrans.forEach(tRec => {
+      if (tRec.amount != 0) {
+        let tDate = new Date(tRec.transNumber);
+        userTrans.push({
+          date: cricDate(tDate), 
+          amount: tRec.amount,
+          type: tRec.transType,
+        });
+      }
+    });
+  
+  // let myBalance = await WalletBalance(userid);
+  // console.log(tmp);  
+  sendok(userTrans);
+}); 
+
+
 router.get('/allopen', async function (req, res, next) {
   WalletRes = res;
   setHeader();

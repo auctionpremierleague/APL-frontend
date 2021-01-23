@@ -34,6 +34,26 @@ router.get('/group/:mygroup', async function (req, res, next) {
   showGroupMembers(parseInt(mygroup));
 });
 
+router.get('/profile/:userId', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+
+  var { userId } = req.params;
+
+  let userRec = await User.findOne({uid: userId});
+  if (userRec) {
+    let groupRec = await IPLGroup.findOne({gid: userRec.defaultGroup})
+    sendok({
+      loginName: userRec.userName,
+      userName: userRec.displayName,
+      defaultGroup: groupRec.name,
+      email: userRec.email,
+      password: userRec.password,
+    });
+  } else
+    senderr(601, `Invalid user id ${userId}`);
+});
+
 
 //=============== SIGNUP
 router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) {

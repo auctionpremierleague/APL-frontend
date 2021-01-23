@@ -14,12 +14,21 @@ import MyTeam from "views/MyTeam/MyTeam"
 import Match from "views/UpcomingMatch/UpcomingMatch"
 import Stats from "views/Statistics/Statistics"
 import NewGroup from "views/Group/NewGroup.js"
+import Profile from "views/Profile/Profile.js"
 import JoinGroup from "views/Group/JoinGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
 import GroupMember from "views/Group/GroupMember.js"
 import { useHistory } from "react-router-dom";
 import {cdRefresh, specialSetPos} from "views/functions.js"
 import AddGroupMember from "views/Group/AddGroupMember.js"
+import Avatar from "@material-ui/core/Avatar"
+import Grid from "@material-ui/core/Grid";
+import GridItem from "components/Grid/GridItem.js";
+
+// icons
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import DashboardIcon from "@material-ui/icons/Dashboard";
+import GroupIcon from '@material-ui/icons/Group';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -59,7 +68,26 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     // backgroundColor: theme.palette.background.paper
     backgroundColor: '#eeeeee',
-  }
+  },
+  image: {
+    height: "200px"
+  },
+  large: {
+      width: theme.spacing(12),
+      height: theme.spacing(12),
+  },
+  medium: {
+      width: theme.spacing(9),
+      height: theme.spacing(9),
+  },
+  tabIcon: {
+    width: theme.spacing(3),
+    height: theme.spacing(3),
+  },
+  tab: {
+    minWidth: 35, // a number of your choice
+    width: 35, // a number of your choice
+  },
 }));
 
 var myTabPosition = 0;
@@ -96,6 +124,36 @@ function getTabPos() {
   return pos;
 }
 
+
+function CricIcon(props) {
+  // const useStyles = makeStyles((theme) => ({
+  //   infoButton: {
+  //       backgroundColor: '#FCDC00',
+  //       ":disabled": {
+  //           backgroundColor: '#cddc39',
+  //       }
+  //   },
+  //   margin: {
+  //       margin: theme.spacing(1),
+  //   },
+  //   image: {
+  //       height: "200px"
+  //   },
+  //   large: {
+  //       width: theme.spacing(12),
+  //       height: theme.spacing(12),
+  //   },
+  //   medium: {
+  //       width: theme.spacing(9),
+  //       height: theme.spacing(9),
+  //   },
+  // }));
+  const classes = useStyles();  
+  return (
+    <Avatar variant="square" src={`${process.env.PUBLIC_URL}/image/${props.image}`} className={classes.tabIcon} />
+  );
+}
+
 export function CricDreamTabs() {
   const classes = useStyles();
   //console.log("in Cric Dream Tabs");
@@ -126,14 +184,15 @@ export function CricDreamTabs() {
           scrollButtons="auto"
           aria-label="simple tabs example"
         >
-          <Tab label="Group" {...a11yProps(0)} />
-          <Tab label="DashBoard" {...a11yProps(1)} />
-          <Tab label="Auction" {...a11yProps(2)} />
-          <Tab label="Captain" {...a11yProps(3)} />
-          <Tab label="Team" {...a11yProps(4)} />
-          <Tab label="Match" {...a11yProps(5)} />
-          <Tab label="Stats" {...a11yProps(6)} />
-          <Tab label="Logout" {...a11yProps(7)} />
+          <Tab  classes={{ root: classes.tab }} icon={<GroupIcon />}  {...a11yProps(0)} />
+          <Tab  classes={{ root: classes.tab }} icon={<DashboardIcon />} {...a11yProps(1)} />
+          <Tab  classes={{ root: classes.tab }}  icon={<CricIcon image="auction.jpg" />} {...a11yProps(2)} />  
+          <Tab  classes={{ root: classes.tab }}  icon={<CricIcon image="captain.png" />} {...a11yProps(3)} />
+          <Tab  classes={{ root: classes.tab }} icon={<CricIcon image="team.jpg" />} {...a11yProps(4)} />  
+          <Tab  classes={{ root: classes.tab }} icon={<CricIcon image="match.jpg" />} {...a11yProps(5)} /> 
+          <Tab  classes={{ root: classes.tab }} icon={<CricIcon image="statistics.jpg" />} {...a11yProps(6)} />
+          <Tab  classes={{ root: classes.tab }} icon={<CricIcon image="profile.png" />} {...a11yProps(7)} />
+          <Tab  classes={{ root: classes.tab }} icon={<ExitToAppIcon />}  {...a11yProps(8)} />
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}><Group /></TabPanel>
@@ -143,7 +202,8 @@ export function CricDreamTabs() {
       <TabPanel value={value} index={4}><MyTeam/></TabPanel>
       <TabPanel value={value} index={5}><Match/></TabPanel>
       <TabPanel value={value} index={6}><Stats/></TabPanel>
-      <TabPanel value={value} index={7}><Logout/></TabPanel>
+      <TabPanel value={value} index={7}><Profile /></TabPanel>
+      <TabPanel value={value} index={8}><Logout /></TabPanel>
       <TabPanel value={value} index={101}><NewGroup /></TabPanel>
       <TabPanel value={value} index={102}><GroupDetails /></TabPanel>
       <TabPanel value={value} index={103}><GroupMember /></TabPanel>
