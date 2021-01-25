@@ -105,12 +105,16 @@ router.get('/reset/:userId/:oldPwd/:newPwd', async function (req, res, next) {
   setHeader();
   var {userId, oldPwd, newPwd } = req.params;
 
-  var uDoc = await uDoc.findOne({uid: userId});
-  if (!uDoc) { senderr(602, "Invalid user Name or Passwod"); return; }
-  if (uDoc.password !== oldPwd) { senderr(602, "Invalid user Name or Passwod"); return; }
-  uDoc.password = newPwd;
-  uDoc.save();
-  sendok("OK");
+  var uDoc = await User.findOne({uid: userId});
+  if (uDoc) {
+    if (uDoc.password === oldPwd) {
+      uDoc.password = newPwd;
+      uDoc.save();
+      sendok("OK");
+      return;
+    }
+  }
+  senderr(602, "Invalid user Name or Passwod");
 });
 
 //=============== LOGIN

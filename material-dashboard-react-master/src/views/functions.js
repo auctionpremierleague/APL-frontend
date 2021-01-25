@@ -108,9 +108,9 @@ export async function getUserBalance() {
 
 export function specialSetPos() {
   //console.log(`in SSP: ${localStorage.getItem("joinGroupCode")}`)
-  let retval = 0;
+  let retval = 0;  //parseInt(process.env.REACT_APP_GROUP);
   if (localStorage.getItem("joinGroupCode").length > 0)
-    retval = 105;
+    retval = parseInt(process.env.REACT_APP_JOINGROUP);
   //console.log(`in SSP: ${retval}`)
   return retval;
 }

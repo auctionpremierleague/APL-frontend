@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, withStyles } from "@material-ui/core/styles";
+import { spacing } from '@material-ui/system';
 import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
@@ -15,20 +16,29 @@ import Match from "views/UpcomingMatch/UpcomingMatch"
 import Stats from "views/Statistics/Statistics"
 import NewGroup from "views/Group/NewGroup.js"
 import Profile from "views/Profile/Profile.js"
+import Wallet from "views/Wallet/Wallet.js"
 import JoinGroup from "views/Group/JoinGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
 import GroupMember from "views/Group/GroupMember.js"
+import ChangePassword from "views/Login/ChangePassword.js"
 import { useHistory } from "react-router-dom";
 import {cdRefresh, specialSetPos} from "views/functions.js"
 import AddGroupMember from "views/Group/AddGroupMember.js"
 import Avatar from "@material-ui/core/Avatar"
+import Button from "@material-ui/core/Button";
+import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
 import GridItem from "components/Grid/GridItem.js";
-
-// icons
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import ListItemText from '@material-ui/core/ListItemText';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import PersonIcon from '@material-ui/icons/Person';
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import GroupIcon from '@material-ui/icons/Group';
+// icons
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+
+
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -69,6 +79,9 @@ const useStyles = makeStyles((theme) => ({
     // backgroundColor: theme.palette.background.paper
     backgroundColor: '#eeeeee',
   },
+  label: {
+    fontSize: '0.75em',
+  },
   image: {
     height: "200px"
   },
@@ -81,12 +94,7 @@ const useStyles = makeStyles((theme) => ({
       height: theme.spacing(9),
   },
   tabIcon: {
-    width: theme.spacing(3),
-    height: theme.spacing(3),
-  },
-  tab: {
-    minWidth: 35, // a number of your choice
-    width: 35, // a number of your choice
+    color: theme.palette.common.white,
   },
 }));
 
@@ -99,13 +107,36 @@ export function setTab(num) {
   cdRefresh();
 }
 
-function Logout() {
-  const history = useHistory();
-  localStorage.setItem("uid", "");
-  // localStorage.setItem("newTabPos", "0)
-  cdRefresh();  
-  return (<div></div>);
-}
+const StyledMenu = withStyles({
+  paper: {
+    border: "1px solid #d3d4d5"
+  }
+})(props => (
+  <Menu
+    elevation={0}
+    getContentAnchorEl={null}
+    anchorOrigin={{
+      vertical: "bottom"
+    }}
+    transformOrigin={{
+      vertical: "top"
+    }}
+    {...props}
+  />
+));
+
+const StyledMenuItem = withStyles((theme) => ({
+  root: {
+    '&:focus': {
+      backgroundColor: theme.palette.primary.main,
+      '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+        color: theme.palette.common.white,
+      },
+    },
+  },
+}))(MenuItem);
+
+
 
 
 function getTabPos() {
@@ -156,9 +187,100 @@ function CricIcon(props) {
 
 export function CricDreamTabs() {
   const classes = useStyles();
-  //console.log("in Cric Dream Tabs");
+
+
+
   const [value, setValue] = React.useState(getTabPos());
-  // localStorage.setItem("tabpos", "0");
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  
+  const ExitCric = () => {
+    setAnchorEl(null);
+    localStorage.setItem("uid", "");
+    // localStorage.setItem("newTabPos", "0)
+    cdRefresh();  
+  };
+
+  const ShowProfile = () => {
+    setAnchorEl(null);
+   setTab(106);
+    // localStorage.setItem("newTabPos", "0)
+    // cdRefresh();  
+  };
+
+  const ShowChangePassword = () => {
+    setAnchorEl(null);
+    setTab(108);
+    // localStorage.setItem("newTabPos", "0)
+    // cdRefresh();  
+  };
+
+  const ShowGroup = () => {
+    setAnchorEl(null);
+    setTab(107);
+  };
+
+  const ShowWallet = () => {
+    setAnchorEl(null);
+    setTab(109);
+  };
+
+  function Logout() {
+    const history = useHistory();
+    localStorage.setItem("uid", "");
+    cdRefresh();  
+  }
+
+  function UserButton() {
+    return (
+    <IconButton 
+      color="secondary"
+      aria-haspopup="true"
+      aria-controls="customized-menu" 
+      aria-label="add to shopping cart" 
+      variant="contained"
+      onClick={handleClick}
+    >
+      <PersonIcon />
+    </IconButton>
+    );
+  }
+
+  function UserMenuItem(props) {
+    return (
+      <StyledMenuItem onClick={props.clickfunction}>
+      <ListItemText className={classes.label}  primary={props.name} />
+    </StyledMenuItem>
+
+    );
+  }
+  function UserMenu() {
+    // setAnchorEl(true);
+    return (
+      <div>
+      <StyledMenu
+        id="customized-menu"
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+      >
+        <UserMenuItem clickfunction={ShowProfile} name="Profile"/>
+        <UserMenuItem clickfunction={ShowGroup} name="Group"/>
+        <UserMenuItem clickfunction={ShowWallet} name="Wallet"/>
+        <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
+        <UserMenuItem clickfunction={ExitCric} name="Logout"/>
+      </StyledMenu>
+        </div>
+    );
+  }
+
   const handleChange = (event, newValue) => {
     if (newValue !== value) {
       localStorage.setItem("tabpos", newValue);
@@ -166,17 +288,10 @@ export function CricDreamTabs() {
     }
   };
 
-  // value={value}
-  // onChange={handleChange}
-  // indicatorColor="primary"
-  // textColor="primary"
-  // variant="scrollable"
-  // scrollButtons="auto"
-  // aria-label="scrollable auto tabs example"
   console.log(`value is ${value}`);
   return (
     <div className={classes.root}>
-      <AppBar position="static">
+      <AppBar position="static" >
         <Tabs
           value={value}
           onChange={handleChange}
@@ -184,31 +299,34 @@ export function CricDreamTabs() {
           scrollButtons="auto"
           aria-label="simple tabs example"
         >
-          <Tab  label="Group"  {...a11yProps(0)} />
-          <Tab  label="Dashboard" {...a11yProps(1)} />
-          <Tab  label="Auction" {...a11yProps(2)} />  
-          <Tab  label="Captain"  {...a11yProps(3)} />
-          <Tab  label="Team" {...a11yProps(4)} />  
-          <Tab  label="Match" {...a11yProps(5)} /> 
-          <Tab  label="Stats" {...a11yProps(6)} />
-          <Tab  label="Profile" {...a11yProps(7)} />
-          <Tab  icon={<ExitToAppIcon />}  {...a11yProps(8)} />
+          {/* <Tab  label="Group"  {...a11yProps(0)} /> */}
+          <Tab  m={0} className={classes.label} label="Dashboard" {...a11yProps(0)} />
+          <Tab  m={0} className={classes.label} label="Stats" {...a11yProps(1)} />
+          <Tab  m={0} className={classes.label} label="Match" {...a11yProps(2)} /> 
+          <Tab  m={0} className={classes.label} label="Captain"  {...a11yProps(3)} />
+          <Tab  m={0} className={classes.label} label="Team" {...a11yProps(4)} />  
+          <Tab  m={0} className={classes.label} label="Auction" {...a11yProps(5)} />  
+          <Tab  m={0} className={classes.tabIcon} icon={<UserButton />}  {...a11yProps(6)} />
+          {/* <Tab  label="Profile" {...a11yProps(7)} /> */}
         </Tabs>
       </AppBar>
-      <TabPanel value={value} index={0}><Group /></TabPanel>
-      <TabPanel value={value} index={1}><Dash/></TabPanel>
-      <TabPanel value={value} index={2}><Auction/></TabPanel>
+      {/* <TabPanel value={value} index={0}><Group /></TabPanel> */}
+      <TabPanel value={value} index={0}><Dash/></TabPanel>
+      <TabPanel value={value} index={1}><Stats/></TabPanel>
+      <TabPanel value={value} index={2}><Match/></TabPanel>
       <TabPanel value={value} index={3}><Captain/></TabPanel>
       <TabPanel value={value} index={4}><MyTeam/></TabPanel>
-      <TabPanel value={value} index={5}><Match/></TabPanel>
-      <TabPanel value={value} index={6}><Stats/></TabPanel>
-      <TabPanel value={value} index={7}><Profile /></TabPanel>
-      <TabPanel value={value} index={8}><Logout /></TabPanel>
+      <TabPanel value={value} index={5}><Auction/></TabPanel>
+      <TabPanel value={value} index={6}><UserMenu /></TabPanel>
       <TabPanel value={value} index={101}><NewGroup /></TabPanel>
       <TabPanel value={value} index={102}><GroupDetails /></TabPanel>
       <TabPanel value={value} index={103}><GroupMember /></TabPanel>
       <TabPanel value={value} index={104}><AddGroupMember /></TabPanel>
       <TabPanel value={value} index={105}><JoinGroup /></TabPanel>
+      <TabPanel value={value} index={106}><Profile /></TabPanel>
+      <TabPanel value={value} index={107}><Group /></TabPanel>
+      <TabPanel value={value} index={108}><ChangePassword /></TabPanel>
+      <TabPanel value={value} index={109}><Wallet /></TabPanel>
     </div>
   );
 }

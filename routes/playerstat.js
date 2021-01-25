@@ -1738,17 +1738,17 @@ cron.schedule('*/1 * * * * *', () => {
     cricTimer = 0;
     // console.log("======== match update start");
     // console.log("TIme to getch cric data");
-    // update_cricapi_data_r1(false);
-    // updateTournamentBrief();
-    // checkallover();
+    update_cricapi_data_r1(false);
+    updateTournamentBrief();
+    checkallover();
     // // console.log("match update over")
   }
 
   if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
+    clientUpdateCount = 0;
     // console.log("======== clinet update start");
     // console.log(connectionArray);
     sendDashboardData(); 
-    clientUpdateCount = 0;
     // console.log("client update over")
   }
 
