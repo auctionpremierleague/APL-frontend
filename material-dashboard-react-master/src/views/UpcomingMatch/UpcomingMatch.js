@@ -3,6 +3,11 @@ import axios from "axios";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Table from "components/Table/Table.js";
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import { makeStyles } from '@material-ui/core/styles';
 import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
@@ -15,6 +20,19 @@ import { NothingToDisplay, NoGroup, DisplayPageHeader } from 'CustomComponents/C
 import {hasGroup} from 'views/functions'
 
 const drawerWidth = 100;
+
+// function createData(name, calories, fat, carbs, protein) {
+//     return { name, calories, fat, carbs, protein };
+//   }
+  
+// const rows = [
+// createData("Frozen yoghurt", 159, 6.0, 24, 4.0),
+// createData("Ice cream sandwich", 237, 9.0, 37, 4.3),
+// createData("Eclair", 262, 16.0, 24, 6.0),
+// createData("Cupcake", 305, 3.7, 67, 4.3),
+// createData("Gingerbread", 356, 16.0, 49, 3.9)
+// ];
+  
 const useStyles = makeStyles((theme) => ({
     margin: {
         margin: theme.spacing(1),
@@ -82,18 +100,19 @@ export default function MatchInfo() {
     useEffect(() => { 
         const fetchMatch = async () => {
             try {
-
-                var response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/match/matchinfo/${localStorage.getItem("gid")}`);
-                setCurrentArray(response.data.current);
-                setUpcomingArray(response.data.upcoming);
+                if (hasGroup(localStorage.getItem("gid"))) {
+                    let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/match/matchinfo/${localStorage.getItem("gid")}`);
+                    setCurrentArray(response.data.current);
+                    setUpcomingArray(response.data.upcoming);
+                }
             } catch (e) {
                 console.log(e)
             }
-        }
-        if (hasGroup()) fetchMatch();
-    }, []);
+          }
+        fetchMatch();
+        }, []);
 
-    function MatchDetails(props) {
+    function OrgMatchDetails(props) {
     let uteam1 = props.team1.toUpperCase();
     let uteam2 = props.team2.toUpperCase();
     return (
@@ -115,52 +134,86 @@ export default function MatchInfo() {
     );        
     }
 
-    
+    function OrgMatchTable(props) {
+        //console.log(props.myTable)
+        // if (props.myTable.length > 0)
+            return (
+                <TableContainer >
+                <Table   aria-label="a dense table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell color="warning" align="right">Dessert (100g serving)</TableCell>
+                      <TableCell color="warning" align="right">Calories</TableCell>
+                      <TableCell color="warning" align="right">Fat</TableCell>
+                      <TableCell color="warning" align="right">Carbs</TableCell>
+                      <TableCell color="warning" align="right">Protein</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                      <TableRow key="Sample">
+                        <TableCell component="th" scope="row">Hello</TableCell>
+                        <TableCell align="center">cal</TableCell>
+                        <TableCell align="right">fst</TableCell>
+                        <TableCell align="right">carbs</TableCell>
+                        <TableCell align="right">protein</TableCell>
+                      </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+                      );
+        // else
+        //     return <NoGroup />
+    }
+
     function MatchTable(props) {
-    // console.log(props.myTable);
-    if (props.myTable.length > 0)
-        return (
-            props.myTable.map((x) => (
-                <MatchDetails team1={x.team1} team2={x.team2} matchTime={x.matchTime}  />
-            ))
-        );
-    else
-        return (<NothingToDisplay />);
+        console.log(props.myTable)
+        if (props.myTable.length > 0)
+            return (
+                <Table
+                tableHeaderColor="warning"
+                tableHead={["Teams", "Time"]}
+                tableData={props.myTable.map(mmm => {
+                    const arr = [ mmm.team1 + "Vs." + mmm.team2, mmm.matchTime]
+                    return { data: arr, collapse: [] }
+                })}
+                />
+            );
+        else
+            return <NothingToDisplay />
     }
 
     function ShowCurrentMatch() {
-    var myHeader = (currentArray.length > 0)
-        ? "Match running just now" : "Currently No Matches running";
-    return(
-        <Card profile>
-        <CardBody profile>
-            <h4 className={classes.cardTitle}>{myHeader}</h4>
-            <MatchTable myTable={currentArray}/>
-        </CardBody>
-        </Card>
-    );
+        var myHeader = "Match running just now";    // : "Currently No Matches running";
+        return(
+            <Card profile>
+            <CardBody profile>
+                <h4 className={classes.cardTitle}>{myHeader}</h4>
+                <MatchTable myTable={currentArray}/>
+            </CardBody>
+            </Card>
+        );
     }
 
     function ShowUpcomingMatch() {
-    var myHeader = "Upcoming Matches";
-    return(
-        <Card profile>
-        <CardBody profile>
-            <h4 className={classes.cardTitle}>{myHeader}</h4>
-            <MatchTable myTable={upcomingArray}/>
-        </CardBody>
-        </Card>
-    )
+        var myHeader = "Upcoming Matches";
+        return(
+            <Card profile>
+            <CardBody profile>
+                <h4 className={classes.cardTitle}>{myHeader}</h4>
+                <MatchTable myTable={upcomingArray}/>
+            </CardBody>
+            </Card>
+        );
     }
 
     if (localStorage.getItem("tournament").length > 0)
         return (
-        <div>
-        <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
-        <ShowCurrentMatch/>
-        <ShowUpcomingMatch/>
-        </div>
-        )
+            <div>
+            <DisplayPageHeader headerName="Matches" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
+            <ShowCurrentMatch/>
+            <ShowUpcomingMatch/>
+            </div>
+        );
     else
         return <NoGroup/>
 };

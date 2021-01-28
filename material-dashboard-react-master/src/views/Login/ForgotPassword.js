@@ -17,9 +17,8 @@ import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
 import SignIn from "./SignIn.js";
-import {BlankArea, CricDreamLogo} from "CustomComponents/CustomComponents.js"
-import {validateSpecialCharacters, validateEmail, cdRefresh} from "views/functions.js";
-
+import {ValidComp, BlankArea, CricDreamLogo} from "CustomComponents/CustomComponents.js"
+import {validateSpecialCharacters, validateEmail, cdRefresh, encrypt} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -79,30 +78,19 @@ class ChildComp extends React.Component {
 export default function ForgotPassword() {
   const classes = useStyles();
   const history = useHistory();
-  // const [userName, setUserName] = useState("");
-  // const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  // const [repeatPassword, setRepeatPassword] = useState("");
-  const [registerStatus, setRegisterStatus] = useState(0);
+  const [registerStatus, setRegisterStatus] = useState(199);
 
   // const { setUser } = useContext(UserContext);
 
-  // const handleChange = (event) => {
-  //   const { user } = this.state;
-  //   user[event.target.name] = event.target.value;
-  //   this.setState({ user });
-  // }
 
   const handleSubmit = async() => {
-    // console.log("Submit command provided");
-    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/emailpassword/${email}`);
+    let tmp1 = encrypt(email);
+    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricemailpassword/${tmp1}`);
     setRegisterStatus(response.status);
-    console.log(`Status is ${response.status}`);
   }
 
   function handleLogin() {
-    // console.log("Call for login here");
-    // history.push("/signin")
     localStorage.setItem("currentLogin", "SIGNIN");
     cdRefresh();
   }
@@ -110,6 +98,9 @@ export default function ForgotPassword() {
   function ShowResisterStatus() {
     let myMsg;
     switch (registerStatus) {
+      case 199:
+        myMsg = ``;
+        break;
       case 200:
         myMsg = `Successfully mailed password`;
         break;
@@ -120,7 +111,7 @@ export default function ForgotPassword() {
         myMsg = `Transport error while sending email`;
         break;
       default:
-          myMsg = "";
+          myMsg = "Unknown Error";
           break;
     }
     return(
@@ -161,8 +152,8 @@ export default function ForgotPassword() {
           errorMessages={['Invalid Email', 'Email to be provided']}
           value={email}
       />
+      <ShowResisterStatus/>
       <BlankArea/>
-      {/* <Button type="submit">Submit</Button> */}
       <Button
         type="submit"
         fullWidth
@@ -173,12 +164,8 @@ export default function ForgotPassword() {
         Submit
     </Button>
     </ValidatorForm>
-    <ShowResisterStatus/>
     </div>
-    <ChildComp  em={email}/>    
-    <Switch> {/* The Switch decides which component to show based on the current URL.*/}
-      <Route  path='/admin/signin' component={SignIn} key="MemberList"/>
-    </Switch>
+    <ValidComp />    
     </Container>
   );
 }

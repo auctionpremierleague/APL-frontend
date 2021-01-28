@@ -12,8 +12,8 @@ import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
-import {validateSpecialCharacters, validateEmail, cdRefresh} from "views/functions.js";
-import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
+import {validateSpecialCharacters, validateEmail, encrypt, decrypt} from "views/functions.js";
+import { ValidComp, CricDreamLogo } from 'CustomComponents/CustomComponents.js';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -92,18 +92,19 @@ export default function Profile() {
   const [groupName, setGroupName] = useState("");
   const [email, setEmail] = useState("");
   const [profile, setProfile] = useState({});
-  const [registerStatus, setRegisterStatus] = useState(0);
+  const [registerStatus, setRegisterStatus] = useState(199);
 
   useEffect(() => {
     const profileInfo = async () => {
       try {
         // get user details
-        var userRes = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/profile/${localStorage.getItem("uid")}`);
+        var userRes = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricprofile/${localStorage.getItem("uid")}`);
         setProfile(userRes.data); // master data for comparision if changed by user
         // setLoginName(userRes.data.loginName);
         setUserName(userRes.data.userName);
         setGroupName(userRes.data.defaultGroup);
-        setEmail(userRes.data.email);
+        let tmp = decrypt(userRes.data.email);
+        setEmail(tmp);
       } catch (e) {
           console.log(e)
       }
@@ -113,33 +114,16 @@ export default function Profile() {
 
   // const { setUser } = useContext(UserContext);
 
-  // const handleChange = (event) => {
-  //   const { user } = this.state;
-  //   user[event.target.name] = event.target.value;
-  //   this.setState({ user });
-  // }
-
   
   const handleProfileSubmit = async() => {
-    console.log("Submit command provided"); 
-    if (profile.email !== email)
-      console.log("New EMail");
-    if (profile.userName !== userName)
-      console.log("User Name modifled") 
-    /***
-    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/signup/${userName}/${password}/${email}`);
-    if (response.status === 200) {
-      let setemailresp = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/emailwelcome/${email}`);
-      // history.push("/signin");
-      localStorage.setItem("currentLogin", "SIGNIN");
-      cdRefresh();
-
-    } else {
-      // error
+    // console.log("Submit command provided"); 
+    if ((profile.email !== email) || (profile.userName !== userName)) {
+      // console.log("New EMail or use name");
+      let tmp1 = encrypt(email)
+      let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricupdateprofile/${localStorage.getItem("uid")}/${userName}/${tmp1}`);
       setRegisterStatus(response.status);
-      console.log(`Status is ${response.status}`);
+      // console.log(`Status is ${response.status}`);
     }
-    ***/
   }
 
   function ShowResisterStatus() {
@@ -147,16 +131,19 @@ export default function Profile() {
     let myMsg;
     switch (registerStatus) {
       case 200:
-        myMsg = `User ${userName} successfully regisitered.`;
+        myMsg = `User Profile successfully regisitered.`;
+        break;
+      case 601:
+        myMsg = "Invalid User Id";
         break;
       case 602:
-        myMsg = "User Name already in use";
-        break;
-      case 603:
         myMsg = "Email id already in use";
         break;
-      default:
-          myMsg = "";
+        case 199:
+          myMsg = ``;
+          break;
+        default:
+          myMsg = "unKnown error";
           break;
     }
     return(
@@ -222,7 +209,7 @@ export default function Profile() {
     </Button>
     </ValidatorForm>
     </div>
-    <ChildComp />    
+    <ValidComp />    
     </Container>
   );
 }

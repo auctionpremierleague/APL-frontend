@@ -1,8 +1,5 @@
-// export const ENDPOINT = "https://happy-home-ipl-2020.herokuapp.com/";
-// export const ENDPOINT = "http://localhost:4000";
-
 import axios from "axios";
-
+var crypto = require("crypto");
 
 export function cdRefresh() {
   window.location.reload();
@@ -57,6 +54,28 @@ export function hasGroup() {
   return sts;
 }
 
+export function encrypt(text) {
+  let hash="";
+  try {
+    const cipher = crypto.createCipheriv(process.env.REACT_APP_ALGORITHM, 
+      process.env.REACT_APP_AKSHUSECRETKEY, 
+      Buffer.from(process.env.REACT_APP_IV, 'hex'));
+    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+    hash = encrypted.toString('hex');
+  }
+  catch (err) {
+    console.log(err);
+  } 
+  return hash;
+};
+
+export function decrypt(hash) {
+  const decipher = crypto.createDecipheriv(process.env.REACT_APP_ALGORITHM, 
+    process.env.REACT_APP_AKSHUSECRETKEY, 
+    Buffer.from(process.env.REACT_APP_IV, 'hex'));
+  const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash, 'hex')), decipher.final()]);
+  return decrpyted.toString();
+};
 
 const AMPM = [
   "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM", "AM",

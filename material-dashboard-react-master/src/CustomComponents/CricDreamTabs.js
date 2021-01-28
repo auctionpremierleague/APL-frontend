@@ -299,7 +299,6 @@ export function CricDreamTabs() {
           scrollButtons="auto"
           aria-label="simple tabs example"
         >
-          {/* <Tab  label="Group"  {...a11yProps(0)} /> */}
           <Tab  m={0} className={classes.label} label="Dashboard" {...a11yProps(0)} />
           <Tab  m={0} className={classes.label} label="Stats" {...a11yProps(1)} />
           <Tab  m={0} className={classes.label} label="Match" {...a11yProps(2)} /> 
@@ -307,10 +306,8 @@ export function CricDreamTabs() {
           <Tab  m={0} className={classes.label} label="Team" {...a11yProps(4)} />  
           <Tab  m={0} className={classes.label} label="Auction" {...a11yProps(5)} />  
           <Tab  m={0} className={classes.tabIcon} icon={<UserButton />}  {...a11yProps(6)} />
-          {/* <Tab  label="Profile" {...a11yProps(7)} /> */}
         </Tabs>
       </AppBar>
-      {/* <TabPanel value={value} index={0}><Group /></TabPanel> */}
       <TabPanel value={value} index={0}><Dash/></TabPanel>
       <TabPanel value={value} index={1}><Stats/></TabPanel>
       <TabPanel value={value} index={2}><Match/></TabPanel>

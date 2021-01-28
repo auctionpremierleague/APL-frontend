@@ -12,12 +12,12 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import { UserContext } from "../../UserContext";
-import axios from "axios";
+//import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
-import {validateSpecialCharacters, validateEmail, cdRefresh} from "views/functions.js";
-import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
+import {validateSpecialCharacters, validateEmail, cdRefresh, encrypt} from "views/functions.js";
+//import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
 import { setTab } from "CustomComponents/CricDreamTabs.js"
 
 
@@ -113,7 +113,9 @@ export default function ChangePassword() {
       setRegisterStatus(611);
       return;
     }
-    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/reset/${localStorage.getItem("uid")}/${currentPassword}/${newPassword}`);
+    let tmp1 = encrypt(currentPassword);
+    let tmp2 = encrypt(newPassword);
+    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricreset/${localStorage.getItem("uid")}/${tmp1}/${tmp2}`);
     if (response.status === 200) {
       setTab(0);
     } else {

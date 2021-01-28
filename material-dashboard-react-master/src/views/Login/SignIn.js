@@ -11,14 +11,14 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import SignUp from "../Login/SignUp.js";
-import ForgotPassword from "./ForgotPassword.js";
+// import SignUp from "../Login/SignUp.js";
+// import ForgotPassword from "./ForgotPassword.js";
 import { useHistory } from "react-router-dom";
 import { UserContext } from "../../UserContext";
 import axios from "axios";
 import red from '@material-ui/core/colors/red';
 import { DesktopWindows } from '@material-ui/icons';
-import { cdRefresh, specialSetPos } from "views/functions.js"
+import { cdRefresh, specialSetPos, encrypt } from "views/functions.js"
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
 
@@ -94,10 +94,10 @@ export default function SignIn() {
   const handleClick = async () => {
     let response = ""
     try { 
-      response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/login/${userName}/${password}`); 
+      let enPassword = encrypt(password);
+      response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/criclogin/${userName}/${enPassword}`); 
       setErrorMessage("");
     } catch (err) {
-      // setOpen(true)
       setErrorMessage("Invalid Username / Password");
     }
     console.log(`Signin status ${response.status}`);
@@ -129,12 +129,7 @@ export default function SignIn() {
         <CssBaseline />
         <div className={classes.paper}>
           <CricDreamLogo />        
-          {/* <Avatar className={classes.avatar}>
-            <LockOutlinedIcon />
-          </Avatar> */}
-          <Typography component="h1" variant="h5">
-            Sign in
-        </Typography>
+          <Typography component="h1" variant="h5">Sign in</Typography>
           <form className={classes.form} onSubmit={handleSubmit} noValidate>
             <TextField
               autoComplete="fname"

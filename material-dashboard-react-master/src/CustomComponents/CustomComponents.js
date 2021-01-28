@@ -12,7 +12,9 @@ import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
+import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import {red, blue, green, yellow} from '@material-ui/core/colors';
+import {validateSpecialCharacters, validateEmail, encrypt, decrypt} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -106,6 +108,43 @@ export class BlankArea extends React.Component {
 
 export class NothingToDisplay extends React.Component {
   render() {return <div></div>;}
+}
+
+
+export class ValidComp extends React.Component {
+
+  componentDidMount()  {
+    // custom rule will have name 'isPasswordMatch'
+    ValidatorForm.addValidationRule('isPasswordMatch', (value) => {
+      return (value === this.props.p1)
+    });
+
+    ValidatorForm.addValidationRule('minLength', (value) => {
+      return (value.length >= 6)
+    });
+
+    ValidatorForm.addValidationRule('noSpecialCharacters', (value) => {
+      return validateSpecialCharacters(value);
+    });
+
+    ValidatorForm.addValidationRule('isEmailOK', (value) => {
+      return validateEmail(value);
+    });
+  }
+
+  
+  componentWillUnmount() {
+    // remove rule when it is not needed
+    ValidatorForm.removeValidationRule('isPasswordMatch');
+    ValidatorForm.removeValidationRule('isEmailOK');
+    ValidatorForm.removeValidationRule('minLength');
+    ValidatorForm.removeValidationRule('noSpecialCharacters');   
+  }
+
+  render() {
+    return <br/>;
+  }
+
 }
 
 export function GeneralMessage (props) {

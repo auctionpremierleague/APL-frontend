@@ -17,7 +17,7 @@ import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
 import SignIn from "./SignIn.js";
-import {validateSpecialCharacters, validateEmail, cdRefresh} from "views/functions.js";
+import {validateSpecialCharacters, validateEmail, cdRefresh, encrypt, decrypt} from "views/functions.js";
 import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
 
 
@@ -109,9 +109,11 @@ export default function SignUp() {
 
   const handleSubmit = async() => {
     console.log("Submit command provided");
-    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/signup/${userName}/${password}/${email}`);
+    let tmp1 = encrypt(password);
+    let tmp2 = encrypt(email);
+    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricsignup/${userName}/${tmp1}/${tmp2}`);
     if (response.status === 200) {
-      let setemailresp = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/emailwelcome/${email}`);
+      let setemailresp = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricemailwelcome/${tmp2}`);
       // history.push("/signin");
       localStorage.setItem("currentLogin", "SIGNIN");
       cdRefresh();
