@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from "axios";
 import { makeStyles } from '@material-ui/core/styles';
-import { Switch, Route } from 'react-router-dom';
+// import { Switch, Route } from 'react-router-dom';
 import Link from '@material-ui/core/Link';
 import Button from '@material-ui/core/Button';
 import Table from "components/Table/Table.js";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import Grid from "@material-ui/core/Grid";
-import GridItem from "components/Grid/GridItem.js";
+// import GridItem from "components/Grid/GridItem.js";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 // import Accordion from '@material-ui/core/Accordion';
@@ -18,18 +18,26 @@ import Typography from '@material-ui/core/Typography';
 // import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useHistory } from "react-router-dom";
 import { UserContext } from "../../UserContext";
-import GroupMember from "views/Group/GroupMember.js"
-import NewGroup from "views/Group/NewGroup.js"
-import GroupDetails from "views/Group/GroupDetails.js"
 import { cdCurrent, cdDefault, hasGroup, getUserBalance} from "views/functions.js"
 import {BlankArea, NothingToDisplay, DisplayBalance} from "CustomComponents/CustomComponents.js"
-import green from '@material-ui/core/colors/green';
+import {red, blue, green } from '@material-ui/core/colors';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 const rPrefix = "radio-";
 
 const useStyles = makeStyles((theme) => ({
     root: {
       width: '100%',
+    }, 
+    info: {
+        color: blue[700],
+    },     
+    header: {
+        color: '#D84315',
+    },     
+    messageText: {
+        color: '#4CC417',
+        fontSize: 12,
+        // backgroundColor: green[700],
     },
     symbolText: {
         color: '#4CC417',
@@ -56,8 +64,9 @@ export default function Group() {
     // const { setUser } = useContext(UserContext);
     const classes = useStyles();
     const [myGroupTableData, setMyGroupTableData] = useState([]);
-    const history = useHistory();
     const [newCurrentGroup, setNewCurrentGroup] = useState(localStorage.getItem("groupName"));
+    const [newDefaultGroup, setNewDefaultGroup] = useState("");
+    // const history = useHistory();
     const [balance, setBalance] = useState(0);
 
       
@@ -69,18 +78,22 @@ export default function Group() {
 
             window.localStorage.setItem("groupMember", "");
             var myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/memberof/${localStorage.getItem("uid")}`;
-            const teamResponse = await axios.get(myUrl);
-            // console.log(teamResponse.data[0].groups);
+            const response = await axios.get(myUrl);
+            // console.log(response.data[0].groups);
             let setnew = true;
             if (hasGroup()) {
                 // just check if current group is part of group list 
-                let tmp = teamResponse.data[0].groups.find(x => x.gid == localStorage.getItem("gid"));
+                let tmp = response.data[0].groups.find(x => x.gid == localStorage.getItem("gid"));
                 if (tmp) setnew = false;
+                let gRec = response.data[0].groups.find(x => x.defaultGroup === true);
+                if (gRec) {
+                    setNewDefaultGroup(gRec.groupName);
+                }
             }
             // console.log(`Set new is ${setnew}`);
             if (setnew) {
-                if (teamResponse.data[0].groups.length > 0) {
-                    var myGroup = teamResponse.data[0].groups[0];
+                if (response.data[0].groups.length > 0) {
+                    var myGroup = response.data[0].groups[0];
                     // console.log(myGroup);
                     localStorage.setItem("gid", myGroup.gid.toString());
                     localStorage.setItem("groupName", myGroup.groupName);
@@ -95,8 +108,8 @@ export default function Group() {
                     setNewCurrentGroup("");
                 }
             }
-            setMyGroupTableData(teamResponse.data[0].groups);
-            // console.log(teamResponse.data[0].groups);
+            setMyGroupTableData(response.data[0].groups);
+            // console.log(response.data[0].groups);
             }
         a();
     }, [])
@@ -104,125 +117,130 @@ export default function Group() {
 
     function handleGroupDetails(grpName) {
         // console.log(`Show group details of ${grpName}`)
-        var ggg = myGroupTableData.find(x => x.groupName === grpName);
+        var ggg =   myGroupTableData.find(x => x.groupName === grpName);
         //console.log(ggg);
         window.localStorage.setItem("gdGid", ggg.gid.toString());
-        window.localStorage.setItem("gdName", ggg.groupName)
-        window.localStorage.setItem("gdDisplay", ggg.displayName)
-        window.localStorage.setItem("gdAdmin", ggg.admin);
-        window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
-        window.localStorage.setItem("gdDefault", ggg.defaultGroup);
-        window.localStorage.setItem("gdTournament", ggg.tournament);
-        // history.push(`/admin/groupdetails`);
+        // window.localStorage.setItem("gdName", ggg.groupName)
+        // window.localStorage.setItem("gdDisplay", ggg.displayName)
+        // window.localStorage.setItem("gdAdmin", ggg.admin);
+        // window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
+        // window.localStorage.setItem("gdDefault", ggg.defaultGroup);
+        // window.localStorage.setItem("gdTournament", ggg.tournament);
         setTab(102);
     }
 
-    function handleSelectGroup(grpName) {
-        // var myId;
-        var myElement;
-        myElement = document.getElementById(rPrefix + newCurrentGroup);
-        // console.log(myElement);
-        myElement.checked = false;
-        setNewCurrentGroup(grpName);
 
-        // set this group as default group
-        var ggg = myGroupTableData.find(x => x.groupName === grpName);
-        window.localStorage.setItem("gid", ggg.gid.toString());
-        // var response = await axios.get(`/group/current/` +
-        //     `${localStorage.getItem("gid")}/${localStorage.getItem("uid")}`);
-        // // SAMPLE OUTPUT
-        // // {"uid":"8","gid":2,"displayName":"Salgia Super Stars",
-        // // "groupName":"Happy Home Society Grp 2","tournament":"ENGAUST20","ismember":true,"admin":true}
-        // // window.localStorage.setItem("uid", myUID)
-        window.localStorage.setItem("displayName", ggg.displayName);
-        window.localStorage.setItem("groupName", ggg.groupName);
-        window.localStorage.setItem("tournament", ggg.tournament);
-        window.localStorage.setItem("admin", ggg.admin)
-        // setUser({ uid: localStorage.getItem("uid"), admin: ggg.admin })    
-    };
-
-
-
-    /*
-    function ShowGroupMembers() {
-        var grpName = localStorage.getItem("groupName");
-        var ggg = myGroupTableData.find(x=> x.groupName === grpName);
-        console.log(ggg);
-        window.localStorage.setItem("gdGid", ggg.gid.toString());
-        window.localStorage.setItem("gdName", ggg.groupName)
-        window.localStorage.setItem("gdAdmin", ggg.admin);
-        // console.log("abou to call /admin/membergroup ")
-        //history.push("/admin/membergroup");        
-    };
-
-    function EditGroupProfile() {
-        console.log("edit profile")
-    }   
-    
-    */
 
     function handleNewGroup() {
-        //history.push("/newgroup");        
         setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_NEWGROUP));
     };
 
     function handleJoinGroup() {
-        // history.push("/admin/newgroup"); 
         localStorage.setItem("joinGroupCode", "");       
         setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_JOINGROUP));
     };
 
 
-    function  ShowAllGroups() {
-        return(
-            <Grid key="gr-group" container justify="center" alignItems="center" >
-            <GridItem key="gi-group" xs={12} sm={12} md={12} lg={12} >
-                <Card key="c-group" profile>
-                    <CardBody key="cb-group" profile>
-                        <Table
-                            tableKey="t-group"
-                            id="t-group"
-                            tableHeaderColor="warning"
-                            tableHead={["Group Name","", "Admin"]}
-                            tableData={myGroupTableData.map(x => {
-                                var myName = x.groupName;
-                                var currentChar = "";
-                                if (newCurrentGroup === x.groupName) currentChar = cdCurrent();
-                                if (x.defaultGroup) currentChar =  currentChar + cdDefault();
-                                // console.log(x);
-                                const arr = [
-                                    <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
-                                    <Typography>{myName}</Typography>
-                                    </Link>,
-                                    <Typography className={classes.symbolText}>{currentChar}</Typography>,
-                                    <Typography>{((x.admin) ? "Admin" : "")}</Typography>
-                                    // <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
-                                    // Details
-                                    // </Link>
-                                    // <FormControlLabel 
-                                    // key={"fc-"+x.groupName}
-                                    // className={classes.groupName} 
-                                    // value={x.groupName}    
-                                    // control={<Radio color="primary" key={rPrefix+x.groupName} id={rPrefix+x.groupName} defaultChecked={x.groupName === newCurrentGroup}/>}
-                                    // onClick={() => handleSelectGroup(x.groupName)}
-                                    // />
-                                ]
-                                return { data: arr, collapse: [] }
-                            })}
-                        />
-                    </CardBody>
-                </Card>
-            </GridItem>
+    function DisplayGroupHeader() {
+        return (
+        <Grid key="gr-group" container justify="center" alignItems="center" >
+            <Grid item key="gi-group" xs={8} sm={8} md={8} lg={8} >
+            <Typography className={classes.header}>Group Name</Typography>
             </Grid>
+            <Grid item key="gi-group" xs={2} sm={2} md={2} lg={2} >
+            <Typography className={classes.header}>Curr</Typography>
+            </Grid>
+            <Grid item key="gi-group" xs={2} sm={2} md={2} lg={2} >
+            <Typography className={classes.header}>Def</Typography>
+            </Grid>
+        </Grid>
         );
     }
 
+    function handleNewCurrentGroup(grpName) {
+        // console.log(grpName);
+        setNewCurrentGroup(grpName);
+        let gRec = myGroupTableData.find( x => x.groupName === grpName);
+        // console.log(gRec);
+        localStorage.setItem("gid", gRec.gid);
+        localStorage.setItem("groupName", gRec.groupName);
+        localStorage.setItem("tournament", gRec.tournament);
+        localStorage.setItem("admin", gRec.admin);
+    };
+    
+
+    async function handleNewDefaultGroup(grpName) {
+        // console.log(grpName);
+        let gRec = myGroupTableData.find( x => x.groupName === grpName);
+        // console.log(gRec);
+        let newGid = gRec.gid;
+        // console.log(newGid);
+        let sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setdefaultgroup/${localStorage.getItem("uid")}/${newGid}`);
+        setNewDefaultGroup(grpName);
+    };
+
+    function DisplayGroupData() {
+        // console.log(myGroupTableData);
+        return (
+        myGroupTableData.map( (x, index) => {
+        return (
+            <Grid key={x.groupName} container justify="center" alignItems="center" >
+            <Grid item key={x.groupName} xs={8} sm={8} md={8} lg={8} >
+                <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
+                <Typography>{x.groupName}</Typography>
+                </Link>
+            </Grid>
+            <Grid item justify="center" alignContent="center" alignItems="center" key={x.groupName} xs={2} sm={2} md={2} lg={2} >
+                <FormControlLabel 
+                    key={"Curr"+x.groupName}
+                    id={"Curr"+x.groupName}
+                    className={classes.info} 
+                    control={<Radio color="primary" defaultChecked={x.playerName === newCurrentGroup}/>}
+                    onClick={() => handleNewCurrentGroup(x.groupName)}
+                    checked={newCurrentGroup === x.groupName}
+                />
+            </Grid>
+            <Grid item justify="center" alignContent="center" alignItems="center" xs={2} sm={2} md={2} lg={2} >
+                <FormControlLabel 
+                    key={"Def"+x.groupName}
+                    id={"Def"+x.groupName}
+                    className={classes.info} 
+                    control={<Radio color="primary" defaultChecked={x.playerName === newDefaultGroup}/>}
+                    onClick={() => handleNewDefaultGroup(x.groupName)}
+                    checked={newDefaultGroup === x.groupName}
+                />
+            </Grid>
+        </Grid>
+        )}))
+    }
+
+    function  ShowAllGroups() {
+        return(
+        <Card key="c-group" profile>
+        <CardBody key="cb-group" profile>
+        <DisplayGroupHeader />
+        <DisplayGroupData />
+        </CardBody>
+        </Card>
+        );
+    }
+
+    function ShowPageHeader() {
+    let curr =  "Curr - Current Group  / Def - Default Group";
+    let msg = "Click on group name for details";
+    return(
+        <div className={classes.root} align="center">
+            <h3>My Groups</h3>
+            <Typography className={classes.messageText}>{curr}</Typography>
+            <Typography className={classes.messageText}>{msg}</Typography>
+        </div>
+    )}
 
     return (
         <div className={classes.root} align="center" key="groupinfo">
             <DisplayBalance balance={balance} />
-            <h3 align="center">My Groups</h3>
-            <ShowAllGroups/>
+            <ShowPageHeader />
+            <ShowAllGroups />
             <Button key={"create"} variant="contained" color="primary" size="small"
                 className={classes.button} onClick={handleNewGroup}>New Group
             </Button>

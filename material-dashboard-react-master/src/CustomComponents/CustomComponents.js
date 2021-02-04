@@ -130,6 +130,10 @@ export class ValidComp extends React.Component {
     ValidatorForm.addValidationRule('isEmailOK', (value) => {
       return validateEmail(value);
     });
+
+    ValidatorForm.addValidationRule('checkbalance', (value) => {
+      return validateSpecialCharacters(value > this.props.balance);
+    });
   }
 
   
@@ -139,6 +143,7 @@ export class ValidComp extends React.Component {
     ValidatorForm.removeValidationRule('isEmailOK');
     ValidatorForm.removeValidationRule('minLength');
     ValidatorForm.removeValidationRule('noSpecialCharacters');   
+    ValidatorForm.removeValidationRule('checkbalance');   
   }
 
   render() {
@@ -154,11 +159,16 @@ export function GeneralMessage (props) {
 
 export function DisplayGroupName (props) {
   const classes = useStyles();
-  return(<Typography className={classes.groupName} align="center">({props.groupName})</Typography>);
+  if (props.groupName.length > 0)
+    return(<Typography className={classes.groupName} align="center">({props.groupName})</Typography>);
+  else
+    return(<NothingToDisplay />);
 }
 
 export function DisplayPageHeader (props) {
-    let msg = props.groupName + '-' + props.tournament;
+    let msg = "";
+    if (props.groupName.length > 0) 
+      msg = props.groupName + '-' + props.tournament;
     return (
     <div>
       <Typography align="center" component="h1" variant="h5">{props.headerName}</Typography>

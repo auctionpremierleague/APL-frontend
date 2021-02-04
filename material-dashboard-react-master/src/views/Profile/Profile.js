@@ -10,10 +10,10 @@ import Container from '@material-ui/core/Container';
 import { UserContext } from "../../UserContext";
 import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
-import red from '@material-ui/core/colors/red';
+import {blue, red } from '@material-ui/core/colors';
 import { useHistory } from "react-router-dom";
-import {validateSpecialCharacters, validateEmail, encrypt, decrypt} from "views/functions.js";
-import { ValidComp, CricDreamLogo } from 'CustomComponents/CustomComponents.js';
+import { encrypt, decrypt} from "views/functions.js";
+import { BlankArea, ValidComp } from 'CustomComponents/CustomComponents.js';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -26,6 +26,9 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     margin: theme.spacing(1),
     backgroundColor: theme.palette.secondary.main,
+  },
+  textColor: {
+    color: blue[700],
   },
   form: {
     width: '100%', // Fix IE 11 issue.
@@ -44,6 +47,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/***
 class ChildComp extends React.Component {
 
   componentDidMount()  {
@@ -79,6 +83,7 @@ class ChildComp extends React.Component {
   }
 
 }
+***/
 // const handleSubmit = e => {
 //   e.preventDefault();
 // };
@@ -139,20 +144,16 @@ export default function Profile() {
       case 602:
         myMsg = "Email id already in use";
         break;
-        case 199:
-          myMsg = ``;
-          break;
-        default:
-          myMsg = "unKnown error";
-          break;
+      case 199:
+        myMsg = ``;
+        break;
+      default:
+        myMsg = "unKnown error";
+        break;
     }
     return(
       <Typography className={(registerStatus === 200) ? classes.root : classes.error}>{myMsg}</Typography>
     )
-  }
-
-  function BlankArea() {
-    return(<h3></h3>)
   }
 
   return (
@@ -162,6 +163,7 @@ export default function Profile() {
         <Typography component="h1" variant="h5">User Profile</Typography>
     <ValidatorForm className={classes.form} onSubmit={handleProfileSubmit}>
       <TextValidator
+          className={classes.textColor}
           variant="outlined"
           required
           fullWidth      
@@ -189,10 +191,11 @@ export default function Profile() {
       <BlankArea/>
       <TextValidator
           variant="outlined"
-          required
+          // required
           fullWidth      
-          readonly
-          label="Default Group (read only)"
+          // readonly
+          disabled
+          label="Default Group"
           name="groupName"
           value={groupName}
       />

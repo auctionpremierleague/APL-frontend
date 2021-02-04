@@ -1,24 +1,24 @@
 import React, { useState ,useContext} from 'react';
-import Avatar from '@material-ui/core/Avatar';
+// import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 // import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
-import { Switch, Route } from 'react-router-dom';
+// import { Switch, Route } from 'react-router-dom';
 // import Grid from '@material-ui/core/Grid';
 // import Box from '@material-ui/core/Box';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+//import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import { UserContext } from "../../UserContext";
-import axios from "axios";
+//import { UserContext } from "../../UserContext";
+//import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
-import { useHistory } from "react-router-dom";
-import SignIn from "./SignIn.js";
-import {validateSpecialCharacters, validateEmail, cdRefresh, encrypt, decrypt} from "views/functions.js";
-import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
+// import { useHistory } from "react-router-dom";
+// import SignIn from "./SignIn.js";
+import { cdRefresh, encrypt, decrypt} from "views/functions.js";
+import { CricDreamLogo, BlankArea, ValidComp } from 'CustomComponents/CustomComponents.js';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/*** 
 class ChildComp extends React.Component {
 
   componentDidMount()  {
@@ -84,6 +85,7 @@ class ChildComp extends React.Component {
   }
 
 }
+***/
 // const handleSubmit = e => {
 //   e.preventDefault();
 // };
@@ -92,12 +94,12 @@ class ChildComp extends React.Component {
 
 export default function SignUp() {
   const classes = useStyles();
-  const history = useHistory();
+  // const history = useHistory();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [registerStatus, setRegisterStatus] = useState(0);
+  const [registerStatus, setRegisterStatus] = useState(199);
 
   // const { setUser } = useContext(UserContext);
 
@@ -137,6 +139,9 @@ export default function SignUp() {
     // console.log(`Status is ${registerStatus}`);
     let myMsg;
     switch (registerStatus) {
+      case 199:
+        myMsg = "";
+        break;
       case 200:
         // setUserName("");
         // setPassword("");
@@ -151,24 +156,16 @@ export default function SignUp() {
         myMsg = "Email id already in use";
         break;
       default:
-          myMsg = "";
+          myMsg = "Unknown Error";
           break;
     }
     return(
       <div>
         <Typography className={(registerStatus === 200) ? classes.root : classes.error}>{myMsg}</Typography>
-        <Typography className={classes.root}>
-            <Link href="#" onClick={handleLogin} variant="body2">
-            Already have an account? Sign in
-          </Link>
-        </Typography>
       </div>
     )
   }
 
-  function BlankArea() {
-    return(<h3></h3>)
-  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -246,10 +243,15 @@ export default function SignUp() {
     </ValidatorForm>
     <ShowResisterStatus/>
     </div>
-    <ChildComp p1={password}/>    
-    <Switch>
+    <ValidComp p1={password}/>    
+    <Typography className={classes.root}>
+      <Link href="#" onClick={handleLogin} variant="body2">
+        Already have an account? Sign in
+      </Link>
+    </Typography>
+    {/* <Switch>
       <Route  path='/admin/signin' component={SignIn} key="MemberList"/>
-    </Switch>
+    </Switch> */}
     </Container>
   );
 }

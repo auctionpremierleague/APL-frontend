@@ -1,23 +1,23 @@
 import React, { useState ,useContext} from 'react';
-import Avatar from '@material-ui/core/Avatar';
+//import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 // import TextField from '@material-ui/core/TextField';
-import Link from '@material-ui/core/Link';
-import { Switch, Route } from 'react-router-dom';
+//import Link from '@material-ui/core/Link';
+//import { Switch, Route } from 'react-router-dom';
 // import Grid from '@material-ui/core/Grid';
 // import Box from '@material-ui/core/Box';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+//import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import { UserContext } from "../../UserContext";
+//import { UserContext } from "../../UserContext";
 //import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
-import {validateSpecialCharacters, validateEmail, cdRefresh, encrypt} from "views/functions.js";
-//import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
+import { cdRefresh, encrypt} from "views/functions.js";
+import { BlankArea, ValidComp } from 'CustomComponents/CustomComponents.js';
 import { setTab } from "CustomComponents/CricDreamTabs.js"
 
 
@@ -49,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/***
 class ChildComp extends React.Component {
 
   componentDidMount()  {
@@ -84,20 +85,18 @@ class ChildComp extends React.Component {
   }
 
 }
-// const handleSubmit = e => {
-//   e.preventDefault();
-// };
+***/
 
 
 
 export default function ChangePassword() {
   const classes = useStyles();
-  const history = useHistory();
+//  const history = useHistory();
   // const [userName, setUserName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [registerStatus, setRegisterStatus] = useState(0);
+  const [registerStatus, setRegisterStatus] = useState(199);
 
   // const { setUser } = useContext(UserContext);
 
@@ -109,60 +108,49 @@ export default function ChangePassword() {
 
   const handleSubmit = async() => {
     console.log("Submit command provided");
-    if (currentPassword === newPassword) {
-      setRegisterStatus(611);
-      return;
-    }
-    let tmp1 = encrypt(currentPassword);
-    let tmp2 = encrypt(newPassword);
-    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricreset/${localStorage.getItem("uid")}/${tmp1}/${tmp2}`);
-    if (response.status === 200) {
-      setTab(0);
+    if (currentPassword !== newPassword) {
+      let tmp1 = encrypt(currentPassword);
+      let tmp2 = encrypt(newPassword);
+      let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricreset/${localStorage.getItem("uid")}/${tmp1}/${tmp2}`);
+      if (response.status === 200) {
+        setTab(0);
+      } else {
+        // error
+        setRegisterStatus(response.status);
+        console.log(`Status is ${response.status}`);
+      }
     } else {
-      // error
-      setRegisterStatus(response.status);
-      console.log(`Status is ${response.status}`);
+      setRegisterStatus(611);
     }
   }
 
-  function handleLogin() {
-    // console.log("Call for login here");
-    // history.push("/signin")
-    localStorage.setItem("currentLogin", "SIGNIN");
-    cdRefresh();
-
-  }
 
   function ShowResisterStatus() {
     // console.log(`Status is ${registerStatus}`);
     let myMsg;
     switch (registerStatus) {
+      case 199:
+        myMsg = ``;
+        break;
       case 200:
-        // setUserName("");
-        // setPassword("");
-        // setRepeatPassword("");
-        // setEmail("");
         myMsg = `Updated Password successfully.`;
         break;
       case 602:
         myMsg = "Invalid Current password";
         break;
       case 611:
-        myMsg = "New password has to be other than CUrrent Password";
+        myMsg = "New password cannot be same as Current Password";
         break;
-        default:
-          myMsg = "";
-          break;
+      default:
+        myMsg = "Unknown Error";
+        break;
     }
     return(
       <Typography className={(registerStatus === 200) ? classes.root : classes.error}>{myMsg}</Typography>
     )
-  }
+}
 
-  function BlankArea() {
-    return(<h3></h3>)
-  }
-
+  
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -222,7 +210,7 @@ export default function ChangePassword() {
     </Button>
     </ValidatorForm>
     </div>
-    <ChildComp p1={newPassword}/>    
+    <ValidComp p1={newPassword}/>    
     </Container>
   );
 }

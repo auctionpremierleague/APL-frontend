@@ -102,7 +102,7 @@ const notToConvert = ['XI', 'ARUN']
  */
 
 export function cricTeamName(t) {
-    var tmp = t.split(' ');
+  var tmp = t.split(' ');
   for(i=0; i < tmp.length; ++i)  {
     var x = tmp[i].trim().toUpperCase();
     if (notToConvert.includes(x))
@@ -113,6 +113,39 @@ export function cricTeamName(t) {
   return tmp.join(' ');
 }
 
+var prizeDetails = [];
+
+async function getPrizeDetails() {
+  // console.log("Checking length");
+  if (prizeDetails.length > 0) return;
+  try {
+    console.log("reading proze details from database")
+    let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/prize/data`);
+    prizeDetails = (await response.data);
+  } catch(err)  {
+    console.log("---------prize detail error");
+    console.log(err);
+  }
+} 
+
+export async function getPrizeTable(prizeCount, prizeAmount) {
+  await getPrizeDetails();
+  // console.log(prizeDetails);
+  let myPrize = prizeDetails.find(x => x.prizeCount == prizeCount);
+  // we will keep 5% of amount
+  // rest (i.e. 95%) will be distributed among prize winners
+  let totPrize = Math.floor(prizeAmount*0.95)
+  let allotPrize = 0;
+  let prizeTable=[]
+  let i = 0;
+  for(i=1; i<prizeCount; ++i) {
+    let thisPrize = Math.floor(totPrize*myPrize["prize"+i.toString()]/100);
+    prizeTable.push({rank: i, prize: thisPrize})
+    allotPrize += thisPrize;
+  }
+  prizeTable.push({rank: prizeCount, prize: totPrize-allotPrize});
+  return prizeTable;
+}
 
 export async function getUserBalance() {
   let myBalance = 0;
@@ -127,7 +160,7 @@ export async function getUserBalance() {
 
 export function specialSetPos() {
   //console.log(`in SSP: ${localStorage.getItem("joinGroupCode")}`)
-  let retval = 0;  //parseInt(process.env.REACT_APP_GROUP);
+  let retval = parseInt(process.env.REACT_APP_DASHBOARD);  //parseInt(process.env.REACT_APP_GROUP);
   if (localStorage.getItem("joinGroupCode").length > 0)
     retval = parseInt(process.env.REACT_APP_JOINGROUP);
   //console.log(`in SSP: ${retval}`)

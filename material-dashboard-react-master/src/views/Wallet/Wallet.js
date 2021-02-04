@@ -1,5 +1,5 @@
-import React, { useState ,useContext, useEffect} from 'react';
-import Button from '@material-ui/core/Button';
+import React, { useState, useEffect} from 'react';
+// import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 // import TextField from '@material-ui/core/TextField';
 // import Grid from '@material-ui/core/Grid';
@@ -8,12 +8,12 @@ import Typography from '@material-ui/core/Typography';
 import Table from "components/Table/Table.js";
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import { UserContext } from "../../UserContext";
+// import { UserContext } from "../../UserContext";
 import axios from "axios";
-import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
+// import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
-import { useHistory } from "react-router-dom";
-import {validateSpecialCharacters, validateEmail, cdRefresh} from "views/functions.js";
+// import { useHistory } from "react-router-dom";
+// import {validateSpecialCharacters, validateEmail, cdRefresh} from "views/functions.js";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -44,53 +44,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-class ChildComp extends React.Component {
-
-  componentDidMount()  {
-    // custom rule will have name 'isPasswordMatch'
-    ValidatorForm.addValidationRule('isPasswordMatch', (value) => {
-      return (value === this.props.p1)
-    });
-
-    ValidatorForm.addValidationRule('minLength', (value) => {
-      return (value.length >= 6)
-    });
-
-    ValidatorForm.addValidationRule('noSpecialCharacters', (value) => {
-      return validateSpecialCharacters(value);
-    });
-
-    ValidatorForm.addValidationRule('isEmailOK', (value) => {
-      return validateEmail(value);
-    });
-  }
-
-  
-  componentWillUnmount() {
-    // remove rule when it is not needed
-    ValidatorForm.removeValidationRule('isPasswordMatch');
-    ValidatorForm.removeValidationRule('isEmailOK');
-    ValidatorForm.removeValidationRule('minLength');
-    ValidatorForm.removeValidationRule('noSpecialCharacters');   
-  }
-
-  render() {
-    return <br/>;
-  }
-
-}
-// const handleSubmit = e => {
-//   e.preventDefault();
-// };
-
-
 
 export default function Wallet() {
   const classes = useStyles();
-  const history = useHistory();
+  // const history = useHistory();
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [registerStatus, setRegisterStatus] = useState(0);
+  // const [registerStatus, setRegisterStatus] = useState(0);
 
   useEffect(() => {
     const WalletInfo = async () => {
@@ -108,9 +68,6 @@ export default function Wallet() {
     WalletInfo();
   }, []);
 
-  function BlankArea() {
-    return(<h3></h3>)
-  }
 
   return (
     <Container component="main" maxWidth="xs">

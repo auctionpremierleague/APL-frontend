@@ -1,24 +1,24 @@
 import React, { useState ,useContext} from 'react';
-import Avatar from '@material-ui/core/Avatar';
+//import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 // import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
-import { Switch, Route } from 'react-router-dom';
+// import { Switch, Route } from 'react-router-dom';
 // import Grid from '@material-ui/core/Grid';
 // import Box from '@material-ui/core/Box';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+//import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import { UserContext } from "../../UserContext";
+//import { UserContext } from "../../UserContext";
 // import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import red from '@material-ui/core/colors/red';
 import { useHistory } from "react-router-dom";
-import SignIn from "./SignIn.js";
+// import SignIn from "./SignIn.js";
 import {ValidComp, BlankArea, CricDreamLogo} from "CustomComponents/CustomComponents.js"
-import {validateSpecialCharacters, validateEmail, cdRefresh, encrypt} from "views/functions.js";
+import { cdRefresh, encrypt } from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -52,6 +52,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/***
 class ChildComp extends React.Component {
 
   componentDidMount()  {
@@ -73,7 +74,7 @@ class ChildComp extends React.Component {
   }
 
 }
-
+***/
 
 export default function ForgotPassword() {
   const classes = useStyles();
@@ -117,11 +118,6 @@ export default function ForgotPassword() {
     return(
       <div>
         <Typography className={(registerStatus === 200) ? classes.root : classes.error}>{myMsg}</Typography>
-        <Typography className={classes.root}>
-            <Link href="#" onClick={handleLogin} variant="body2">
-            Already have an account? Sign in
-          </Link>
-        </Typography>
       </div>
     )
   }
@@ -132,14 +128,14 @@ export default function ForgotPassword() {
       <CssBaseline />
       <div className={classes.paper}>
       <CricDreamLogo />
-        {/* <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
-        </Avatar> */}
-        <Typography component="h1" variant="h5">Forgot Password.</Typography>
-        <br/>
-        <p className={classes.textData}>Forgot possword? Do not worry.</p>
-        <p className={classes.textData}>Password will be mailed to you</p>
-    <ValidatorForm className={classes.form} onSubmit={handleSubmit}>
+      {/* <Avatar className={classes.avatar}>
+        <LockOutlinedIcon />
+      </Avatar> */}
+      <Typography component="h1" variant="h5">Forgot Password.</Typography>
+      <br/>
+      <p className={classes.textData}>Forgot possword? Do not worry.</p>
+      <p className={classes.textData}>Password will be mailed to you</p>
+      <ValidatorForm className={classes.form} onSubmit={handleSubmit}>
       <TextValidator
           variant="outlined"
           required
@@ -164,6 +160,10 @@ export default function ForgotPassword() {
         Submit
     </Button>
     </ValidatorForm>
+    <BlankArea/>
+    <Typography className={classes.root}>
+      <Link href="#" onClick={handleLogin} variant="body2">Already have an account? Sign in</Link>
+    </Typography>
     </div>
     <ValidComp />    
     </Container>
