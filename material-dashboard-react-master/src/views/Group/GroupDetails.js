@@ -273,6 +273,9 @@ export default function GroupDetails() {
   async function handleFranchiseName() {
     await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setfranchisename/${localStorage.getItem("uid")}/localStorage.getItem("gdGid")/${franchiseeName}`);
     // await updateFranchiseName(localStorage.getItem("gdGid"), franchiseeName);
+    let myRec = memberArray.find(x => x.uid == localStorage.getItem("uid"));
+    myRec.displayName = franchiseeName;
+    setMemberArray(memberArray);
     setUserMessage("Successfully updated Franchise details");
     setBackDropOpen(true);
     setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);

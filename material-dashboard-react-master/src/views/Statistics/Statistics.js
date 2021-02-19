@@ -1,33 +1,27 @@
 import React, { useEffect, useState } from 'react';
-// import axios from "axios";
-
 import Grid from "@material-ui/core/Grid";
 import Table from "components/Table/Table.js";
 import GridItem from "components/Grid/GridItem.js";
-// import Card from "components/Card/Card.js";
-// import CardBody from "components/Card/CardBody.js";
-
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-
 import { makeStyles } from '@material-ui/core/styles';
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import socketIOClient from "socket.io-client";
 import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
-import {socketPoint} from "views/functions.js";
+// import {socketPoint} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-      width: '100%',
-    },
-    heading: {
-      fontSize: theme.typography.pxToRem(15),
-      fontWeight: theme.typography.fontWeightRegular,
-    },
-  }));
+  root: {
+    width: '100%',
+  },
+  heading: {
+    fontSize: theme.typography.pxToRem(15),
+    fontWeight: theme.typography.fontWeightRegular,
+  },
+}));
   
 
 function leavingStatistics(myConn) {
@@ -38,10 +32,8 @@ function leavingStatistics(myConn) {
 export default function Stats() { 
   const classes = useStyles();
   const [teamArray, setTeamArray] = useState([]);
-  // axios.get(`/stat/sendmystat/${localStorage.getItem("gid")}`);
 
   useEffect(() => {  
-
     const makeconnection = async () => {
       await socket.connect();
     }
@@ -70,8 +62,6 @@ export default function Stats() {
       leavingStatistics(socket);
     }
   }, []);
-
-  // }, [teamArray])
 
 
   const [expandedPanel, setExpandedPanel] = useState(false);
@@ -106,7 +96,6 @@ export default function Stats() {
   if (localStorage.getItem("tournament").length > 0)
   return (
     <div className={classes.root}>
-      {/* <h3 align="center">Statistics of {localStorage.getItem("tournament")}</h3>  */}
       <DisplayPageHeader headerName="Statistics" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
       <ShowStats/>
     </div>

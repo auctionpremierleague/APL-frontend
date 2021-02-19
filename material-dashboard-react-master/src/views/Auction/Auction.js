@@ -163,6 +163,7 @@ export default function Auction() {
 
     // console.log(`Dangerous ${playerId}`)
     useEffect(() => {
+        // console.log(process.env.PUBLIC_URL);
         var sendMessage = {page: "AUCT", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
         var sockConn = socketIOClient(process.env.REACT_APP_ENDPOINT);
 

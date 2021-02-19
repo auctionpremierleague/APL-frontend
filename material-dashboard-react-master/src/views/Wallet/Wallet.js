@@ -73,7 +73,7 @@ export default function Wallet() {
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
-        <Typography component="h1" variant="h5">Wallet Transactions (Balance: {balance}</Typography>
+        <Typography component="h1" variant="h5">Wallet Transactions (Balance: {balance})</Typography>
         <Table
           tableHeaderColor="warning"
           tableHead={["Date", "Type", "Amount"]}

@@ -21,6 +21,8 @@ import JoinGroup from "views/Group/JoinGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
 import GroupMember from "views/Group/GroupMember.js"
 import ChangePassword from "views/Login/ChangePassword.js"
+import SU_Tournament from "views/SuperUser/Tournament.js" 
+import SU_Player from "views/SuperUser/Player.js" 
 import { useHistory } from "react-router-dom";
 import {cdRefresh, specialSetPos} from "views/functions.js"
 import AddGroupMember from "views/Group/AddGroupMember.js"
@@ -231,11 +233,15 @@ export function CricDreamTabs() {
     setTab(109);
   };
 
-  function Logout() {
-    const history = useHistory();
-    localStorage.setItem("uid", "");
-    cdRefresh();  
-  }
+  const Show_SU_Tournament = () => {
+    setAnchorEl(null);
+    setTab(201);
+  };
+
+  const Show_SU_Player = () => {
+    setAnchorEl(null);
+    setTab(202);
+  };
 
   function UserButton() {
     return (
@@ -260,8 +266,10 @@ export function CricDreamTabs() {
 
     );
   }
+
   function UserMenu() {
     // setAnchorEl(true);
+    if (localStorage.getItem("userPlan") == process.env.REACT_APP_SUPERUSER) {
     return (
       <div>
       <StyledMenu
@@ -275,10 +283,31 @@ export function CricDreamTabs() {
         <UserMenuItem clickfunction={ShowGroup} name="Group"/>
         <UserMenuItem clickfunction={ShowWallet} name="Wallet"/>
         <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
+        <UserMenuItem clickfunction={Show_SU_Tournament} name="SU Tournament"/>
+        <UserMenuItem clickfunction={Show_SU_Player} name="SU Player"/>
         <UserMenuItem clickfunction={ExitCric} name="Logout"/>
       </StyledMenu>
         </div>
     );
+    } else {
+      return (
+        <div>
+        <StyledMenu
+          id="customized-menu"
+          anchorEl={anchorEl}
+          keepMounted
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
+          <UserMenuItem clickfunction={ShowProfile} name="Profile"/>
+          <UserMenuItem clickfunction={ShowGroup} name="Group"/>
+          <UserMenuItem clickfunction={ShowWallet} name="Wallet"/>
+          <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
+          <UserMenuItem clickfunction={ExitCric} name="Logout"/>
+        </StyledMenu>
+          </div>
+      );  
+    }
   }
 
   const handleChange = (event, newValue) => {
@@ -324,6 +353,8 @@ export function CricDreamTabs() {
       <TabPanel value={value} index={107}><Group /></TabPanel>
       <TabPanel value={value} index={108}><ChangePassword /></TabPanel>
       <TabPanel value={value} index={109}><Wallet /></TabPanel>
+      <TabPanel value={value} index={201}><SU_Tournament /></TabPanel>
+      <TabPanel value={value} index={202}><SU_Player /></TabPanel>
     </div>
   );
 }

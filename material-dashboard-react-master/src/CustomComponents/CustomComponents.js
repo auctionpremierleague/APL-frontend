@@ -156,7 +156,6 @@ export function GeneralMessage (props) {
   return(<h3 align="center">{props.message}</h3>);
 }
 
-
 export function DisplayGroupName (props) {
   const classes = useStyles();
   if (props.groupName.length > 0)

@@ -102,7 +102,8 @@ export default function SignIn() {
     }
     console.log(`Signin status ${response.status}`);
     if (response.status === 200) {
-      var myUID = response.data;
+      let myUID = response.data.uid;
+      let userPlan = response.data.userPlan; 
       response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/default/${myUID}`);
       // console.log(response.data);
       // SAMPLE OUTPUT
@@ -115,6 +116,7 @@ export default function SignIn() {
       window.localStorage.setItem("groupName", response.data.groupName);
       window.localStorage.setItem("tournament", response.data.tournament);
       window.localStorage.setItem("admin", response.data.admin)
+      window.localStorage.setItem("userPlan", userPlan);
       // setUser({ uid: myUID, admin: response.data.admin });
       // cdRefresh(true);
       let newPos = specialSetPos();

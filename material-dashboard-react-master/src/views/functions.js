@@ -166,3 +166,19 @@ export function specialSetPos() {
   //console.log(`in SSP: ${retval}`)
   return retval;
 }
+
+export function getImageName(imageName) {
+    let myName = imageName
+    // if (process.env.REACT_APP_HOMEPAGE.includes('localhost')) {
+    //   imageName = `public/${imageName}`;
+    // }
+    console.log(`In getimage: ${imageName}`);
+    try {
+      require(`${imageName}`);
+    } catch (err) {
+      myName = "NOIMAGE.JPG";
+    }
+    console.log(myName);
+    return imageName;
+}
+
