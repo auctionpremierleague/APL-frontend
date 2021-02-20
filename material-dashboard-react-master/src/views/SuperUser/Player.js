@@ -29,9 +29,10 @@ import { UserContext } from "../../UserContext";
 import { getImageName } from "views/functions.js"
 import {DisplayPageHeader, ValidComp, BlankArea} from "CustomComponents/CustomComponents.js"
 import {red, blue } from '@material-ui/core/colors';
+import { cricTeamName } from 'views/functions';
 // import {setTab} from "CustomComponents/CricDreamTabs.js"
 // const rPrefix = "radio-";
-const specialChars = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
+const specialChars = /[!@#$%^&*()+\=\[\]{};':"\\|<>\/?]+/;
 
 
 const useStyles = makeStyles((theme) => ({
@@ -92,7 +93,7 @@ export default function SU_Player() {
   const [filterPlayerList, setFilterPlayerList] = useState([]);
   const [filterPlayerName, setFilterPlayerName] = useState("");
   const classes = useStyles();
-      
+  const [playerCount, setPlayerCount] = useState(0);``
   useEffect(() => {
       const a = async () => {
         var tourres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/tournament/list/enabled/`);
@@ -108,7 +109,7 @@ export default function SU_Player() {
   }, [])
 
   function ShowResisterStatus() {
-    //console.log(`Status is ${registerStatus}`);
+    console.log(`Status is ${registerStatus}`);
     let myMsg;
     let errmsg = true;
     switch (registerStatus) {
@@ -118,8 +119,11 @@ export default function SU_Player() {
       case 1002:
         myMsg = 'Dupliacte Team name';
         break;
+      case 9999:
+        myMsg = `Error updating players of team ${currTeam}.`;
+        break;
       case 2000:
-        myMsg = 'Successfully updated Tournament with teams.';
+        myMsg = `Successfully updated ${playerList.length} players of team ${currTeam}.`;
         errmsg = false;
         break;
       case 2001:
@@ -177,11 +181,17 @@ export default function SU_Player() {
     );
   }
 
+  function ShowPlayerCount() {
+  return (
+    <Typography className={classes.root}>{`Player Count: ${playerCount}`}</Typography>
+  )}
+
+
   function getPlayerLabel() {
     let newNum = labelNumber + 1;
     setLabelNumber(newNum);
     let tmp = `PLAYER${newNum}`;
-    console.log(tmp);
+    // console.log(tmp);
     return tmp;
   }
   
@@ -199,20 +209,23 @@ export default function SU_Player() {
   
   async function handleFilter(label) {
     const chkstr = document.getElementById(label).value.toUpperCase();
-    console.log(chkstr);
+    //console.log(chkstr);
     if (chkstr.length > 0) {
       let resp = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/player/allfilter/${chkstr}`);
-      console.log(resp.data);
+      //console.log(resp.data);
       setFilterPlayerList(resp.data)
+      if (resp.data.length > 0) {
+        setFilterPlayerName(resp.data[0].name);
+      }
     } else {
       setFilterPlayerList([]);
     }      
   }
   
   function handleSelectPlayer(label) {
-    console.log(label);
+    // console.log(label);
     let newData = filterPlayerList.find(x => x.name ===filterPlayerName );
-    console.log(newData);
+    // console.log(newData);
     document.getElementById(`PID_${label}`).value= newData.pid;
     document.getElementById(`NAME_${label}`).value= newData.name;
     document.getElementById(`ROLE_${label}`).value= newData.role;
@@ -316,8 +329,28 @@ export default function SU_Player() {
     }
     // first check if pid
     let errCode = 0;
-    console.log(playerList);
-    setRegisterStatus(errCode);
+    try {
+      // add tournament
+      await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/player/teamdelete/${tournamentName}/${currTeam}`);
+      // add all players 1 by 1
+      //   var newPlayerData = {label: "", pid: 0, name: "", fullName: "", Team: "",  tournament: "",
+      // role: "NA", bowlingStyle:  "NA", battingStyle: "NA" 
+      // };
+      let i;
+      for(i=0; i<playerList.length; ++i) {
+        let pl = playerList[i];
+        //console.log(`Now setting team ${tm.name}`)
+        await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/player/add/${pl.pid}/${pl.name}/${tournamentName}/${currTeam}/${pl.role}/${pl.battingStyle}/${pl.bowlingStyle}`);
+        //console.log(`done player ${pl.name}`)
+      };
+      setRegisterStatus(2000);  
+    } catch {
+      setRegisterStatus(9999);  // duplicate tournament name
+      return;
+    }
+
+    //console.log(playerList);
+    //setRegisterStatus(errCode);
     console.log(`All done `)
   }
 
@@ -342,6 +375,7 @@ export default function SU_Player() {
     setCurrTeam(team1);
     setTournamentName(myTournament);
     setPlayerList([]);
+    setPlayerCount(0);
   }
 
   async function handleFetchPlayers() {
@@ -359,6 +393,8 @@ export default function SU_Player() {
       setLabelNumber(n);
       console.log(tmp);      
       setPlayerList(tmp);
+      setPlayerCount(tmp.length);
+      setRegisterStatus(0);
     } catch(e) {
       console.log("In error")
     }
@@ -367,6 +403,7 @@ export default function SU_Player() {
   function selectCurrTeam(myTeam) {
     setCurrTeam(myTeam)
     setPlayerList([]);
+    setPlayerCount(0);
   }
 
 
@@ -376,7 +413,7 @@ export default function SU_Player() {
       <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
         <Grid container justify="center" alignItems="center" >
             <GridItem xs={9} sm={9} md={9} lg={9} >
-            <Typography className={classes.heading}>{ppp.name}</Typography>
+            <Typography className={classes.heading}>{ppp.name} ({ppp.pid})</Typography>
             </GridItem>
             <GridItem xs={3} sm={3} md={3} lg={3} >
               <ShowPlayerImage pid={ppp.pid} />
@@ -462,7 +499,7 @@ export default function SU_Player() {
     )}
 
   function handleUpdatePlayer(label) {
-    console.log(label);
+    // console.log(label);
     let tPid = document.getElementById("PID_"+label).value;
     if (isNaN(tPid)) {
       setRegisterStatus(9005);
@@ -489,6 +526,7 @@ export default function SU_Player() {
       return;
     }
 
+
     let clone = [].concat(playerList);
     let ppp = clone.find(x => x.label === label);
     ppp.pid = parseInt(tPid);
@@ -497,13 +535,18 @@ export default function SU_Player() {
     ppp.role = tRole;
     ppp.battingStyle = tBat; 
     ppp.bowlingStyle = tBowl;
-    console.log(ppp);
+    //console.log(ppp);
     setPlayerList(clone);
+    setPlayerCount(clone.length);
+    //handleAccordionChange("");
+    setExpandedPanel(false);
+    // console.log("Update player details over");
   }
 
   function handleDeletePlayer(pid) {
     let clone = playerList.filter(x => x.pid !== pid);
     setPlayerList(clone);
+    setPlayerCount(clone.length);
     handleAccordionChange("");
   }
 
@@ -520,9 +563,12 @@ export default function SU_Player() {
     newPlayerData.Team = currTeam;
     let clone = [].concat(playerList);  
     newPlayerData.label = getPlayerLabel();
-    console.log(newPlayerData);
+    //console.log(newPlayerData);
     clone.push(newPlayerData);
     setPlayerList(clone);
+    setPlayerCount(clone.length);
+    handleAccordionChange(newPlayerData.name);
+    setExpandedPanel(true);
   }
   
   /// MAIN BLOCK 2 parts
@@ -580,6 +626,7 @@ export default function SU_Player() {
       <BlankArea/>
       <DisplayPageHeader headerName="Player List" groupName="" tournament=""/>
       <BlankArea/>
+      <ShowPlayerCount />
       <DisplayPlayer />
       <Typography className={classes.root}>
       <Link href="#" onClick={handleAddNewPlayer} variant="body2">Add New Player</Link>
