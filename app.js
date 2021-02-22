@@ -9,7 +9,7 @@ _ = require("lodash");
 cron = require('node-cron');
 nodemailer = require('nodemailer');
 app = express();
-PRODUCTION=true;
+PRODUCTION=true; 
 
 PORT = process.env.PORT || 1961;
 http = require('http');
