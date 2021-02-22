@@ -83,7 +83,7 @@ error:  {
 export default function GroupDetails() {
   const classes = useStyles();
   const history = useHistory();
-  const [registerStatus, setRegisterStatus] = useState(199);
+  const [registerStatus, setRegisterStatus] = useState(0);
 
   const [franchiseeName, setFranchiseeName] = useState("");
   const [masterData, setMasterData] = useState({name: "", tournamenet: ""})
@@ -318,8 +318,16 @@ export default function GroupDetails() {
 
   async function handlePrizeCountChange(event) {
     let newPrizeCount = parseInt(event.target.value);
-    setPrizeCount(newPrizeCount);
-    await generatePrizeTable(memberCountUpdated, memberFeeUpdated, newPrizeCount);
+    try {
+      let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updateprizecount/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${newPrizeCount}`;
+      let resp = await axios.get(myURL);
+      setRegisterStatus(3000);
+      setPrizeCount(newPrizeCount);
+      await generatePrizeTable(memberCountUpdated, memberFeeUpdated, newPrizeCount);
+    } catch (e) {
+      console.log(e)
+      setRegisterStatus(3001);
+    }
   }
 
   
@@ -358,7 +366,7 @@ export default function GroupDetails() {
 
   /** Group details */
 
-  const handleGroupSubmit = async() => {
+  async function handleGroupSubmit()  {
     if (editNotStarted) {
       // console.log("Enable Edit");
       setEditNotStarted(false);
@@ -366,7 +374,14 @@ export default function GroupDetails() {
       setRegisterStatus(0);
     } else {
       // console.log("in update mode")
-      setRegisterStatus(999);
+      try {
+        let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updatewithoutfee/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${memberCount}`;
+        let resp = await axios.get(myURL);
+        setRegisterStatus(2000);
+      } catch (e) {
+        console.log(e)
+        setRegisterStatus(2001);
+      }
       setEditNotStarted(true);
       setEditButtonText("Edit");
     }
@@ -374,12 +389,24 @@ export default function GroupDetails() {
 
   function ShowResisterStatus() {
     let myMsg;
+    let isError = true;
     switch (registerStatus) {
       case 999:
         myMsg = "Group Details Update not yet implemneted";
         break;
-      case 199:
-        myMsg = "";
+      case 2000:
+        myMsg = "Successfully update group details";
+        isError = false;
+        break;
+      case 2001:
+        myMsg = "Error updating group details";
+        break;
+      case 3000:
+        myMsg = "Successfully update Prize Count";
+        isError = false;
+        break;
+      case 3001:
+        myMsg = "Error updating Prize Count";
         break;
       case 200:
         myMsg = `User ${userName} successfully regisitered.`;
@@ -391,11 +418,11 @@ export default function GroupDetails() {
         myMsg = "Email id already in use";
         break;
       default:
-          myMsg = "Unknown Error";
+          myMsg = `Unknown Error ${registerStatus}`;
           break;
     }
     return(
-        <Typography className={(registerStatus === 200) ? classes.root : classes.error}>{myMsg}</Typography>
+        <Typography className={(isError) ? classes.error : classes.root}>{myMsg}</Typography>
     )
   }
 
@@ -448,13 +475,28 @@ export default function GroupDetails() {
           fullWidth    
           // size="small"  
           label="MemberFee"
-          onChange={(event) => setMemberFee(event.target.value)}
+          //onChange={(event) => setMemberFee(event.target.value)}
           name="membercount"
           type="number"
-          validators={['required', 'minNumber:50']}
-          errorMessages={['Member count to be provided', 'Member fee cannot be less than 50']}
-          disabled={editNotStarted}
+          //validators={['required', 'minNumber:50']}
+          //errorMessages={['Member count to be provided', 'Member fee cannot be less than 50']}
+          disabled
           value={memberFee}
+      />
+      <BlankArea/>
+      <TextValidator
+          variant="outlined"
+          required
+          fullWidth      
+          // size="small"  
+          label="Group Code"
+          //onChange={(event) => setMemberCount(event.target.value)}
+          name="gcode"
+          //type="number"
+          //validators={['required', minNumber, 'maxNumber:25']}
+          //errorMessages={['Member count to be provided', minMessage, 'Group members cannot be more than 25']}
+          disabled  //={editNotStarted}
+          value={masterData._id}
       />
       <BlankArea/>
       <Button 
