@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from "axios";
 import { makeStyles } from '@material-ui/core/styles';
-import Switch from "@material-ui/core/Switch";
+// import Switch from "@material-ui/core/Switch";
 import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
@@ -9,9 +9,9 @@ import Select from "@material-ui/core/Select";
 import MenuItem from '@material-ui/core/MenuItem';
 import Link from '@material-ui/core/Link';
 import Button from '@material-ui/core/Button';
-import Table from "components/Table/Table.js";
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Radio from '@material-ui/core/Radio';
+// import Table from "components/Table/Table.js";
+// import FormControlLabel from '@material-ui/core/FormControlLabel';
+// import Radio from '@material-ui/core/Radio';
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import Grid from "@material-ui/core/Grid";
@@ -24,8 +24,8 @@ import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Avatar from "@material-ui/core/Avatar"
 //import CardAvatar from "components/Card/CardAvatar.js";
-import { useHistory } from "react-router-dom";
-import { UserContext } from "../../UserContext";
+// import { useHistory } from "react-router-dom";
+// import { UserContext } from "../../UserContext";
 import { getImageName } from "views/functions.js"
 import {DisplayPageHeader, ValidComp, BlankArea} from "CustomComponents/CustomComponents.js"
 import {red, blue } from '@material-ui/core/colors';
@@ -93,7 +93,8 @@ export default function SU_Player() {
   const [filterPlayerList, setFilterPlayerList] = useState([]);
   const [filterPlayerName, setFilterPlayerName] = useState("");
   const classes = useStyles();
-  const [playerCount, setPlayerCount] = useState(0);``
+  const [playerCount, setPlayerCount] = useState(0);
+  const [updatePlayer, setUpdatePlayer] = useState("");
   useEffect(() => {
       const a = async () => {
         var tourres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/tournament/list/enabled/`);
@@ -109,7 +110,7 @@ export default function SU_Player() {
   }, [])
 
   function ShowResisterStatus() {
-    console.log(`Status is ${registerStatus}`);
+    // console.log(`Status is ${registerStatus}`);
     let myMsg;
     let errmsg = true;
     switch (registerStatus) {
@@ -123,7 +124,7 @@ export default function SU_Player() {
         myMsg = `Error updating players of team ${currTeam}.`;
         break;
       case 2000:
-        myMsg = `Successfully updated ${playerList.length} players of team ${currTeam}.`;
+        myMsg = `Updated ${playerList.length} players of ${currTeam}.`;
         errmsg = false;
         break;
       case 2001:
@@ -146,6 +147,22 @@ export default function SU_Player() {
         break;
       case 2007:
         myMsg = 'Error updating team name';
+        break;
+      case 2100:
+        myMsg = `Selected Tournament ${tournamentName}`;
+        errmsg = false;
+        break;
+      case 2101:
+        myMsg = `Selected Team ${currTeam}`;
+        errmsg = false;
+        break;
+      case 2102:
+        myMsg = `Fetched ${playerCount} players from database`;
+        errmsg = false;
+        break;
+      case 2103:
+        myMsg = `Details of ${updatePlayer} updated`;
+        errmsg = false;
         break;
       case 9001:
         myMsg = 'Player ID cannnot be zero';
@@ -345,7 +362,7 @@ export default function SU_Player() {
       };
       setRegisterStatus(2000);  
     } catch {
-      setRegisterStatus(9999);  // duplicate tournament name
+      setRegisterStatus(9999);  
       return;
     }
 
@@ -362,6 +379,7 @@ export default function SU_Player() {
   
   //-----------------------
   // CLEAR
+ 
 
 
   // select tournament and filters teams of the given tournament
@@ -376,10 +394,11 @@ export default function SU_Player() {
     setTournamentName(myTournament);
     setPlayerList([]);
     setPlayerCount(0);
+    setRegisterStatus(2100);
   }
 
   async function handleFetchPlayers() {
-    console.log("get Player List");
+    // console.log("get Player List");
     try {
       let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/player/tteam/${tournamentName}/${currTeam}`
       let resp = await axios.get(myURL);
@@ -391,10 +410,10 @@ export default function SU_Player() {
       })
       //console.log(n)
       setLabelNumber(n);
-      console.log(tmp);      
+      // console.log(tmp);      
       setPlayerList(tmp);
       setPlayerCount(tmp.length);
-      setRegisterStatus(0);
+      setRegisterStatus(2102);
     } catch(e) {
       console.log("In error")
     }
@@ -404,6 +423,7 @@ export default function SU_Player() {
     setCurrTeam(myTeam)
     setPlayerList([]);
     setPlayerCount(0);
+    setRegisterStatus(2101);
   }
 
 
@@ -500,46 +520,54 @@ export default function SU_Player() {
 
   function handleUpdatePlayer(label) {
     // console.log(label);
-    let tPid = document.getElementById("PID_"+label).value;
+    let tPid = document.getElementById("PID_"+label).value.trim();
     if (isNaN(tPid)) {
       setRegisterStatus(9005);
       return;
     }
-    let tName = document.getElementById("NAME_"+label).value;
+    let tName = document.getElementById("NAME_"+label).value.trim();
     if(specialChars.test(tName)){
       setRegisterStatus(9006);
       return;
     }
-    let tRole = document.getElementById("ROLE_"+label).value;
+    let tRole = document.getElementById("ROLE_"+label).value.trim();
     if(specialChars.test(tRole)){
       setRegisterStatus(9006);
       return;
     }
-    let tBat = document.getElementById("BAT_"+label).value;
+    let tBat = document.getElementById("BAT_"+label).value.trim();
     if(specialChars.test(tBat)){
       setRegisterStatus(9006);
       return;
     }
-    let tBowl = document.getElementById("BOWL_"+label).value;
+    let tBowl = document.getElementById("BOWL_"+label).value.trim();
     if(specialChars.test(tBowl)){
       setRegisterStatus(9006);
       return;
     }
 
-
     let clone = [].concat(playerList);
+    let myPid = parseInt(tPid);
+    // check if duplicate entry
+    let tTmp = clone.filter(x => x.pid === myPid);
+    if (tTmp) {
+      setRegisterStatus(9003);
+      return;
+    }
     let ppp = clone.find(x => x.label === label);
-    ppp.pid = parseInt(tPid);
+    ppp.pid = myPid; 
     ppp.name = tName;
     ppp.fullName = tName;
     ppp.role = tRole;
     ppp.battingStyle = tBat; 
     ppp.bowlingStyle = tBowl;
     //console.log(ppp);
+    setUpdatePlayer(tName)
     setPlayerList(clone);
     setPlayerCount(clone.length);
     //handleAccordionChange("");
     setExpandedPanel(false);
+    setRegisterStatus(2103)
     // console.log("Update player details over");
   }
 

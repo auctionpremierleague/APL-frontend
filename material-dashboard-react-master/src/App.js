@@ -35,7 +35,7 @@ function initCdParams() {
 }
 
 function isUserLogged() {
-  console.log(`User is ${localStorage.getItem("uid")}`)
+  //console.log(`User is ${localStorage.getItem("uid")}`)
   if ((localStorage.getItem("uid") === "") || 
       (localStorage.getItem("uid") === "0") ||
       (localStorage.getItem("uid") === null))
@@ -68,7 +68,7 @@ function AppRouter() {
   }
   // localStorage.clear()
   window.onbeforeunload = () => Router.refresh();
-  console.log("in before unload");
+  //console.log("in before unload");
   // localStorage.clear();
   // console.log("clearing local storage");
     initCdParams();

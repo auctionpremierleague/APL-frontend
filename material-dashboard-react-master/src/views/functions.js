@@ -45,7 +45,7 @@ export function validateEmail(sss) {
 
 
 export function hasGroup() {
-  console.log(`current gis is ${localStorage.getItem("gid")}`)
+  //console.log(`current gis is ${localStorage.getItem("gid")}`)
   var sts = false;
     if (localStorage.getItem("gid") !== null) 
     if (localStorage.getItem("gid") !== "") 
@@ -167,18 +167,29 @@ export function specialSetPos() {
   return retval;
 }
 
-export function getImageName(imageName) {
-    let myName = imageName
-    // if (process.env.REACT_APP_HOMEPAGE.includes('localhost')) {
-    //   imageName = `public/${imageName}`;
-    // }
-    console.log(`In getimage: ${imageName}`);
-    try {
-      require(`${imageName}`);
-    } catch (err) {
-      myName = "NOIMAGE.JPG";
-    }
-    console.log(myName);
-    return imageName;
-}
+// export function getImageName(imageName) {
+//     let myName = imageName
+//     // if (process.env.REACT_APP_HOMEPAGE.includes('localhost')) {
+//     //   imageName = `public/${imageName}`;
+//     // }
+//     console.log(`In getimage: ${imageName}`);
+//     try {
+//       require(`${imageName}`);
+//     } catch (err) {
+//       myName = "NOIMAGE.JPG";
+//     }
+//     console.log(myName);
+//     return imageName;
+// }
 
+export function getImageName(teamName) {
+  let imageName = `${teamName}.JPG`;
+  imageName = imageName.replaceAll(" ", "");
+  // try {
+  //   require(`${imageName}`);
+  //   console.log(`file ${imageName} found`)
+  // } catch (err) {
+  //   console.log(`${imageName} not found`);
+  // }
+  return imageName;
+}

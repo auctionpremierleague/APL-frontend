@@ -317,7 +317,7 @@ export function CricDreamTabs() {
     }
   };
 
-  console.log(`value is ${value}`);
+  //console.log(`value is ${value}`);
   return (
     <div className={classes.root}>
       <AppBar position="static" >

@@ -259,7 +259,7 @@ export default function GroupDetails() {
     align="center"
     id={localStorage.getItem("gdName")}
     tableHeaderColor="warning"
-    tableHead={["Owner", "Franchise"]}
+    tableHead={["Member", "Franchise"]}
     tableData={memberArray.map(x => {
     const arr = [x.userName, x.displayName]
         return { data: arr, collapse: [] }
@@ -271,11 +271,15 @@ export default function GroupDetails() {
   /*** Manage Franchise display and update  */
   
   async function handleFranchiseName() {
-    await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setfranchisename/${localStorage.getItem("uid")}/localStorage.getItem("gdGid")/${franchiseeName}`);
+    //console.log(franchiseeName);
+    await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}/${franchiseeName}`);
+    //console.log("Acios success");
     // await updateFranchiseName(localStorage.getItem("gdGid"), franchiseeName);
-    let myRec = memberArray.find(x => x.uid == localStorage.getItem("uid"));
+    let clone = [].concat(memberArray);
+    let myRec = clone.find(x => x.uid == localStorage.getItem("uid"));
     myRec.displayName = franchiseeName;
-    setMemberArray(memberArray);
+    //console.log(myRec);
+    setMemberArray(clone);
     setUserMessage("Successfully updated Franchise details");
     setBackDropOpen(true);
     setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);

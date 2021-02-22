@@ -9,9 +9,9 @@ import Select from "@material-ui/core/Select";
 import MenuItem from '@material-ui/core/MenuItem';
 import Link from '@material-ui/core/Link';
 import Button from '@material-ui/core/Button';
-import Table from "components/Table/Table.js";
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Radio from '@material-ui/core/Radio';
+// import Table from "components/Table/Table.js";
+// import FormControlLabel from '@material-ui/core/FormControlLabel';
+// import Radio from '@material-ui/core/Radio';
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import Grid from "@material-ui/core/Grid";
@@ -23,14 +23,13 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Avatar from "@material-ui/core/Avatar"
-import CardAvatar from "components/Card/CardAvatar.js";
-import { useHistory } from "react-router-dom";
-import { UserContext } from "../../UserContext";
+// import CardAvatar from "components/Card/CardAvatar.js";
+// import { useHistory } from "react-router-dom";
+// import { UserContext } from "../../UserContext";
 import { getImageName } from "views/functions.js"
 import {DisplayPageHeader, ValidComp, BlankArea, NothingToDisplay, DisplayBalance} from "CustomComponents/CustomComponents.js"
-import {red, blue, green } from '@material-ui/core/colors';
-import {setTab} from "CustomComponents/CricDreamTabs.js"
-const rPrefix = "radio-";
+import {red, blue } from '@material-ui/core/colors';
+// import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -111,9 +110,7 @@ export default function SU_Tournament() {
   };
   
   function ShowTeamImage(props) {
-    let myTeam = `${props.teamName}.JPG`;
-    myTeam = myTeam.replaceAll(" ", "");
-    console.log(myTeam);
+    let myTeam = getImageName(props.teamName);
     return(
     <Avatar variant="square" src={myTeam} className={classes.medium} />    
     )
@@ -485,7 +482,7 @@ export default function SU_Tournament() {
       </Typography>
       <ShowResisterStatus/>
       <BlankArea/>
-      <Button type="submit" key={"create"} variant="contained" color="primary" 
+      <Button type="submit" key={"handlesubmit"} variant="contained" color="primary" 
           onClick={() => { handleSubmit() }}
           className={classes.button}>Update
       </Button>
