@@ -469,7 +469,7 @@ export default function GroupDetails() {
 
   function DisplayGroupCode() {
     let myText = copyState.value
-    console.log("in group code");
+    // console.log("in group code");
     return (
         <div>
           <Typography className={classes.groupCode}>{groupCode}</Typography>

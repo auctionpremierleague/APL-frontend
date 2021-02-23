@@ -263,14 +263,15 @@ export default function CreateGroup() {
   }
 
   function DisplayGroupCode() {
-    let myText = process.env.REACT_APP_HOMEPAGE + "/joingroup/" + copyState.value
+    let myText = copyState.value;  //process.env.REACT_APP_HOMEPAGE + "/joingroup/" + copyState.value
     if (groupCode.length > 0) {
       return (
       <div>
         <Typography>Group Code: {groupCode}</Typography>
+        <BlankArea/>
         <CopyToClipboard text={myText}
             onCopy={() => setCopyState({copied: true})}>
-            <button>Copy to clipboard with button</button>
+            <button>Copy to clipboard</button>
         </CopyToClipboard>
         {copyState.copied ? <span style={{color: 'blue'}}>Copied.</span> : null}
       </div>       

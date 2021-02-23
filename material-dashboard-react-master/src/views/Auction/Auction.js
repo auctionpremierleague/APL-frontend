@@ -204,8 +204,13 @@ export default function Auction() {
         sockConn.on("connect", () => {
             sockConn.emit("page", sendMessage);
 
+            sockConn.on("auctionStatus", (newAuctionStatus) => {
+                console.log(`auction status: ${newAuctionStatus}`);
+                setAuctionStatus(newAuctionStatus);
+            });
+
             sockConn.on("bidOver", (myrec) => {
-                // console.log("bid over reveived");
+                console.log("bid over reveived");
                 // console.log(myrec);
                 DisplayBidOverMsg(`${myrec.playerName} successfully purchased by ${myrec.userName}`);
             });
