@@ -80,8 +80,8 @@ export function DisplayPrizeTable(props) {
     <Table size="small" className={classes.table} aria-label="simple table">
       <TableHead>
         <TableRow>
-          <TableCell align="center">Rank</TableCell>
-          <TableCell align="center">Prize</TableCell>
+          <TableCell color="warning" align="center">Rank</TableCell>
+          <TableCell color="warning" align="center">Prize</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>

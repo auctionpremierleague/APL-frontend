@@ -25,7 +25,7 @@ import Container from '@material-ui/core/Container';
 import { UserContext } from "../../UserContext";
 import axios from "axios";
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
-import {red, blue } from '@material-ui/core/colors';
+import {red, blue, yellow } from '@material-ui/core/colors';
 import { useHistory } from "react-router-dom";
 import {BlankArea, DisplayPageHeader, DisplayPrizeTable, MessageToUser} from "CustomComponents/CustomComponents.js"
 import { useParams } from "react-router";
@@ -33,6 +33,7 @@ import { useParams } from "react-router";
 import { SettingsPowerSharp } from '@material-ui/icons';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 import { getPrizeTable, getUserBalance} from "views/functions.js"
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -50,6 +51,11 @@ const useStyles = makeStyles((theme) => ({
     fontSize: theme.typography.pxToRem(20),
     fontWeight: theme.typography.fontWeightBold,
     color: blue[700]
+  },
+  groupCode: {
+    fontSize: theme.typography.pxToRem(20),
+    fontWeight: theme.typography.fontWeightBold,
+    color: yellow[900]
   },
   form: {
     width: '100%', // Fix IE 11 issue.
@@ -84,7 +90,6 @@ export default function GroupDetails() {
   const classes = useStyles();
   const history = useHistory();
   const [registerStatus, setRegisterStatus] = useState(0);
-
   const [franchiseeName, setFranchiseeName] = useState("");
   const [masterData, setMasterData] = useState({name: "", tournamenet: ""})
   const [minimumMemberCount, setMinimumMemberCount] = useState(0);
@@ -97,6 +102,10 @@ export default function GroupDetails() {
   // const [myAdminSwitch, setMyAdminSwitch] = useState(localStorage.getItem("gdAdmin") === "true");
   // const [myDefaultSwitch, setMyDefaultSwitch] = useState(localStorage.getItem("gdDefault") === "true");
   // const [myCurrentSwitch, setMyCurrentSwitch] = useState(localStorage.getItem("gdCurrent") === "true");
+
+  const [groupCode, setGroupCode] = useState("");
+  const [copyState, setCopyState] = useState({value: '', copied: false});
+
 
   const [expandedPanel, setExpandedPanel] = useState("");
   const handleAccordionChange = (panel) => (event, isExpanded) => {
@@ -119,7 +128,7 @@ export default function GroupDetails() {
     let tmp = await getPrizeTable(pCount, amt)
     // console.log(tmp);
     setPrizeTable(tmp);
-    console.log("Done");
+    // console.log("Done");
   }
 
   useEffect(() => {
@@ -134,7 +143,10 @@ export default function GroupDetails() {
       setMemberCountUpdated(grpResponse.data.info.memberCount);
       setMemberFeeUpdated(grpResponse.data.info.memberFee);
       setPrizeCount(grpResponse.data.info.prizeCount);
-      console.log("Calling generate prize table");
+      console.log(grpResponse.data.info._id);
+      setCopyState({value: grpResponse.data.info._id})
+      setGroupCode(grpResponse.data.info._id);
+      // console.log("Calling generate prize table");
       await generatePrizeTable(grpResponse.data.info.memberCount,
         grpResponse.data.info.memberFee,
         grpResponse.data.info.prizeCount);
@@ -280,9 +292,11 @@ export default function GroupDetails() {
     myRec.displayName = franchiseeName;
     //console.log(myRec);
     setMemberArray(clone);
-    setUserMessage("Successfully updated Franchise details");
-    setBackDropOpen(true);
-    setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
+    // setUserMessage("Successfully updated Franchise details");
+    // setExpandedPanel(false);
+    // setBackDropOpen(true);
+    // setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
+    setRegisterStatus(1000);
   }
 
 
@@ -316,16 +330,28 @@ export default function GroupDetails() {
 
   /***  Prize count and amount  */
 
-  async function handlePrizeCountChange(event) {
-    let newPrizeCount = parseInt(event.target.value);
+  async function writePrizeCout(count) {
+    let sts = true;
     try {
-      let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updateprizecount/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${newPrizeCount}`;
+      let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updateprizecount/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${count}`;
       let resp = await axios.get(myURL);
-      setRegisterStatus(3000);
-      setPrizeCount(newPrizeCount);
-      await generatePrizeTable(memberCountUpdated, memberFeeUpdated, newPrizeCount);
+      setPrizeCount(count);
+      // console.log(`Set prize count to ${count}`);
+      await generatePrizeTable(memberCountUpdated, memberFeeUpdated, count);
     } catch (e) {
       console.log(e)
+      sts = false;  //setRegisterStatus(3001);
+    }
+    return sts;
+  }
+
+  async function handlePrizeCountChange(event) {
+    let newPrizeCount = parseInt(event.target.value);
+    // console.log(`New selected prize count is ${newPrizeCount}`)
+    let sts = await writePrizeCout(newPrizeCount);
+    if (sts) {
+      setRegisterStatus(3000);
+    } else {
       setRegisterStatus(3001);
     }
   }
@@ -333,7 +359,9 @@ export default function GroupDetails() {
   
   function DisplayPrizeRadio(props) {
     let inumber = parseInt(props.number);
+    //console.log(`${inumber}  and ${prizeCount}`);
     let disableRadio = true;
+    //console.log(`Updated member count ${memberCountUpdated}`);
     // console.log(`${disableEdit} ${inumber}   ${prizeCount} ${memberCountUpdated} `)
     if (!disableEdit) {
       if ((inumber <= memberCountUpdated) && (inumber <= 5))
@@ -343,7 +371,7 @@ export default function GroupDetails() {
     // console.log(disableRadio);
     return(
       <FormControlLabel
-      value={props.number} label={props.number} color="primary" labelPlacement="end" disabled={disableRadio} checked={prizeCount === inumber}
+      value={props.number} label={props.number} color="primary" labelPlacement="end" disabled={disableRadio} checked={prizeCount == inumber}
       control={<Radio size="small" color="primary" />}
       />
     );
@@ -377,12 +405,17 @@ export default function GroupDetails() {
       try {
         let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updatewithoutfee/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${memberCount}`;
         let resp = await axios.get(myURL);
+        setMemberCountUpdated(memberCount);
+        if (prizeCount > memberCount) {
+          writePrizeCout(memberCount);
+          //setPrizeCount(memberCount);
+        }
         setRegisterStatus(2000);
+        setEditNotStarted(true);
       } catch (e) {
         console.log(e)
         setRegisterStatus(2001);
       }
-      setEditNotStarted(true);
       setEditButtonText("Edit");
     }
   }
@@ -394,8 +427,16 @@ export default function GroupDetails() {
       case 999:
         myMsg = "Group Details Update not yet implemneted";
         break;
-      case 2000:
+      case 1000:
+        myMsg = "Successfully updated Franchisee details";
+        isError = false;
+        break;
+        case 2000:
         myMsg = "Successfully update group details";
+        isError = false;
+        break;
+      case 0:
+        myMsg = "";
         isError = false;
         break;
       case 2001:
@@ -424,6 +465,22 @@ export default function GroupDetails() {
     return(
         <Typography className={(isError) ? classes.error : classes.root}>{myMsg}</Typography>
     )
+  }
+
+  function DisplayGroupCode() {
+    let myText = copyState.value
+    console.log("in group code");
+    return (
+        <div>
+          <Typography className={classes.groupCode}>{groupCode}</Typography>
+          <BlankArea/>
+          <CopyToClipboard text={myText}
+              onCopy={() => setCopyState({copied: true})}>
+              <button>Copy to clipboard</button>
+          </CopyToClipboard>
+          {copyState.copied ? <span style={{color: 'blue'}}>Copied.</span> : null}
+        </div>       
+      )
   }
 
   function DisplayGroupDetails() {
@@ -484,21 +541,6 @@ export default function GroupDetails() {
           value={memberFee}
       />
       <BlankArea/>
-      <TextValidator
-          variant="outlined"
-          required
-          fullWidth      
-          // size="small"  
-          label="Group Code"
-          //onChange={(event) => setMemberCount(event.target.value)}
-          name="gcode"
-          //type="number"
-          //validators={['required', minNumber, 'maxNumber:25']}
-          //errorMessages={['Member count to be provided', minMessage, 'Group members cannot be more than 25']}
-          disabled  //={editNotStarted}
-          value={masterData._id}
-      />
-      <BlankArea/>
       <Button 
         type="submit"
         fullwith
@@ -510,7 +552,6 @@ export default function GroupDetails() {
         {editButtonText}
       </Button>
     </ValidatorForm>
-    <ShowResisterStatus/>
     </div>
     {/* <ValidComp />     */}
     </Container>
@@ -527,7 +568,6 @@ export default function GroupDetails() {
           <DisplayFranchise />
         </AccordionDetails>
     </Accordion>
-    {/* <BlankArea /> */}
     <Accordion expanded={expandedPanel === "group"} onChange={handleAccordionChange("group")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
             <Typography className={classes.heading}>Group Details</Typography>
@@ -536,7 +576,6 @@ export default function GroupDetails() {
           <DisplayGroupDetails />
         </AccordionDetails>
     </Accordion>
-    {/* <BlankArea /> */}
     <Accordion expanded={expandedPanel === "prize"} onChange={handleAccordionChange("prize")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
             <Typography className={classes.heading}>Prize Details</Typography>
@@ -545,13 +584,20 @@ export default function GroupDetails() {
         <DisplayPrize />
       </AccordionDetails>
     </Accordion>
-    {/* <BlankArea /> */}
     <Accordion expanded={expandedPanel === "members"} onChange={handleAccordionChange("members")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
             <Typography className={classes.heading}>Member List</Typography>
         </AccordionSummary>
         <AccordionDetails>
         <DisplayGroupMembers />
+      </AccordionDetails>
+    </Accordion>
+    <Accordion expanded={expandedPanel === "code"} onChange={handleAccordionChange("code")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+            <Typography className={classes.heading}>Group Code</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+        <DisplayGroupCode />
       </AccordionDetails>
     </Accordion>
     </div>
@@ -564,6 +610,7 @@ export default function GroupDetails() {
         <DisplayPageHeader headerName="Group Details" groupName={masterData.name} tournament={masterData.tournament}/>
         <BlankArea />
         <DisplayAccordian />
+        <ShowResisterStatus/>
       </div>
     </Container>
   );

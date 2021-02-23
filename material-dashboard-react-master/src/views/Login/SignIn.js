@@ -170,13 +170,11 @@ export default function SignIn() {
               Sign In
           </Button>
           <Typography className={classes.root}>
-              Forgot password: 
               <Link href="#" onClick={handleForgot} variant="body2">
-              Click here
+              Forgot password
             </Link>
           </Typography>
           <Typography className={classes.root}>
-              New to CricDream: 
               <Link href="#" onClick={handleRegister} variant="body2">
               Register
             </Link>
