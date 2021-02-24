@@ -2,13 +2,13 @@ import React, { useState, useMemo } from "react";
 import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { UserContext } from "./UserContext";
-import Admin from "layouts/Admin.js";
+//import Admin from "layouts/Admin.js";
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 // import { DesktopWindows } from "@material-ui/icons";
 import { CricDreamTabs, setTab }from "CustomComponents/CricDreamTabs"
 import SignIn from "views/Login/SignIn.js";
 import SignUp from "views/Login/SignUp.js";
-import JoinGroup from "views/Group/JoinGroup.js"
+//import JoinGroup from "views/Group/JoinGroup.js"
 import ForgotPassword from "views/Login/ForgotPassword.js";
 
 const hist = createBrowserHistory();
