@@ -23,6 +23,7 @@ import GroupMember from "views/Group/GroupMember.js"
 import ChangePassword from "views/Login/ChangePassword.js"
 import SU_Tournament from "views/SuperUser/Tournament.js" 
 import SU_Player from "views/SuperUser/Player.js" 
+import About from "views/APL/About.js"
 import { useHistory } from "react-router-dom";
 import {cdRefresh, specialSetPos} from "views/functions.js"
 import AddGroupMember from "views/Group/AddGroupMember.js"
@@ -233,6 +234,11 @@ export function CricDreamTabs() {
     setTab(109);
   };
 
+  const Show_HelpDesk = () => {
+    setAnchorEl(null);
+    setTab(110);
+  };
+
   const Show_SU_Tournament = () => {
     setAnchorEl(null);
     setTab(201);
@@ -283,6 +289,7 @@ export function CricDreamTabs() {
         <UserMenuItem clickfunction={ShowGroup} name="Group"/>
         <UserMenuItem clickfunction={ShowWallet} name="Wallet"/>
         <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
+        <UserMenuItem clickfunction={Show_HelpDesk} name="Help Desk"/>
         <UserMenuItem clickfunction={Show_SU_Tournament} name="SU Tournament"/>
         <UserMenuItem clickfunction={Show_SU_Player} name="SU Player"/>
         <UserMenuItem clickfunction={ExitCric} name="Logout"/>
@@ -303,6 +310,7 @@ export function CricDreamTabs() {
           <UserMenuItem clickfunction={ShowGroup} name="Group"/>
           <UserMenuItem clickfunction={ShowWallet} name="Wallet"/>
           <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
+          <UserMenuItem clickfunction={Show_HelpDesk} name="Help Desk"/>
           <UserMenuItem clickfunction={ExitCric} name="Logout"/>
         </StyledMenu>
           </div>
@@ -353,6 +361,7 @@ export function CricDreamTabs() {
       <TabPanel value={value} index={107}><Group /></TabPanel>
       <TabPanel value={value} index={108}><ChangePassword /></TabPanel>
       <TabPanel value={value} index={109}><Wallet /></TabPanel>
+      <TabPanel value={value} index={110}><About /></TabPanel>
       <TabPanel value={value} index={201}><SU_Tournament /></TabPanel>
       <TabPanel value={value} index={202}><SU_Player /></TabPanel>
     </div>
