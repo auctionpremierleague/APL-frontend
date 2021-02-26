@@ -167,8 +167,8 @@ export default function ChangePassword() {
           onChange={(event) => setCurrentPassword(event.target.value)}
           name="currentpassword"
           type="password"
-          validators={['required', 'minLength', 'noSpecialCharacters']}
-          errorMessages={['Current Password to be provided', 'Mimumum 6 characters required', 'Special characters not permitted']}
+          validators={['required', 'noSpecialCharacters']}
+          errorMessages={['Current Password to be provided', 'Special characters not permitted']}
           value={currentPassword}
       />
       <BlankArea/>

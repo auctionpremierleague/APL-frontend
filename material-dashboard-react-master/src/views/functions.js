@@ -134,7 +134,7 @@ export async function getPrizeTable(prizeCount, prizeAmount) {
   let myPrize = prizeDetails.find(x => x.prizeCount == prizeCount);
   // we will keep 5% of amount
   // rest (i.e. 95%) will be distributed among prize winners
-  let totPrize = Math.floor(prizeAmount*0.95)
+  let totPrize = Math.floor(prizeAmount*1)
   let allotPrize = 0;
   let prizeTable=[]
   let i = 0;

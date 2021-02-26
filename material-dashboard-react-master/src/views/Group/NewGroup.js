@@ -30,11 +30,12 @@ import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import { useHistory } from "react-router-dom";
 import {validateSpecialCharacters, validateEmail, getUserBalance} from "views/functions.js";
 import {BlankArea, NothingToDisplay, DisplayPrizeTable, DisplayBalance} from "CustomComponents/CustomComponents.js"
-import {red, blue} from '@material-ui/core/colors';
+import {red, blue, yellow} from '@material-ui/core/colors';
 // import blue from '@material-ui/core/colors/blue';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 // import copy from 'copy-clipboard';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
+import { DisplayPageHeader } from 'CustomComponents/CustomComponents';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -50,6 +51,11 @@ const useStyles = makeStyles((theme) => ({
   form: {
     width: '100%', // Fix IE 11 issue.
     marginTop: theme.spacing(1),
+  },
+  groupCode: {
+    fontSize: theme.typography.pxToRem(20),
+    fontWeight: theme.typography.fontWeightBold,
+    color: yellow[900]
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
@@ -226,7 +232,7 @@ export default function CreateGroup() {
     let inumber = parseInt(props.number);
     return(
       <FormControlLabel
-      value={props.number} label={((inumber === 1) ? "Prize Count " : "") +  props.number} labelPlacement="start" disabled={inumber > memberCount} checked={prizeCount === inumber}
+      value={props.number} label={props.number} labelPlacement="start" disabled={inumber > memberCount} checked={prizeCount === inumber}
       control={<Radio color="primary" />}
       />
     );
@@ -235,6 +241,8 @@ export default function CreateGroup() {
   function DisplayMemberCount() {
     return (
     <div>
+      <DisplayPageHeader headerName="Prize Count" groupName="" tournament=""/>
+      <BlankArea />
       <FormControl component="fieldset" align="center">
       {/* <FormLabel component="legend" color="primary" align="center">Prize Count</FormLabel> */}
         <RadioGroup aria-label="position" name="position" value={prizeCount} onChange={handleCountChange} row>
@@ -267,7 +275,9 @@ export default function CreateGroup() {
     if (groupCode.length > 0) {
       return (
       <div>
-        <Typography>Group Code: {groupCode}</Typography>
+        <DisplayPageHeader headerName="Group Code" groupName="" tournament=""/>
+        <BlankArea/>
+        <Typography className={classes.groupCode}>{groupCode}</Typography>
         <BlankArea/>
         <CopyToClipboard text={myText}
             onCopy={() => setCopyState({copied: true})}>
@@ -424,6 +434,7 @@ export default function CreateGroup() {
     <ChildComp p1={balance} p3={selectedTournament}/>   
     <BlankArea/> 
     <SelectPrizeCount/>
+    <BlankArea />
     <DisplayGroupCode/>
     {/* <Switch>
       <Route  path='/admin/signin' component={SignIn} key="MemberList"/>
