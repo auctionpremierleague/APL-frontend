@@ -35,11 +35,13 @@ import GridItem from "components/Grid/GridItem.js";
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import Divider from '@material-ui/core/Divider';
+// icons
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import PersonIcon from '@material-ui/icons/Person';
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import GroupIcon from '@material-ui/icons/Group';
-// icons
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import MenuIcon from '@material-ui/icons/Menu';
 
 
 
@@ -84,6 +86,18 @@ const useStyles = makeStyles((theme) => ({
   },
   label: {
     fontSize: '0.75em',
+    //fontSize: theme.typography.pxToRem(5),
+    //fontWeight: theme.typography.fontWeightBold,
+    //color: blue[700]
+  },
+  listItem: {
+    margin: theme.spacing(0),
+    //fontSize: '0.75em',
+    fontSize:'0.5em',
+    spacing: 0,
+    //fontSize: theme.typography.pxToRem(1),
+    //fontWeight: theme.typography.fontWeightBold,
+    //color: blue[700]
   },
   image: {
     height: "200px"
@@ -234,6 +248,29 @@ export function CricDreamTabs() {
     setTab(109);
   };
 
+  function Show_Item (id) {
+    console.log(id);
+    //console.log(props.id);
+    setAnchorEl(null);
+    setTab(id);
+  };
+
+  const Show_Match = () => {
+    setAnchorEl(null);
+    setTab(303);
+  };
+
+  const Show_Captain = () => {
+    setAnchorEl(null);
+    setTab(302);
+  };
+
+  const Show_Auction = () => {
+    setAnchorEl(null);
+    setTab(301);
+  };
+
+
   const Show_HelpDesk = () => {
     setAnchorEl(null);
     setTab(110);
@@ -259,7 +296,7 @@ export function CricDreamTabs() {
       variant="contained"
       onClick={handleClick}
     >
-      <PersonIcon />
+      <MenuIcon />
     </IconButton>
     );
   }
@@ -267,7 +304,7 @@ export function CricDreamTabs() {
   function UserMenuItem(props) {
     return (
       <StyledMenuItem onClick={props.clickfunction}>
-      <ListItemText className={classes.label}  primary={props.name} />
+      <ListItemText className={classes.listItem}  primary={props.name} />
     </StyledMenuItem>
 
     );
@@ -285,13 +322,20 @@ export function CricDreamTabs() {
         open={Boolean(anchorEl)}
         onClose={handleClose}
       >
-        <UserMenuItem clickfunction={ShowProfile} name="Profile"/>
+        <UserMenuItem clickfunction={Show_Match} name="Match"/>
+        <UserMenuItem clickfunction={Show_Captain} name="Captain"/>
+        <UserMenuItem clickfunction={Show_Auction} name="Auction"/>
+        <Divider/>
         <UserMenuItem clickfunction={ShowGroup} name="Group"/>
         <UserMenuItem clickfunction={ShowWallet} name="Wallet"/>
+        <Divider/>
+        <UserMenuItem clickfunction={ShowProfile} name="Profile"/>
         <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
-        <UserMenuItem clickfunction={Show_HelpDesk} name="Help Desk"/>
         <UserMenuItem clickfunction={Show_SU_Tournament} name="SU Tournament"/>
         <UserMenuItem clickfunction={Show_SU_Player} name="SU Player"/>
+        <Divider/>
+        <UserMenuItem clickfunction={Show_HelpDesk} name="How to play"/>
+        <Divider/>
         <UserMenuItem clickfunction={ExitCric} name="Logout"/>
       </StyledMenu>
         </div>
@@ -306,11 +350,18 @@ export function CricDreamTabs() {
           open={Boolean(anchorEl)}
           onClose={handleClose}
         >
-          <UserMenuItem clickfunction={ShowProfile} name="Profile"/>
+          <UserMenuItem clickfunction={Show_Match} name="Match"/>
+          <UserMenuItem clickfunction={Show_Captain} name="Captain"/>
+          <UserMenuItem clickfunction={Show_Auction} name="Auction"/>
+          <Divider/>
           <UserMenuItem clickfunction={ShowGroup} name="Group"/>
           <UserMenuItem clickfunction={ShowWallet} name="Wallet"/>
+          <Divider/>
+          <UserMenuItem clickfunction={ShowProfile} name="Profile"/>
           <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
-          <UserMenuItem clickfunction={Show_HelpDesk} name="Help Desk"/>
+          <Divider/>
+          <UserMenuItem clickfunction={Show_HelpDesk} name="How to play"/>
+          <Divider/>
           <UserMenuItem clickfunction={ExitCric} name="Logout"/>
         </StyledMenu>
           </div>
@@ -339,19 +390,16 @@ export function CricDreamTabs() {
           <Tab  m={0} className={classes.tabIcon} icon={<UserButton />}  {...a11yProps(0)} />
           <Tab  m={0} className={classes.label} label="Dashboard" {...a11yProps(1)} />
           <Tab  m={0} className={classes.label} label="Stats" {...a11yProps(2)} />
-          <Tab  m={0} className={classes.label} label="Match" {...a11yProps(3)} /> 
-          <Tab  m={0} className={classes.label} label="Captain"  {...a11yProps(4)} />
-          <Tab  m={0} className={classes.label} label="Team" {...a11yProps(5)} />  
-          <Tab  m={0} className={classes.label} label="Auction" {...a11yProps(6)} />  
+          {/* <Tab  m={0} className={classes.label} label="Match" {...a11yProps(3)} /> 
+          <Tab  m={0} className={classes.label} label="Captain"  {...a11yProps(4)} /> */}
+          <Tab  m={0} className={classes.label} label="Team" {...a11yProps(3)} />  
+          {/* <Tab  m={0} className={classes.label} label="Auction" {...a11yProps(6)} />   */}
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}><UserMenu /></TabPanel>
       <TabPanel value={value} index={1}><Dash/></TabPanel>
       <TabPanel value={value} index={2}><Stats/></TabPanel>
-      <TabPanel value={value} index={3}><Match/></TabPanel>
-      <TabPanel value={value} index={4}><Captain/></TabPanel>
-      <TabPanel value={value} index={5}><MyTeam/></TabPanel>
-      <TabPanel value={value} index={6}><Auction/></TabPanel>
+      <TabPanel value={value} index={3}><MyTeam/></TabPanel>
       <TabPanel value={value} index={101}><NewGroup /></TabPanel>
       <TabPanel value={value} index={102}><GroupDetails /></TabPanel>
       <TabPanel value={value} index={103}><GroupMember /></TabPanel>
@@ -364,6 +412,9 @@ export function CricDreamTabs() {
       <TabPanel value={value} index={110}><About /></TabPanel>
       <TabPanel value={value} index={201}><SU_Tournament /></TabPanel>
       <TabPanel value={value} index={202}><SU_Player /></TabPanel>
-    </div>
+      <TabPanel value={value} index={301}><Auction/></TabPanel>
+      <TabPanel value={value} index={302}><Captain/></TabPanel>
+      <TabPanel value={value} index={303}><Match/></TabPanel>
+      </div>
   );
 }

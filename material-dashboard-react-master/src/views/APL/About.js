@@ -138,7 +138,7 @@ export default function About() {
     <DisplayPoint akey="● Six bonus" value="2 point" />
     <DisplayPoint akey="● Half century bonus" value="20 point" />
     <DisplayPoint akey="● Century bonus" value="50 point" />
-    <DisplayPoint akey="● Duck Penalty" value="-2 point" />
+    {/* <DisplayPoint akey="● Duck Penalty" value="-2 point" /> */}
     <Note/>
     <Typography paragraph>
     Any player scores century in a match will only 
@@ -155,7 +155,7 @@ export default function About() {
     get the bonuspoint of 5 wicket haul. No extra bonus points
     for 3 wicket haul. 
     </Typography>
-    <DisplayBold message="Fielding Points:"/>
+    {/* <DisplayBold message="Fielding Points:"/>
     <DisplayPoint akey="● Catch" value="4 point" />
     <DisplayPoint akey="● Run out" value="4 point" />
     <DisplayPoint akey="● Stumping" value="6 point" />
@@ -166,7 +166,7 @@ export default function About() {
     <Note/>
     <Typography paragraph>
     Minimum 2 over to be bowled by player.
-    </Typography>
+    </Typography> */}
     <DisplayBold message="Captain and ViceCaptain:"/>
     <DisplayPoint akey="● Caption" value="2x point" />
     <DisplayPoint akey="● ViceCaption" value="1.5x point" />
@@ -182,7 +182,7 @@ export default function About() {
   return (
     <Card className={classes.card}>
     <CardContent>
-    <DisplayImage image="APL.JPG" title="About Auction Premier League" />
+    <DisplayImage image="APLLOGO1.JPG" title="About Auction Premier League" />
     <Typography paragraph>
       Auction Premier League is one of its kind application which lets you create group, auction players to create your own franchise.
       </Typography>

@@ -214,7 +214,7 @@ export class Copyright extends React.Component {
 }
 
 export function CricDreamLogo () {
-  let mylogo = `${process.env.PUBLIC_URL}/APLLOGO.ICO`;
+  let mylogo = `${process.env.PUBLIC_URL}/APLLOGO1.ICO`;
   const classes = useStyles();
   return (
     <Avatar className={classes.avatar}  src={mylogo}/>

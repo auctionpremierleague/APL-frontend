@@ -23,6 +23,8 @@ import {BlankArea, NothingToDisplay, DisplayBalance} from "CustomComponents/Cust
 import {red, blue, green } from '@material-ui/core/colors';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 const rPrefix = "radio-";
+const curr =  "Curr - Current Group  / Def - Default Group";
+const clickmsg = "Click on group name for details";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -144,18 +146,39 @@ export default function Group() {
     function DisplayGroupHeader() {
         return (
         <Grid key="gr-group" container justify="center" alignItems="center" >
-            <Grid item key="gi-group" xs={8} sm={8} md={8} lg={8} >
+            <Grid item key="gi-group" xs={9} sm={9} md={9} lg={9} >
             <Typography className={classes.header}>Group Name</Typography>
             </Grid>
-            <Grid item key="gi-group" xs={2} sm={2} md={2} lg={2} >
-            <Typography className={classes.header}>Curr</Typography>
+            <Grid item key="gi-group" xs={3} sm={3} md={3} lg={3} >
+            <Typography className={classes.header}>Current</Typography>
             </Grid>
-            <Grid item key="gi-group" xs={2} sm={2} md={2} lg={2} >
+            {/* <Grid item key="gi-group" xs={2} sm={2} md={2} lg={2} >
             <Typography className={classes.header}>Def</Typography>
-            </Grid>
+            </Grid> */}
         </Grid>
         );
     }
+
+    // now Current and efault are same
+    async function handleCommonCurrentGroup(grpName) {
+        // console.log(grpName);
+        let gRec = myGroupTableData.find( x => x.groupName === grpName);
+        let newGid = gRec.gid;
+        // console.log(newGid);
+        try {
+            await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setdefaultgroup/${localStorage.getItem("uid")}/${newGid}`);
+            setNewDefaultGroup(grpName);
+            setNewCurrentGroup(grpName);
+            // console.log(gRec);
+            localStorage.setItem("gid", gRec.gid);
+            localStorage.setItem("groupName", gRec.groupName);
+            localStorage.setItem("tournament", gRec.tournament);
+            localStorage.setItem("admin", gRec.admin);
+        } catch (e) {
+            console.log(e);
+        } 
+    };
+
 
     function handleNewCurrentGroup(grpName) {
         // console.log(grpName);
@@ -185,12 +208,12 @@ export default function Group() {
         myGroupTableData.map( (x, index) => {
         return (
             <Grid key={x.groupName} container justify="center" alignItems="center" >
-            <Grid item key={x.groupName} xs={8} sm={8} md={8} lg={8} >
+            <Grid item key={x.groupName} xs={9} sm={9} md={9} lg={9} >
                 <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
                 <Typography>{x.groupName}</Typography>
                 </Link>
             </Grid>
-            <Grid item justify="center" alignContent="center" alignItems="center" key={x.groupName} xs={2} sm={2} md={2} lg={2} >
+            {/* <Grid item justify="center" alignContent="center" alignItems="center" key={x.groupName} xs={2} sm={2} md={2} lg={2} >
                 <FormControlLabel 
                     key={"Curr"+x.groupName}
                     id={"Curr"+x.groupName}
@@ -199,14 +222,14 @@ export default function Group() {
                     onClick={() => handleNewCurrentGroup(x.groupName)}
                     checked={newCurrentGroup === x.groupName}
                 />
-            </Grid>
-            <Grid item justify="center" alignContent="center" alignItems="center" xs={2} sm={2} md={2} lg={2} >
+            </Grid> */}
+            <Grid item justify="center" alignContent="center" alignItems="center" xs={3} sm={3} md={3} lg={3} >
                 <FormControlLabel 
                     key={"Def"+x.groupName}
                     id={"Def"+x.groupName}
                     className={classes.info} 
                     control={<Radio color="primary" defaultChecked={x.playerName === newDefaultGroup}/>}
-                    onClick={() => handleNewDefaultGroup(x.groupName)}
+                    onClick={() => handleCommonCurrentGroup(x.groupName)}
                     checked={newDefaultGroup === x.groupName}
                 />
             </Grid>
@@ -226,13 +249,11 @@ export default function Group() {
     }
 
     function ShowPageHeader() {
-    let curr =  "Curr - Current Group  / Def - Default Group";
-    let msg = "Click on group name for details";
     return(
         <div className={classes.root} align="center">
             <h3>My Groups</h3>
-            <Typography className={classes.messageText}>{curr}</Typography>
-            <Typography className={classes.messageText}>{msg}</Typography>
+            {/* <Typography className={classes.messageText}>{curr}</Typography> */}
+            <Typography className={classes.messageText}>{clickmsg}</Typography>
         </div>
     )}
 
