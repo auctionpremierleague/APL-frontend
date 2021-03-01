@@ -113,7 +113,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 function leavingAuction(myConn) {
-    console.log("Leaving Auction wah wah ");
+    //console.log("Leaving Auction wah wah ");
     myConn.disconnect();
   }
   
@@ -205,12 +205,12 @@ export default function Auction() {
             sockConn.emit("page", sendMessage);
 
             sockConn.on("auctionStatus", (newAuctionStatus) => {
-                console.log(`auction status: ${newAuctionStatus}`);
+                //console.log(`auction status: ${newAuctionStatus}`);
                 setAuctionStatus(newAuctionStatus);
             });
 
             sockConn.on("bidOver", (myrec) => {
-                console.log("bid over reveived");
+                //console.log("bid over reveived");
                 // console.log(myrec);
                 DisplayBidOverMsg(`${myrec.playerName} successfully purchased by ${myrec.userName}`);
             });

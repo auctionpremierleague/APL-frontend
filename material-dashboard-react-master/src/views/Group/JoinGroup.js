@@ -54,7 +54,7 @@ export default function JoinGroup() {
   const [groupCode, setGroupCode] = useState(localStorage.getItem("joinGroupCode"));
   const [balance, setBalance] = useState(0);
 
-  console.log(localStorage.getItem("joinGroupCode"));
+  //console.log(localStorage.getItem("joinGroupCode"));
   // setTab(0); 
   useEffect(() => {
     const a = async () => {
@@ -68,10 +68,10 @@ export default function JoinGroup() {
 
 
   const handleSubmit = async() => {
-    console.log("Submit command provided");
+    //console.log("Submit command provided");
     try {
       let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/join/${groupCode}/${localStorage.getItem("uid")}`);
-      console.log("Group Join Success");
+      //console.log("Group Join Success");
       let myBalance = await getUserBalance();
       setBalance(myBalance);
       setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_GROUP));

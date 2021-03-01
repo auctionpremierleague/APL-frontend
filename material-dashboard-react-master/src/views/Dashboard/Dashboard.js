@@ -39,7 +39,7 @@ const useStyles = makeStyles(styles);
 
 
 function leavingDashboard(myConn) {
-  console.log("Leaving Dashboard wah wah ");
+  //console.log("Leaving Dashboard wah wah ");
   myConn.disconnect();
 }
 

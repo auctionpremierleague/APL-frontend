@@ -24,6 +24,7 @@ import ChangePassword from "views/Login/ChangePassword.js"
 import SU_Tournament from "views/SuperUser/Tournament.js" 
 import SU_Player from "views/SuperUser/Player.js" 
 import About from "views/APL/About.js"
+import ContactUs from "views/APL/ContactUs.js"
 import { useHistory } from "react-router-dom";
 import {cdRefresh, specialSetPos} from "views/functions.js"
 import AddGroupMember from "views/Group/AddGroupMember.js"
@@ -42,6 +43,7 @@ import PersonIcon from '@material-ui/icons/Person';
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import GroupIcon from '@material-ui/icons/Group';
 import MenuIcon from '@material-ui/icons/Menu';
+import {red, blue, green, white} from '@material-ui/core/colors';
 
 
 
@@ -112,6 +114,7 @@ const useStyles = makeStyles((theme) => ({
   },
   tabIcon: {
     color: theme.palette.common.white,
+    margin: 10,
   },
 }));
 
@@ -276,6 +279,11 @@ export function CricDreamTabs() {
     setTab(110);
   };
 
+  const Show_ContactUs = () => {
+    setAnchorEl(null);
+    setTab(111);
+  };
+
   const Show_SU_Tournament = () => {
     setAnchorEl(null);
     setTab(201);
@@ -296,7 +304,7 @@ export function CricDreamTabs() {
       variant="contained"
       onClick={handleClick}
     >
-      <MenuIcon />
+      <MenuIcon style={{ color: "white" }}/>
     </IconButton>
     );
   }
@@ -335,6 +343,7 @@ export function CricDreamTabs() {
         <UserMenuItem clickfunction={Show_SU_Player} name="SU Player"/>
         <Divider/>
         <UserMenuItem clickfunction={Show_HelpDesk} name="How to play"/>
+        <UserMenuItem clickfunction={Show_ContactUs} name="Contact Us"/>        
         <Divider/>
         <UserMenuItem clickfunction={ExitCric} name="Logout"/>
       </StyledMenu>
@@ -361,6 +370,7 @@ export function CricDreamTabs() {
           <UserMenuItem clickfunction={ShowChangePassword} name="Password"/>
           <Divider/>
           <UserMenuItem clickfunction={Show_HelpDesk} name="How to play"/>
+          <UserMenuItem clickfunction={Show_ContactUs} name="Contact Us"/>        
           <Divider/>
           <UserMenuItem clickfunction={ExitCric} name="Logout"/>
         </StyledMenu>
@@ -410,6 +420,7 @@ export function CricDreamTabs() {
       <TabPanel value={value} index={108}><ChangePassword /></TabPanel>
       <TabPanel value={value} index={109}><Wallet /></TabPanel>
       <TabPanel value={value} index={110}><About /></TabPanel>
+      <TabPanel value={value} index={111}><ContactUs /></TabPanel>
       <TabPanel value={value} index={201}><SU_Tournament /></TabPanel>
       <TabPanel value={value} index={202}><SU_Player /></TabPanel>
       <TabPanel value={value} index={301}><Auction/></TabPanel>

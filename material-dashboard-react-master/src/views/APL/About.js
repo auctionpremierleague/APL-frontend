@@ -248,11 +248,11 @@ export default function About() {
       <DisplayBold message="Multiple Groups" />
       <DisplayImage image="MULTIPLEGROUP.JPG"/>
       <Typography paragraph>
-      You can be member of many groups. Pages like Dashboard,  Auction,  Myteam,  Stats shows information of only 1 group which you set it as current group  (By selecting  “Curr”).
+      You can be member of many groups. Pages like Dashboard,  Auction,  Myteam,  Stats shows information of only 1 group which you set it as current group  (By selecting  “Current”).
       </Typography>
-      <Typography paragraph>
+      {/* <Typography paragraph>
       You can also configure the group to be selected as current group on Login. This is be done by setting the group as default group (By selecting “Def”).
-      </Typography>
+      </Typography> */}
       <DisplayBold message="Group Details" />
       <DisplayImage image="GROUPDETAILS.JPG"/>
       <Typography paragraph>
@@ -262,10 +262,10 @@ export default function About() {
       Group Admin has the permission to update group details. This can be done clicking “Edit” Button.
       </Typography>
       <Typography paragraph>
-      Group Admin can also changes the number of prizes in the range of 1 to 5.
+      Group Admin can also change the number of prizes in the range of 1 to 5.
       </Typography>
       <Typography paragraph>
-      Group code is avaiable for the user to copy and share with friends / family to join the group.
+      Group code is avaiable for the user to copy and share it with friends / family to join the group.
       </Typography>
       <DisplayBold message="Auction" />
       <Typography paragraph>

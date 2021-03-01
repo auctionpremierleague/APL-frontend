@@ -26,6 +26,8 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     margin: theme.spacing(1),
     backgroundColor: theme.palette.secondary.main,
+    width: theme.spacing(10),
+    height: theme.spacing(10),
   },
   form: {
     width: '100%', // Fix IE 11 issue.
@@ -217,6 +219,6 @@ export function CricDreamLogo () {
   let mylogo = `${process.env.PUBLIC_URL}/APLLOGO1.ICO`;
   const classes = useStyles();
   return (
-    <Avatar className={classes.avatar}  src={mylogo}/>
+    <Avatar variant="square" className={classes.avatar}  src={mylogo}/>
 );
 }

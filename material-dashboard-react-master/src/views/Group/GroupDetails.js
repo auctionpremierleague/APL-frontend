@@ -143,7 +143,7 @@ export default function GroupDetails() {
       setMemberCountUpdated(grpResponse.data.info.memberCount);
       setMemberFeeUpdated(grpResponse.data.info.memberFee);
       setPrizeCount(grpResponse.data.info.prizeCount);
-      console.log(grpResponse.data.info._id);
+      //console.log(grpResponse.data.info._id);
       setCopyState({value: grpResponse.data.info._id})
       setGroupCode(grpResponse.data.info._id);
       // console.log("Calling generate prize table");
@@ -296,6 +296,8 @@ export default function GroupDetails() {
     // setExpandedPanel(false);
     // setBackDropOpen(true);
     // setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
+    //handleAccordionChange("frachisee");
+    setExpandedPanel(false);
     setRegisterStatus(1000);
   }
 
@@ -412,6 +414,7 @@ export default function GroupDetails() {
         }
         setRegisterStatus(2000);
         setEditNotStarted(true);
+        setExpandedPanel(false);
       } catch (e) {
         console.log(e)
         setRegisterStatus(2001);

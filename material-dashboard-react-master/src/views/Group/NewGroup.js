@@ -164,14 +164,13 @@ export default function CreateGroup() {
   // }
 
   const handleSubmit = async() => {
-    console.log("Submit command provided");
+    //console.log("Submit command provided");
     //  /group/create/TeSt/8/1250/AUSINDT20
     // groupName  bidAmount selectedTournament
     try {
       const response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}/${memberCount}/${memberFee}`);
+      console.log(response);
       setNewGid(response.data.gid)      
-      // successfully created group. Now reduce user wallet balance
-      // setBalance(balance-memberFee);
       let myBalance = await getUserBalance();
       setBalance(myBalance);
       // SET PRIZE is not required here since create by default will set it to 1
@@ -184,6 +183,7 @@ export default function CreateGroup() {
       setPrizeTable(prizeres.data[prizeCount-1]);
       setCopyState({value: response.data._id})
       setGroupCode(response.data._id);
+      setRegisterStatus(200);
     } catch (err) {
       console.log(`error code is ${err.response.status}`)
       setRegisterStatus(err.response.status);
@@ -310,21 +310,27 @@ export default function CreateGroup() {
         // setPassword("");
         // setRepeatPassword("");
         // setEmail("");
-        myMsg = `User ${groupName} successfully regisitered.`;
+        myMsg = `Successfully created group ${groupName}`;
         errmsg = false;
         break;
       case 0:
         myMsg = "";
         errmsg = false;
         break;
-        case 629:
+        case 601:
         myMsg = "Duplicate group Name";
         break;
-      case 622:
+        case 602:
+        myMsg = "Invalid bid amount";
+        break;
+      case 603:
         myMsg = "Invalid User Id";
         break;
-      case 629:
+      case 604:
         myMsg = "Invalid Tournament";
+        break;
+      case 605:
+        myMsg = "Insufficient Balance";
         break;
       default:
         myMsg = "unknown error";
