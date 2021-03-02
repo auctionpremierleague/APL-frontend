@@ -131,10 +131,6 @@ export default function ContactUs() {
         Submit
     </Button>
     </ValidatorForm>
-    <BlankArea/>
-    {/* <Typography className={classes.root}>
-      <Link href="#" onClick={handleLogin} variant="body2">Already have an account? Sign in</Link>
-    </Typography> */}
     </div>
     <ValidComp />    
     </Container>

@@ -25,6 +25,7 @@ import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js
 import { blue, red } from '@material-ui/core/colors';
 
 
+
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
@@ -95,6 +96,13 @@ export default function About() {
     </div>
     )
   }
+
+  function ShowGif() {
+    let logo=`${process.env.PUBLIC_URL}/animation/sample.gif`;
+    return(
+    <img src={logo} alt="loading..." />
+    )
+  };
 
   function Note() {
     return (
@@ -305,6 +313,7 @@ export default function About() {
   
   return (
     <div className={classes.root}>
+      <ShowGif />
       <DisplayPageHeader headerName="Help Desk" groupName="" tournament=""/>
       <Accordion expanded={expandedPanel === "about"} onChange={handleAccordionChange("about")}>
         <DisplayHeader header="Auction Permier League"/>

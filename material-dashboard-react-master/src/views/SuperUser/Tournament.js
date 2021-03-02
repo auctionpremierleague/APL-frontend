@@ -29,6 +29,7 @@ import Avatar from "@material-ui/core/Avatar"
 import { getImageName } from "views/functions.js"
 import {DisplayPageHeader, ValidComp, BlankArea, NothingToDisplay, DisplayBalance} from "CustomComponents/CustomComponents.js"
 import {red, blue } from '@material-ui/core/colors';
+import { LeakRemoveTwoTone, LensTwoTone } from '@material-ui/icons';
 // import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 const useStyles = makeStyles((theme) => ({
@@ -75,6 +76,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SU_Tournament() {
   const [tournamentName, setTournamentName] = useState("");
+  const [tournamentList, setTournamentList] = useState([]);
   const [tournamentType, setTournamentType] = useState("T20");
   const [tournamentDesc, setTournamentDesc] = useState("");
   const [tournamentData, setTournamentData] = useState(["T20", "ODI", "TEST"]);
@@ -153,7 +155,7 @@ export default function SU_Tournament() {
 
   function setTeamName(label) {
     //console.log(`${label}`);
-    const chkstr = document.getElementById(`LABEL_${label}`).value.toUpperCase();
+    let chkstr = document.getElementById(`LABEL_${label}`).value.toUpperCase();
     //setfilterString(chkstr);
     if (chkstr.length === 0) {
       setRegisterStatus(1001);
@@ -418,16 +420,45 @@ export default function SU_Tournament() {
     }
   }
 
+  async function handleFilter(label) {
+    setNewTeamList([]);
+    let chkstr = document.getElementById(label).value.toUpperCase();
+    console.log(chkstr);
+    //if (chkstr.length > 0) {
+    if (chkstr.length === 0) {
+      chkstr = "ALL";
+    }
+    console.log(chkstr);
+    let resp = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/tournament/allfilter/${chkstr}`);
+    console.log(resp.data);
+    setTournamentList(resp.data);
+    setTournamentName("");
+    setTournamentDesc("");
+      //setTeamList([]);
+      // if (resp.data.length > 0) {
+      //   setFilterPlayerName(resp.data[0].name);
+      // }
+    // } else {
+    //   setFilterPlayerList([]);
+    // }      
+  }
+
 
   return (
   <div className={classes.paper} align="center" key="groupinfo">
       <DisplayPageHeader headerName="Configure Tournament" groupName="" tournament=""/>
       <Container component="main" maxWidth="xs">
       <CssBaseline />
+      <TextField className={classes.filter} 
+        variant="outlined"
+        id="tfilterLabel" margin="none" size="small" />        
+      <Button key="filterbtn" variant="contained" color="primary" size="small"
+        className={classes.button} onClick={(event) => handleFilter("tfilterLabel")}>Filter
+      </Button>
       <ValidatorForm className={classes.form}>  
       {/* onSubmit={handleSubmit}> */}
       <BlankArea/>
-      <TextValidator
+      {/* <TextValidator
         variant="outlined"
         required
         fullWidth      
@@ -438,7 +469,16 @@ export default function SU_Tournament() {
         validators={['required', 'minLength', 'noSpecialCharacters']}
         errorMessages={['', 'Tournament Name should be of minimum 6 characters', 'Special characters not permitted']}
         value={tournamentName}
-      />
+      /> */}
+      <Select labelId='pname' variant="outlined" required fullWidth
+        label="Player" name="pname"
+        id="ftournamentLabel"
+        value={tournamentName}
+        onChange={(event) => setTournamentName(event.target.value)}
+        >
+        {tournamentList.map(x =>
+        <MenuItem key={x.name} value={x.name}>{x.name}</MenuItem>)}
+      </Select>
       <BlankArea/>
       <Button key={"create"} variant="contained" color="primary" 
           onClick={() => { handleTournament() }}
