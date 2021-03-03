@@ -397,6 +397,9 @@ export default function SU_Tournament() {
       let tmp = resp.data;
       if (tmp.length === 0) {
         setTournamentName("");
+        setTournamentDesc("");
+        setTournamentType("");
+        setNewTeamList([]);
         return;
       }
       setTournamentDesc(tmp[0].desc);
@@ -414,7 +417,7 @@ export default function SU_Tournament() {
       }
       setLabelNumber(newNum);
       setNewTeamList(clone);
-      console.log(clone);
+      //console.log(clone);
     } catch(e) {
       console.log("In error")
     }
@@ -449,16 +452,16 @@ export default function SU_Tournament() {
       <DisplayPageHeader headerName="Configure Tournament" groupName="" tournament=""/>
       <Container component="main" maxWidth="xs">
       <CssBaseline />
-      <TextField className={classes.filter} 
+      {/* <TextField className={classes.filter} 
         variant="outlined"
         id="tfilterLabel" margin="none" size="small" />        
       <Button key="filterbtn" variant="contained" color="primary" size="small"
         className={classes.button} onClick={(event) => handleFilter("tfilterLabel")}>Filter
-      </Button>
+      </Button> */}
       <ValidatorForm className={classes.form}>  
       {/* onSubmit={handleSubmit}> */}
-      <BlankArea/>
-      {/* <TextValidator
+      {/* <BlankArea/> */}
+      <TextValidator
         variant="outlined"
         required
         fullWidth      
@@ -469,8 +472,8 @@ export default function SU_Tournament() {
         validators={['required', 'minLength', 'noSpecialCharacters']}
         errorMessages={['', 'Tournament Name should be of minimum 6 characters', 'Special characters not permitted']}
         value={tournamentName}
-      /> */}
-      <Select labelId='pname' variant="outlined" required fullWidth
+      />
+      {/* <Select labelId='pname' variant="outlined" required fullWidth
         label="Player" name="pname"
         id="ftournamentLabel"
         value={tournamentName}
@@ -478,7 +481,7 @@ export default function SU_Tournament() {
         >
         {tournamentList.map(x =>
         <MenuItem key={x.name} value={x.name}>{x.name}</MenuItem>)}
-      </Select>
+      </Select> */}
       <BlankArea/>
       <Button key={"create"} variant="contained" color="primary" 
           onClick={() => { handleTournament() }}

@@ -7,6 +7,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import Collapse from '@material-ui/core/Collapse';
 import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
 import Table from "components/Table/Table.js";
@@ -69,7 +70,7 @@ const useStyles = makeStyles((theme) => ({
 export default function About() { 
   const classes = useStyles();
   // const [expanded, setExpanded] = React.useState(false);
-
+   const [matchType, setMatchType] = useState("T20");
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -136,55 +137,206 @@ export default function About() {
   </div> 
   )}
 
-  function PointSystem() {
+  function DisplayMatchType() {
+  //console.log(matchType);
+  return(
+    <Grid key="matchtype" align="center" container>
+    <Grid item xs={4} sm={4} md={4} lg={4} >
+    <Button key="mt_t20" variant="contained" color="primary" size="small"
+    className={classes.button} onClick={() => {setMatchType("T20")}}>T20
+    </Button>
+    </Grid>
+    <Grid item xs={4} sm={4} md={4} lg={4} >
+    <Button key="mt_odi" variant="contained" color="primary" size="small"
+    className={classes.button} onClick={() => {setMatchType("ODI")}}>ODI
+    </Button>
+    </Grid>
+    <Grid item xs={4} sm={4} md={4} lg={4} >
+    <Button key="mt_test" variant="contained" color="primary" size="small"
+    className={classes.button} onClick={() => {setMatchType("TEST")}}>TEST
+    </Button>
+    </Grid>
+    </Grid>      
+  )};
+
+  function PS_Header(props) {
+  return(<h4 align="center">{props.header}</h4>)
+  }
+
+  function T20_PointSystem() {
   return (
     <Card className={classes.card}>
     <CardContent>
+    <PS_Header header="T20 Point system" />
     <DisplayBold message="Batting Points:" />
     <DisplayPoint akey="● Run" value="1 point"/>
     <DisplayPoint akey="● Boundary bonus" value="1 point" />
     <DisplayPoint akey="● Six bonus" value="2 point" />
     <DisplayPoint akey="● Half century bonus" value="20 point" />
     <DisplayPoint akey="● Century bonus" value="50 point" />
-    {/* <DisplayPoint akey="● Duck Penalty" value="-2 point" /> */}
+    <DisplayPoint akey="● Double century bonus" value="100 point" />
+    <DisplayPoint akey="● Duck Penalty" value="-2 point" />
     <Note/>
     <Typography paragraph>
-    Any player scores century in a match will only 
+    If any player scores century in a match will only 
     get bonus point of century no extra 
     bonus point for half-century.
+    Same rule applies for Double century.
     </Typography>
     <DisplayBold message="Bowling Points:"/>
     <DisplayPoint akey="● Wicket (except runout)" value="25 point" />
     <DisplayPoint akey="● 3 wicket bonus" value="20 point" />
     <DisplayPoint akey="● 5 wicket bonus" value="50 point" />
+    <DisplayPoint akey="● Maiden Over bonus" value="20 point" />
     <Note/>
     <Typography paragraph>
-    Any if player gets 5 wicket in a match you will only
-    get the bonuspoint of 5 wicket haul. No extra bonus points
-    for 3 wicket haul. 
+    If any player gets 5 wicket in a match only the bonus point of 5 wicket haul is awarded. No extra bonus points for 3 wicket haul. 
     </Typography>
-    {/* <DisplayBold message="Fielding Points:"/>
+    <DisplayBold message="Fielding Points:"/>
     <DisplayPoint akey="● Catch" value="4 point" />
     <DisplayPoint akey="● Run out" value="4 point" />
     <DisplayPoint akey="● Stumping" value="6 point" />
     <BlankArea/>
     <DisplayBold message="Economy Points:"/>
-    <DisplayPoint akey="● Runs/over < 6 bonus" value="2 point" />
-    <DisplayPoint akey="● Runs/over > 9 penalty" value="-2 point" />
+    <DisplayPoint akey="● Runs/over <= 6.0" value="2 point" />
+    <DisplayPoint akey="● Runs/over >= 9.0" value="-2 point" />
     <Note/>
     <Typography paragraph>
-    Minimum 2 over to be bowled by player.
-    </Typography> */}
+    Minimum 2 over need to be bowled by player to check economy.
+    </Typography>
+    <DisplayBold message="Performance Points:"/>
+    <DisplayPoint akey="● Man of the Match " value="20 point" />
+    <DisplayPoint akey="● Tournament Max Runs" value="100 point" />
+    <DisplayPoint akey="● Tournament Max Wickets" value="100 point" />
+    <BlankArea/>
     <DisplayBold message="Captain and ViceCaptain:"/>
     <DisplayPoint akey="● Caption" value="2x point" />
     <DisplayPoint akey="● ViceCaption" value="1.5x point" />
     <Note/>
     <Typography paragraph>
-    Only points of runs and wickets will be 2x for Captain and 1.5x ViceCaptain.
+    Only points of runs and wickets will considered for 2x for Captain and 1.5x for ViceCaptain.
     </Typography>
     </CardContent>
     </Card>
   )}
+
+  function ODI_PointSystem() {
+  return(
+    <Card className={classes.card}>
+    <CardContent>
+    <PS_Header header="ODI Point system" />
+    <DisplayBold message="Batting Points:" />
+    <DisplayPoint akey="● Run" value="1 point"/>
+    <DisplayPoint akey="● Boundary bonus" value="1 point" />
+    <DisplayPoint akey="● Six bonus" value="2 point" />
+    <DisplayPoint akey="● Half century bonus" value="20 point" />
+    <DisplayPoint akey="● Century bonus" value="50 point" />
+    <DisplayPoint akey="● Double century bonus" value="100 point" />
+    <DisplayPoint akey="● Duck Penalty" value="-2 point" />
+    <Note/>
+    <Typography paragraph>
+    If any player scores century in a match will only 
+    get bonus point of century no extra 
+    bonus point for half-century.
+    Same rule applies for Double century.
+    </Typography>
+    <DisplayBold message="Bowling Points:"/>
+    <DisplayPoint akey="● Wicket (except runout)" value="25 point" />
+    <DisplayPoint akey="● 4 wicket bonus" value="20 point" />
+    <DisplayPoint akey="● 5 wicket bonus" value="50 point" />
+    <DisplayPoint akey="● Maiden Over bonus" value="10 point" />
+    <Note/>
+    <Typography paragraph>
+    If any player gets 5 wicket in a match only the bonus point of 5 wicket haul is awarded. No extra bonus points for 4 wicket haul. 
+    </Typography>
+    <DisplayBold message="Fielding Points:"/>
+    <DisplayPoint akey="● Catch" value="4 point" />
+    <DisplayPoint akey="● Run out" value="4 point" />
+    <DisplayPoint akey="● Stumping" value="6 point" />
+    <BlankArea/>
+    <DisplayBold message="Economy Points:"/>
+    <DisplayPoint akey="● Runs/over <= 4.0" value="2 point" />
+    <DisplayPoint akey="● Runs/over >= 7.0" value="-2 point" />
+    <Note/>
+    <Typography paragraph>
+    Minimum 2 over need to be bowled by player to check economy.
+    </Typography>
+    <DisplayBold message="Performance Points:"/>
+    <DisplayPoint akey="● Man of the Match " value="20 point" />
+    <DisplayPoint akey="● Tournament Max Runs" value="100 point" />
+    <DisplayPoint akey="● Tournament Max Wickets" value="100 point" />
+    <BlankArea/>
+    <DisplayBold message="Captain and ViceCaptain:"/>
+    <DisplayPoint akey="● Caption" value="2x point" />
+    <DisplayPoint akey="● ViceCaption" value="1.5x point" />
+    <Note/>
+    <Typography paragraph>
+    Only points of runs and wickets will considered for 2x for Captain and 1.5x for ViceCaptain.
+    </Typography>
+    </CardContent>
+    </Card>
+  )}
+
+  function TEST_PointSystem() {
+    return(
+      <Card className={classes.card}>
+      <CardContent>
+      <PS_Header header="TEST Point system" />
+      <DisplayBold message="Batting Points:" />
+      <DisplayPoint akey="● Run" value="1 point"/>
+      <DisplayPoint akey="● Boundary bonus" value="1 point" />
+      <DisplayPoint akey="● Six bonus" value="2 point" />
+      <DisplayPoint akey="● Half century bonus" value="10 point" />
+      <DisplayPoint akey="● Century bonus" value="50 point" />
+      <DisplayPoint akey="● Double century bonus" value="100 point" />
+      <DisplayPoint akey="● Duck Penalty" value="-2 point" />
+      <Note/>
+      <Typography paragraph>
+      If any player scores century in a match will only 
+      get bonus point of century no extra 
+      bonus point for half-century.
+      Same rule applies for Double century.
+      </Typography>
+      <DisplayBold message="Bowling Points:"/>
+      <DisplayPoint akey="● Wicket (except runout)" value="25 point" />
+      <DisplayPoint akey="● 4 wicket bonus" value="20 point" />
+      <DisplayPoint akey="● 5 wicket bonus" value="50 point" />
+      <Note/>
+      <Typography paragraph>
+      If any player gets 5 wicket in a match only the bonus point of 5 wicket haul is awarded. No extra bonus points for 4 wicket haul. 
+      </Typography>
+      <DisplayBold message="Fielding Points:"/>
+      <DisplayPoint akey="● Catch" value="4 point" />
+      <DisplayPoint akey="● Run out" value="4 point" />
+      <DisplayPoint akey="● Stumping" value="6 point" />
+      <BlankArea/>
+      <DisplayBold message="Performance Points:"/>
+      <DisplayPoint akey="● Man of the Match " value="20 point" />
+      <DisplayPoint akey="● Tournament Max Runs" value="100 point" />
+      <DisplayPoint akey="● Tournament Max Wickets" value="100 point" />
+      <BlankArea/>
+      <DisplayBold message="Captain and ViceCaptain:"/>
+      <DisplayPoint akey="● Caption" value="2x point" />
+      <DisplayPoint akey="● ViceCaption" value="1.5x point" />
+      <Note/>
+      <Typography paragraph>
+      Only points of runs and wickets will considered for 2x for Captain and 1.5x for ViceCaptain.
+      </Typography>
+      </CardContent>
+      </Card>
+      )}
+  
+  function PointSystem() {
+  //console.log("In Point System");
+  if (matchType === "TEST") {
+    return (<div><DisplayMatchType /><TEST_PointSystem /></div>); 
+  } else if (matchType === "ODI") {
+    return (<div><DisplayMatchType /><ODI_PointSystem /></div>); 
+  } else if (matchType === "T20") {
+    return (<div><DisplayMatchType /><T20_PointSystem /></div>); 
+  } else {
+    return (<h5>Unknown match type</h5>); 
+  }}
   
   function AboutAPL() {
   return (
@@ -313,7 +465,7 @@ export default function About() {
   
   return (
     <div className={classes.root}>
-      <ShowGif />
+      {/* <ShowGif /> */}
       <DisplayPageHeader headerName="Help Desk" groupName="" tournament=""/>
       <Accordion expanded={expandedPanel === "about"} onChange={handleAccordionChange("about")}>
         <DisplayHeader header="Auction Permier League"/>
@@ -330,6 +482,7 @@ export default function About() {
       <Accordion expanded={expandedPanel === "pointsystem"} onChange={handleAccordionChange("pointsystem")}>
         <DisplayHeader header="Point System"/>
         <AccordionDetails>
+        {/* <DisplayMatchType /> */}
         <PointSystem />
         </AccordionDetails>
       </Accordion>

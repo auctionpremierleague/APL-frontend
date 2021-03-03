@@ -9,7 +9,7 @@ _ = require("lodash");
 cron = require('node-cron');
 nodemailer = require('nodemailer');
 app = express();
-PRODUCTION=true;  
+PRODUCTION=false;  
 PRIZEPORTION=1.0
 
 
