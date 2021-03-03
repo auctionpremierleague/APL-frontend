@@ -166,7 +166,7 @@ export default function MatchInfo() {
     }
 
     function MatchTable(props) {
-        console.log(props.myTable)
+        //console.log(props.myTable)
         if (props.myTable.length > 0)
             return (
                 <Table
