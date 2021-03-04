@@ -17,6 +17,8 @@ import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import Table from "components/Table/Table.js";
 import Grid from '@material-ui/core/Grid';
+import Select from "@material-ui/core/Select";
+import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
@@ -34,6 +36,7 @@ import { SettingsPowerSharp } from '@material-ui/icons';
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 import { getPrizeTable, getUserBalance} from "views/functions.js"
 import {CopyToClipboard} from 'react-copy-to-clipboard';
+import { NothingToDisplay } from 'CustomComponents/CustomComponents';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -120,6 +123,8 @@ export default function GroupDetails() {
   const [editButtonText, setEditButtonText] = React.useState("Edit");
   const [memberArray, setMemberArray] = useState([]);
   const [prizeCount, setPrizeCount]  = useState(1);
+  const [groupList, setGroupList] = useState([]);
+  const [groupName, setGroupName] = useState("");
 
   async function generatePrizeTable(mCount, mFee, pCount) {
     // console.log(`${mCount}    ${mFee}    ${pCount}`);
@@ -134,49 +139,17 @@ export default function GroupDetails() {
   useEffect(() => {
 
     const updateGroupDetailData = async () => { 
-      //myGroupName = window.localStorage.getItem("gdName")
-      const grpResponse = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/info/${localStorage.getItem("gdGid")}`);
-      setMasterData(grpResponse.data.info);
-      // console.log(grpResponse.data.info);
-      setMemberCount(grpResponse.data.info.memberCount);
-      setMemberFee(grpResponse.data.info.memberFee);
-      setMemberCountUpdated(grpResponse.data.info.memberCount);
-      setMemberFeeUpdated(grpResponse.data.info.memberFee);
-      setPrizeCount(grpResponse.data.info.prizeCount);
-      //console.log(grpResponse.data.info._id);
-      setCopyState({value: grpResponse.data.info._id})
-      setGroupCode(grpResponse.data.info._id);
-      // console.log("Calling generate prize table");
-      await generatePrizeTable(grpResponse.data.info.memberCount,
-        grpResponse.data.info.memberFee,
-        grpResponse.data.info.prizeCount);
-      setMinimumMemberCount(grpResponse.data.currentCount);
-      // edit group details
-      //  1) user is owner of the group
-      //  2) auction status is pending
-      //  2) tournament has not yet started
-      if ((grpResponse.data.info.owner == localStorage.getItem("uid")) &&
-          (grpResponse.data.info.auctionStatus === "PENDING") &&
-          (!grpResponse.data.tournamentStarted))
-        setDisableEdit(false);
-      
-      const sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/getfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}`);
-      setFranchiseeName(sts.data);
-      //setMasterDisplayName(sts.data);
-      let memResponse = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/group/${localStorage.getItem("gdGid")}`);
-        setMemberArray(memResponse.data);
+      const listResponse = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/memberof/${localStorage.getItem("uid")}`);
+      // console.log(listResponse);
+      setGroupList(listResponse.data[0].groups);
+      let tmp = listResponse.data[0].groups.find(x => x.gid == localStorage.getItem("gid"))
+      if (tmp) {
+        handleGroupbyRec(tmp);
+      }
     }
-    
-    updateGroupDetailData();
-    
+      
+    updateGroupDetailData();    
   }, [])
-
-
-/**
-
- */
-
-
 
 
 
@@ -292,11 +265,6 @@ export default function GroupDetails() {
     myRec.displayName = franchiseeName;
     //console.log(myRec);
     setMemberArray(clone);
-    // setUserMessage("Successfully updated Franchise details");
-    // setExpandedPanel(false);
-    // setBackDropOpen(true);
-    // setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
-    //handleAccordionChange("frachisee");
     setExpandedPanel(false);
     setRegisterStatus(1000);
   }
@@ -561,6 +529,7 @@ export default function GroupDetails() {
   )}
 
   function DisplayAccordian() {
+  if (groupName.length > 0) {
   return (
     <div>
     <Accordion expanded={expandedPanel === "frachisee"} onChange={handleAccordionChange("frachisee")}>
@@ -604,6 +573,89 @@ export default function GroupDetails() {
       </AccordionDetails>
     </Accordion>
     </div>
+  )
+  } else {
+    return (<NothingToDisplay />)
+  }
+}
+
+  async function handleGroupbyRec(gRec) {
+    // console.log(gRec);
+    const grpResponse = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/info/${gRec.gid}`);
+    //console.log(grpResponse.data.info);
+    setGroupName(gRec.groupName);
+    setMasterData(grpResponse.data.info);
+    // console.log(grpResponse.data.info);
+    setMemberCount(grpResponse.data.info.memberCount);
+    setMemberFee(grpResponse.data.info.memberFee);
+    setMemberCountUpdated(grpResponse.data.info.memberCount);
+    setMemberFeeUpdated(grpResponse.data.info.memberFee);
+    setPrizeCount(grpResponse.data.info.prizeCount);
+    //console.log(grpResponse.data.info._id);
+    setCopyState({value: grpResponse.data.info._id})
+    setGroupCode(grpResponse.data.info._id);
+    // console.log("Calling generate prize table");
+    await generatePrizeTable(grpResponse.data.info.memberCount,
+      grpResponse.data.info.memberFee,
+      grpResponse.data.info.prizeCount);
+    setMinimumMemberCount(grpResponse.data.currentCount);
+    // edit group details
+    //  1) user is owner of the group
+    //  2) auction status is pending
+    //  2) tournament has not yet started
+    if ((grpResponse.data.info.owner == localStorage.getItem("uid")) &&
+        (grpResponse.data.info.auctionStatus === "PENDING") &&
+        (!grpResponse.data.tournamentStarted))
+      setDisableEdit(false);
+  
+    const sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/getfranchisename/${localStorage.getItem("uid")}/${gRec.gid}`);
+    setFranchiseeName(sts.data);
+    //setMasterDisplayName(sts.data);
+    let memResponse = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/group/${gRec.gid}`);
+    // console.log(memResponse);
+    setMemberArray(memResponse.data);
+  }
+
+  async function handleFetchGroup(gname) {
+    // console.log(`Grop is ${gname}`);
+    // console.log(groupList);
+    let tmp = groupList.find(x => x.groupName === gname);
+    if (tmp) {
+      handleGroupbyRec(tmp);
+    } else {
+      setGroupName("");
+    }
+  }
+
+  function SelectGroup() {
+  return (
+    <Grid key="gr-group" container justify="center" alignItems="center" >
+    <Grid item key="gi1-group" xs={12} sm={12} md={12} lg={12} >
+      <Select labelId='team' id='team'
+        variant="outlined"
+        required
+        fullWidth
+        label="Group"
+        name="team"
+        id="team"
+        value={groupName}
+        inputProps={{
+          name: 'Group',
+          id: 'filled-age-native-simple',
+        }}
+        onChange={(event) => handleFetchGroup(event.target.value)}
+        >
+        {groupList.map(x =>
+          <MenuItem key={x.groupName} value={x.groupName}>{x.groupName}</MenuItem>)}
+      </Select>
+    </Grid>
+    {/* <Grid item key="gi2-group" xs={3} sm={3} md={3} lg={3} >
+      <Button key={"create"} variant="contained" color="primary" size="small"
+          onClick={() => { handleFetchGroup() }}
+          className={classes.button}>Fetch
+      </Button>
+    </Grid> */}
+    </Grid>
   )}
 
   return (
@@ -611,6 +663,8 @@ export default function GroupDetails() {
       <CssBaseline />
       <div className={classes.paper} align="center">
         <DisplayPageHeader headerName="Group Details" groupName={masterData.name} tournament={masterData.tournament}/>
+        <BlankArea />
+        <SelectGroup />
         <BlankArea />
         <DisplayAccordian />
         <ShowResisterStatus/>

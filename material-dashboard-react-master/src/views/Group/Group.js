@@ -146,11 +146,11 @@ export default function Group() {
     function DisplayGroupHeader() {
         return (
         <Grid key="gr-group" container justify="center" alignItems="center" >
-            <Grid item key="gi-group" xs={9} sm={9} md={9} lg={9} >
+            <Grid item key="gi-group" xs={11} sm={11} md={11} lg={11} >
             <Typography className={classes.header}>Group Name</Typography>
             </Grid>
-            <Grid item key="gi-group" xs={3} sm={3} md={3} lg={3} >
-            <Typography className={classes.header}>Current</Typography>
+            <Grid item key="gi-group" xs={1} sm={1} md={1} lg={1} >
+            <Typography className={classes.header}></Typography>
             </Grid>
             {/* <Grid item key="gi-group" xs={2} sm={2} md={2} lg={2} >
             <Typography className={classes.header}>Def</Typography>
@@ -208,10 +208,13 @@ export default function Group() {
         myGroupTableData.map( (x, index) => {
         return (
             <Grid key={x.groupName} container justify="center" alignItems="center" >
-            <Grid item key={x.groupName} xs={9} sm={9} md={9} lg={9} >
+            {/* <Grid item key={x.groupName} xs={9} sm={9} md={9} lg={9} >
                 <Link href="#" onClick={() => handleGroupDetails(x.groupName)} variant="body2">
                 <Typography>{x.groupName}</Typography>
                 </Link>
+            </Grid> */}
+            <Grid item key={x.groupName} xs={11} sm={11} md={11} lg={1} >
+                <Typography>{x.groupName}</Typography>
             </Grid>
             {/* <Grid item justify="center" alignContent="center" alignItems="center" key={x.groupName} xs={2} sm={2} md={2} lg={2} >
                 <FormControlLabel 
@@ -223,7 +226,7 @@ export default function Group() {
                     checked={newCurrentGroup === x.groupName}
                 />
             </Grid> */}
-            <Grid item justify="center" alignContent="center" alignItems="center" xs={3} sm={3} md={3} lg={3} >
+            <Grid item justify="center" alignContent="center" alignItems="center" xs={1} sm={1} md={1} lg={1} >
                 <FormControlLabel 
                     key={"Def"+x.groupName}
                     id={"Def"+x.groupName}
@@ -253,7 +256,7 @@ export default function Group() {
         <div className={classes.root} align="center">
             <h3>My Groups</h3>
             {/* <Typography className={classes.messageText}>{curr}</Typography> */}
-            <Typography className={classes.messageText}>{clickmsg}</Typography>
+            {/* <Typography className={classes.messageText}>{clickmsg}</Typography> */}
         </div>
     )}
 
@@ -262,12 +265,12 @@ export default function Group() {
             <DisplayBalance balance={balance} />
             <ShowPageHeader />
             <ShowAllGroups />
-            <Button key={"create"} variant="contained" color="primary" size="small"
+            {/* <Button key={"create"} variant="contained" color="primary" size="small"
                 className={classes.button} onClick={handleNewGroup}>New Group
             </Button>
             <Button key={"progile"} variant="contained" color="primary" size="small"
                className={classes.button} onClick={handleJoinGroup}>Join Group
-            </Button>
+            </Button> */}
         </div>
         );
     

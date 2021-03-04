@@ -5,6 +5,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import GroupIcon from '@material-ui/icons/Group';
 import Button from '@material-ui/core/Button';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import Switch from '@material-ui/core/Switch';
@@ -54,9 +55,14 @@ export function setTab(num) {
 
 export function CricDreamTabs() {
   const classes = useStyles();
+  // for menu 
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  // for group menu
+  const [grpAuth, setGrpAuth] = React.useState(true);
+  const [grpAnchorEl, setGrpAnchorEl] = React.useState(null);
+  const grpOpen = Boolean(grpAnchorEl);
   const [value, setValue] = React.useState(parseInt(localStorage.getItem("menuValue")));
 
   console.log(localStorage.getItem("menuValue"));
@@ -69,8 +75,16 @@ export function CricDreamTabs() {
     setAnchorEl(event.currentTarget);
   };
 
+  const handleGrpMenu = (event) => {
+    setGrpAnchorEl(event.currentTarget);
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleGrpClose = () => {
+    setGrpAnchorEl(null);
   };
 
   function setMenuValue(num) {
@@ -85,7 +99,7 @@ export function CricDreamTabs() {
   const handleMatch = () => { handleClose(); setMenuValue(101);}
   const handleAuction = () => { handleClose(); setMenuValue(102);}
   const handleCaptain = () => { handleClose(); setMenuValue(103);}
-  const handleGroup = () => { handleClose(); setMenuValue(104);}
+  const handleGroup = () => { handleGrpClose(); setMenuValue(104);}
   const handleWallet = () => { handleClose(); setMenuValue(105);}
   const handleProfile = () => { handleClose(); setMenuValue(106);}
   const handlePassword = () => { handleClose(); setMenuValue(107);}
@@ -94,7 +108,10 @@ export function CricDreamTabs() {
   const handleSuTournament = () => { handleClose(); setMenuValue(301);}
   const handleSuPlayer = () => { handleClose(); setMenuValue(302);}
 
- 
+  const handleGroupNew = () => { handleGrpClose(); setMenuValue(1001);}
+  const handleGroupJoin = () => { handleGrpClose(); setMenuValue(1002);}
+  const handleGroupDetails = () => { handleGrpClose(); setMenuValue(1003);}
+
   const handleLogout = () => {
     handleClose();
     localStorage.setItem("uid", "");
@@ -177,11 +194,11 @@ export function CricDreamTabs() {
                 <MenuItem onClick={handleCaptain}>Captain</MenuItem>
                 <MenuItem onClick={handleAuction}>Auction</MenuItem>
                 <Divider />
-                <MenuItem onClick={handleGroup}>Group</MenuItem>
-                <MenuItem onClick={handleWallet}>Wallet</MenuItem>
-                <Divider/>
+                {/* <MenuItem onClick={handleGroup}>Group</MenuItem>
+                <Divider/> */}
                 <MenuItem onClick={handleProfile}>Profile</MenuItem>
                 <MenuItem onClick={handlePassword}>Password</MenuItem>
+                <MenuItem onClick={handleWallet}>Wallet</MenuItem>
                 <Show_Supervisor_Options/>
                 <Divider/>
                 <MenuItem onClick={handleHelpDesk}>How to play</MenuItem>
@@ -200,6 +217,39 @@ export function CricDreamTabs() {
           {/* <Typography variant="h6" className={classes.title}>
             Photos
           </Typography> */}
+          {grpAuth && (
+            <div>
+              <IconButton
+                aria-label="account of current group"
+                aria-controls="group-appbar"
+                aria-haspopup="true"
+                onClick={handleGrpMenu}
+                color="inherit"
+              >
+                <GroupIcon style={{ color: "white" }}/>
+              </IconButton>
+              <Menu
+                id="group-appbar"
+                anchorEl={grpAnchorEl}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={grpOpen}
+                onClose={handleGrpClose}
+              >
+                <MenuItem onClick={handleGroup}>Group</MenuItem>
+                <MenuItem onClick={handleGroupDetails}>Group Details</MenuItem>
+                <MenuItem onClick={handleGroupJoin}>Join Group</MenuItem>
+                <MenuItem onClick={handleGroupNew}>New Group</MenuItem>
+              </Menu>
+            </div>
+          )}
         </Toolbar>
       </AppBar>
       <DisplayCdItems/>
