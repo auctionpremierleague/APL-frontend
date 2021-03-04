@@ -29,6 +29,9 @@ import About from "views/APL/About.js"
 import ContactUs from "views/APL/ContactUs.js"
 import SU_Tournament from "views/SuperUser/Tournament.js" 
 import SU_Player from "views/SuperUser/Player.js" 
+import NewGroup from "views/Group/NewGroup.js"
+import JoinGroup from "views/Group/JoinGroup.js"
+import GroupDetails from "views/Group/GroupDetails.js"
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,8 +47,8 @@ const useStyles = makeStyles((theme) => ({
 
 export function setTab(num) {
   //myTabPosition = num;
-  console.log(`Tab pos ${num}`);
-  localStorage.setItem("tabpos", num);
+  console.log(`Menu pos ${num}`);
+  localStorage.setItem("menuValue", num);
   cdRefresh();
 }
 
@@ -54,7 +57,9 @@ export function CricDreamTabs() {
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  const [value, setValue] = React.useState(1);
+  const [value, setValue] = React.useState(parseInt(localStorage.getItem("menuValue")));
+
+  console.log(localStorage.getItem("menuValue"));
 
   const handleChange = (event) => {
     setAuth(event.target.checked);
@@ -68,25 +73,32 @@ export function CricDreamTabs() {
     setAnchorEl(null);
   };
 
-  const handleDash = () => { setValue(1);  }
-  const handleStat = () => { setValue(2);  }
-  const handleTeam = () => { setValue(3);  }
-  const handleMatch = () => { handleClose(); setValue(101);}
-  const handleAuction = () => { handleClose(); setValue(102);}
-  const handleCaptain = () => { handleClose(); setValue(103);}
-  const handleGroup = () => { handleClose(); setValue(104);}
-  const handleWallet = () => { handleClose(); setValue(105);}
-  const handleProfile = () => { handleClose(); setValue(106);}
-  const handlePassword = () => { handleClose(); setValue(107);}
-  const handleHelpDesk = () => { handleClose(); setValue(201);}
-  const handleContactUs = () => { handleClose(); setValue(202);}
-  const handleSuTournament = () => { handleClose(); setValue(301);}
-  const handleSuPlayer = () => { handleClose(); setValue(302);}
+  function setMenuValue(num) {
+    setValue(num);
+    handleClose();
+    localStorage.setItem("menuValue", num);
+  }
+
+  const handleDash = () => { setMenuValue(1);  }
+  const handleStat = () => { setMenuValue(2);  }
+  const handleTeam = () => { setMenuValue(3);  }
+  const handleMatch = () => { handleClose(); setMenuValue(101);}
+  const handleAuction = () => { handleClose(); setMenuValue(102);}
+  const handleCaptain = () => { handleClose(); setMenuValue(103);}
+  const handleGroup = () => { handleClose(); setMenuValue(104);}
+  const handleWallet = () => { handleClose(); setMenuValue(105);}
+  const handleProfile = () => { handleClose(); setMenuValue(106);}
+  const handlePassword = () => { handleClose(); setMenuValue(107);}
+  const handleHelpDesk = () => { handleClose(); setMenuValue(201);}
+  const handleContactUs = () => { handleClose(); setMenuValue(202);}
+  const handleSuTournament = () => { handleClose(); setMenuValue(301);}
+  const handleSuPlayer = () => { handleClose(); setMenuValue(302);}
 
  
   const handleLogout = () => {
     handleClose();
     localStorage.setItem("uid", "");
+    localStorage.setItem("menuValue", process.env.REACT_APP_DASHBOARD);
     cdRefresh();  
   };
 
@@ -118,6 +130,9 @@ export function CricDreamTabs() {
       case 202: return <ContactUs />;
       case 301: return <SU_Tournament />;
       case 302: return <SU_Player />;
+      case 1001: return <NewGroup />;
+      case 1002: return <JoinGroup />;
+      case 1003: return <GroupDetails />;
       default: return  <div></div>;
     }
   }

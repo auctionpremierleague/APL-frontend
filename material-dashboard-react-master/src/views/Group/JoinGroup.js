@@ -72,9 +72,9 @@ export default function JoinGroup() {
     try {
       let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/join/${groupCode}/${localStorage.getItem("uid")}`);
       //console.log("Group Join Success");
-      let myBalance = await getUserBalance();
-      setBalance(myBalance);
-      setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_GROUP));
+      //let myBalance = await getUserBalance();
+      //setBalance(myBalance);
+      setTab(process.env.REACT_APP_GROUP);
       //setTab(0);
     } catch (err) {
         setRegisterStatus(err.response.status);

@@ -128,18 +128,18 @@ export default function Group() {
         // window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
         // window.localStorage.setItem("gdDefault", ggg.defaultGroup);
         // window.localStorage.setItem("gdTournament", ggg.tournament);
-        setTab(102);
+        setTab(process.env.REACT_APP_GROUPDETAILS);
     }
 
 
 
     function handleNewGroup() {
-        setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_NEWGROUP));
+        setTab(process.env.REACT_APP_NEWGROUP);
     };
 
     function handleJoinGroup() {
         localStorage.setItem("joinGroupCode", "");       
-        setTab(parseInt(process.env.REACT_APP_BASEPOS) + parseInt(process.env.REACT_APP_JOINGROUP));
+        setTab(process.env.REACT_APP_JOINGROUP);
     };
 
 

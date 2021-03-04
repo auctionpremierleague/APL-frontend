@@ -119,8 +119,9 @@ export default function SignIn() {
       window.localStorage.setItem("userPlan", userPlan);
       // setUser({ uid: myUID, admin: response.data.admin });
       // cdRefresh(true);
-      let newPos = specialSetPos();
+      //let newPos = specialSetPos();
       //if (newPos < 0) newPos = 0;
+      let newPos = (response.data.gid > 0) ? process.env.REACT_APP_DASHBOARD : process.env.REACT_APP_GROUP;
       setTab(newPos);
     }
 
