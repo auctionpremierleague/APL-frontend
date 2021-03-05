@@ -21,6 +21,7 @@ import { DesktopWindows } from '@material-ui/icons';
 import { cdRefresh, specialSetPos, encrypt } from "views/functions.js"
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 import { CricDreamLogo } from 'CustomComponents/CustomComponents.js';
+import { BlankArea } from 'CustomComponents/CustomComponents';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -159,6 +160,11 @@ export default function SignIn() {
             />
             <div>
             <Typography className={classes.error} align="left">{errorMessage}</Typography>
+            <Typography className={classes.root}>
+              <Link href="#" onClick={handleForgot} variant="body2">
+              Forgot password
+            </Link>
+          </Typography>
             </div>
             <Button
               type="submit"
@@ -170,16 +176,22 @@ export default function SignIn() {
             >
               Sign In
           </Button>
-          <Typography className={classes.root}>
-              <Link href="#" onClick={handleForgot} variant="body2">
-              Forgot password
-            </Link>
-          </Typography>
-          <Typography className={classes.root}>
+          {/* <Typography className={classes.root}>
               <Link href="#" onClick={handleRegister} variant="body2">
               Register
             </Link>
-          </Typography>
+          </Typography> */}
+            {/* <BlankArea /> */}
+            <Button
+              //type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              //className={classes.submit}
+              onClick={handleRegister}
+            >
+              Sign Up
+          </Button>
           </form>
         </div>
         {/* <Route  path='/admin/emailpassword' component={Reset} key="MemberList"/>

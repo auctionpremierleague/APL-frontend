@@ -73,6 +73,7 @@ export default function Dashboard() {
     const makeconnection = async () => {
       await sockConn.connect();
       // console.log("just after connect command");
+      console.log(`DASG gis ${sendMessage}`);
       sockConn.emit("page", sendMessage);
     }
 
@@ -88,6 +89,7 @@ export default function Dashboard() {
         // console.log(localStorage.getItem("uid"))
         const allRank = rank.filter(x => x.gid === parseInt(localStorage.getItem("gid")));
         const userDetails = allRank.filter(x => x.uid === parseInt(localStorage.getItem("uid")));
+        //console.log(allRank);
 
         if (userDetails.length > 0) {
           // if details of current user found (current user is a member of group 1)

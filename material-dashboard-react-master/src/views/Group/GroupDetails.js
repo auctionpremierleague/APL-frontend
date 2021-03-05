@@ -276,7 +276,7 @@ export default function GroupDetails() {
         <Grid key="gr-group" container justify="center" alignItems="center" >
             <Grid item xs={9} sm={9} md={9} lg={9} >
             <TextField
-              autoComplete="fname"
+              //autoComplete="fname"
               name="userName"
               variant="outlined"
               fullWidth

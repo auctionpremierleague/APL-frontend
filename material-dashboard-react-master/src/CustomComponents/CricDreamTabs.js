@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import GroupIcon from '@material-ui/icons/Group';
@@ -44,6 +45,13 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
+  avatar: {
+    margin: theme.spacing(0),
+    // backgroundColor: theme.palette.secondary.main,
+    // width: theme.spacing(10),
+    // height: theme.spacing(10),
+  },
+
 }));
 
 export function setTab(num) {
@@ -154,6 +162,7 @@ export function CricDreamTabs() {
     }
   }
 
+  let mylogo = `${process.env.PUBLIC_URL}/APLLOGO1.ICO`;
   return (
     <div className={classes.root}>
       {/* <FormGroup>
@@ -164,6 +173,7 @@ export function CricDreamTabs() {
       </FormGroup> */}
       <AppBar position="static">
         <Toolbar>
+          <Avatar variant="square" className={classes.avatar}  src={mylogo}/>
           {auth && (
             <div>
               <IconButton
@@ -212,7 +222,7 @@ export function CricDreamTabs() {
             <MenuIcon />
           </IconButton> */}
           <Button color="inherit" onClick={handleDash}>DashBoard</Button>
-          <Button color="inherit" onClick={handleStat}>Statistics</Button>
+          <Button color="inherit" onClick={handleStat}>Stats</Button>
           <Button color="inherit" onClick={handleTeam}>Team</Button>
           {/* <Typography variant="h6" className={classes.title}>
             Photos
