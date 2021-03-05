@@ -14,6 +14,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu'; 
+import {red, blue, green} from '@material-ui/core/colors';
 import Divider from '@material-ui/core/Divider';
 import {cdRefresh, specialSetPos} from "views/functions.js"
 /// cd items import
@@ -42,6 +43,11 @@ const useStyles = makeStyles((theme) => ({
   menuButton: {
     // marginRight: theme.spacing(2),
     marginLeft: theme.spacing(1),
+  },
+  icon : {
+    color: '#FFFFFF',
+    marginRight: theme.spacing(0),
+    marginLeft: theme.spacing(0),
   },
   dashButton: {
     // marginRight: theme.spacing(2),
@@ -199,7 +205,7 @@ export function CricDreamTabs() {
                 onClick={handleMenu}
                 color="inherit"
               >
-                <MenuIcon style={{ color: "white" }}/>
+                <MenuIcon className={classes.icon}/>
               </IconButton>
               <Menu
                 id="menu-appbar"
@@ -252,7 +258,7 @@ export function CricDreamTabs() {
                 onClick={handleGrpMenu}
                 color="inherit"
               >
-                <GroupIcon style={{ color: "white" }}/>
+                <GroupIcon className={classes.icon}/>
               </IconButton>
               <Menu
                 id="group-appbar"
