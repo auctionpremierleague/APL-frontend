@@ -283,7 +283,7 @@ export default function GroupDetails() {
               id="userName"
               label="Franchise Name"
               autoFocus
-              defaultValue={franchiseeName}
+              value={franchiseeName}
               onChange={(event) => setFranchiseeName(event.target.value)}
             />
             </Grid>
