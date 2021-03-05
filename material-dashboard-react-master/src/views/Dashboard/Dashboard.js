@@ -73,7 +73,7 @@ export default function Dashboard() {
     const makeconnection = async () => {
       await sockConn.connect();
       // console.log("just after connect command");
-      console.log(`DASG gis ${sendMessage}`);
+      // console.log(`DASG gis ${sendMessage}`);
       sockConn.emit("page", sendMessage);
     }
 

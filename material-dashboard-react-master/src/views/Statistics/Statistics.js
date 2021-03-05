@@ -43,7 +43,7 @@ export default function Stats() {
     makeconnection();
 
     socket.on("connect", () => {
-      console.log(`STATS gis ${localStorage.getItem("gid")}`);
+      // console.log(`STATS gis ${localStorage.getItem("gid")}`);
       var sendMessage = {page: "STAT", gid: localStorage.getItem("gid"), uid: localStorage.getItem("uid") };
       socket.emit("page", sendMessage);
       // console.log("stat connected")

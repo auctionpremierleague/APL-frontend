@@ -40,8 +40,23 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   menuButton: {
-    marginRight: theme.spacing(2),
+    // marginRight: theme.spacing(2),
+    marginLeft: theme.spacing(1),
   },
+  dashButton: {
+    // marginRight: theme.spacing(2),
+    marginLeft: theme.spacing(2),
+  },
+  statButton: {
+    //marginRight: theme.spacing(2),
+    marginLeft: theme.spacing(2),
+  },
+  teamButton: {
+    marginRight: theme.spacing(0),
+    marginLeft: theme.spacing(0),
+  },
+
+
   title: {
     flexGrow: 1,
   },
@@ -50,6 +65,7 @@ const useStyles = makeStyles((theme) => ({
     // backgroundColor: theme.palette.secondary.main,
     // width: theme.spacing(10),
     // height: theme.spacing(10),
+  
   },
 
 }));
@@ -221,9 +237,9 @@ export function CricDreamTabs() {
           {/* <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
             <MenuIcon />
           </IconButton> */}
-          <Button color="inherit" onClick={handleDash}>DashBoard</Button>
-          <Button color="inherit" onClick={handleStat}>Stats</Button>
-          <Button color="inherit" onClick={handleTeam}>Team</Button>
+          <Button color="inherit" className={classes.dashButton} onClick={handleDash}>DashBoard</Button>
+          <Button color="inherit" className={classes.statButton} onClick={handleStat}>Stats</Button>
+          <Button color="inherit" className={classes.teamButton} onClick={handleTeam}>Team</Button>
           {/* <Typography variant="h6" className={classes.title}>
             Photos
           </Typography> */}
