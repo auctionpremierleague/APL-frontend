@@ -72,6 +72,7 @@ export default function Stats() {
   };
 
   function ShowStats() {  
+      // console.log(teamArray);
       return (teamArray.map(team =>
       <Accordion expanded={expandedPanel === team.displayName} onChange={handleAccordionChange(team.displayName)}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">

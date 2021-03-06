@@ -14,7 +14,8 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import {red, blue, green, yellow} from '@material-ui/core/colors';
-import {validateSpecialCharacters, validateEmail, encrypt, decrypt} from "views/functions.js";
+import {validateSpecialCharacters, validateEmail, 
+  encrypt, decrypt, currentAPLVersion, latestAPLVersion} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -49,11 +50,17 @@ const useStyles = makeStyles((theme) => ({
   },
   balance:  {
     // right: 0,
+    marginRight: theme.spacing(3),
     fontSize: '18px',
     color: blue[900],
     // // position: 'absolute',
     // alignItems: 'center',
     // marginTop: '0px',
+  },
+  version:  {
+    //marginRight: theme.spacing(3),
+    fontSize: '18px',
+    color: blue[900],
   },
   error:  {
     // right: 0,
@@ -222,3 +229,21 @@ export function CricDreamLogo () {
     <Avatar variant="square" className={classes.avatar}  src={mylogo}/>
 );
 }
+
+export function DisplayVersion(props) {
+  const classes = useStyles();
+  let ver = props.version.toFixed(1);
+  let msg =  `${props.text} ${ver}`;
+  return <Typography align="center" className={classes.version} >{msg}</Typography>
+}
+
+export async function DisplayCurrentAPLVersion() {
+  let version = await currentAPLVersion();
+  return <DisplayVersion text="Current APL version" version={version}/>
+}
+
+export async function DisplayLatestAPLVersion() {
+  let version = await latestAPLVersion();
+  return <DisplayVersion text="Latest APL version" version={version}/>
+}
+  

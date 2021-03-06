@@ -102,10 +102,6 @@ export default function GroupDetails() {
   const [memberCountUpdated, setMemberCountUpdated] = useState(0);
   const [memberFeeUpdated, setMemberFeeUpdated] = useState(50);
 
-  // const [myAdminSwitch, setMyAdminSwitch] = useState(localStorage.getItem("gdAdmin") === "true");
-  // const [myDefaultSwitch, setMyDefaultSwitch] = useState(localStorage.getItem("gdDefault") === "true");
-  // const [myCurrentSwitch, setMyCurrentSwitch] = useState(localStorage.getItem("gdCurrent") === "true");
-
   const [groupCode, setGroupCode] = useState("");
   const [copyState, setCopyState] = useState({value: '', copied: false});
 
@@ -125,6 +121,7 @@ export default function GroupDetails() {
   const [prizeCount, setPrizeCount]  = useState(1);
   const [groupList, setGroupList] = useState([]);
   const [groupName, setGroupName] = useState("");
+  const [currGroup, setCurrGroup] = useState(0);
 
   async function generatePrizeTable(mCount, mFee, pCount) {
     // console.log(`${mCount}    ${mFee}    ${pCount}`);
@@ -145,104 +142,22 @@ export default function GroupDetails() {
       let tmp = listResponse.data[0].groups.find(x => x.gid == localStorage.getItem("gid"))
       if (tmp) {
         handleGroupbyRec(tmp);
+        setCurrGroup(tmp.gid);
+      } else {
+        setCurrGroup(0);
       }
     }
       
     updateGroupDetailData();    
   }, [])
 
-
-
-
-  
-/***
- 
-  async function updateDefaultGroup(newGid) {
-    let sts = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setdefaultgroup/${localStorage.getItem("uid")}/${newGid}`)
-  }
-
-
-  function AdminSwitch() {
-    return (
-        <Typography component="div">GroupAdmin: 
-         <Switch color="primary" checked={myAdminSwitch} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
-        </Typography>
-    )
-  }
-
-  function handleCurrent() {
-    //   console.log(myCurrentSwitch);
-    if (!myCurrentSwitch) {
-        // var myElement;
-        // window.localStorage.setItem("gdGid", ggg.gid.toString());
-        // window.localStorage.setItem("gdName", ggg.groupName)
-        // window.localStorage.setItem("gdDisplay", ggg.displayName)
-        // window.localStorage.setItem("gdAdmin", ggg.admin.toString());
-        // window.localStorage.setItem("gdCurrent", (newCurrentGroup === ggg.groupName) ? "true" : "false");
-        // window.localStorage.setItem("gdDefault", ggg.defaultGroup.toString());
-        // window.localStorage.setItem("gdTournament", ggg.tournament);
-        localStorage.setItem("gid", localStorage.getItem("gdGid"));
-        localStorage.setItem("groupName", localStorage.getItem("gdName"));
-        // localStorage.setItem("displayName", franchiseeName);
-        localStorage.setItem("tournament", localStorage.getItem("gdTournament"));
-        localStorage.setItem("admin", localStorage.getItem("gdAdmin"))
-        // setUser({ uid: localStorage.getItem("uid"), admin: (localStorage.getItem("admin").toLowerCase() === "true")})    
-        setMyCurrentSwitch(true);
-    }
-  }
-
-  function CurrentSwitch() {
-    return (
-        <Typography component="div">Set Current : 
-        <Switch color="primary" checked={myCurrentSwitch} onChange={handleCurrent} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
-        </Typography>
-    )
-  }
-
-  async function handleDefault() {
-    if (!myDefaultSwitch) {
-      await updateDefaultGroup(localStorage.getItem("gdGid"));
-      setMyDefaultSwitch(true);
-    }
-  }
-
-  function DefaultSwitch() {
-      return (
-          <Typography component="div">Set Default : 
-          <Switch color="primary" checked={myDefaultSwitch} onChange={handleDefault} name="adminSw" inputProps={{ 'aria-label': 'primary checkbox' }}/>
-          </Typography>
-      );
-}
-
-  function DisplayEditButton() {
-    return (
-    <div>
-      <Button variant="contained" disabled={cannotEditGroup} color="primary" className={classes.button}
-        type="submit">
-        {editButtonText}
-      </Button>
-      {/* <Button key={"members"} variant="contained" color="primary"
-            className={classes.button} onClick={ShowGroupMembers}>Members
-      </Button>
-       <Button variant="contained" color="primary" className={classes.button}
-          onClick={() => {setTab(process.env.REACT_APP_GROUP)}}
-          type="cancel">
-        Summary
-      </Button>
-      <Route  path='/admin/membergroup' component={GroupMember} key="MemberList"/>
-      </div>
-    );
-  }
-
-***/
-
-  /** Display Group members */
+   /** Display Group members */
 
   function DisplayGroupMembers() {
   return (
     <Table
     align="center"
-    id={localStorage.getItem("gdName")}
+    id="gm"
     tableHeaderColor="warning"
     tableHead={["Member", "Franchise"]}
     tableData={memberArray.map(x => {
@@ -256,17 +171,21 @@ export default function GroupDetails() {
   /*** Manage Franchise display and update  */
   
   async function handleFranchiseName() {
-    //console.log(franchiseeName);
-    await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setfranchisename/${localStorage.getItem("uid")}/${localStorage.getItem("gdGid")}/${franchiseeName}`);
-    //console.log("Acios success");
-    // await updateFranchiseName(localStorage.getItem("gdGid"), franchiseeName);
-    let clone = [].concat(memberArray);
-    let myRec = clone.find(x => x.uid == localStorage.getItem("uid"));
-    myRec.displayName = franchiseeName;
-    //console.log(myRec);
-    setMemberArray(clone);
-    setExpandedPanel(false);
-    setRegisterStatus(1000);
+    if (currGroup !== 0) {
+      // get new franchisee name updated in database
+      let newName = document.getElementById("franchiseeName").value;
+      setFranchiseeName(newName);
+      let backupName = (newName.length === 0) ? "FRANCHISEENAMENOTWANTED" : newName;
+      console.log(backupName);
+      await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/setfranchisename/${localStorage.getItem("uid")}/${currGroup}/${backupName}`);
+      // also make franchisee name update in local copy (i.e. memberArray)
+      let clone = [].concat(memberArray);
+      let myRec = clone.find(x => x.uid == localStorage.getItem("uid"));
+      myRec.displayName = newName;
+      setMemberArray(clone);
+      //setExpandedPanel(false);
+      setRegisterStatus(1000);  // SUCCESS
+    }
   }
 
 
@@ -280,8 +199,8 @@ export default function GroupDetails() {
               name="userName"
               variant="outlined"
               fullWidth
-              id="userName"
-              label="Franchise Name"
+              id="franchiseeName"
+              label="Franchisee Name"
               autoFocus
               defaultValue={franchiseeName}
               //onChange={(event) => setFranchiseeName(event.target.value)}
@@ -300,25 +219,24 @@ export default function GroupDetails() {
 
   /***  Prize count and amount  */
 
-  async function writePrizeCout(count) {
+  async function writePrizeCount(count) {
     let sts = true;
     try {
-      let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updateprizecount/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${count}`;
+      let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updateprizecount/${currGroup}/${localStorage.getItem("uid")}/${count}`;
       let resp = await axios.get(myURL);
       setPrizeCount(count);
-      // console.log(`Set prize count to ${count}`);
       await generatePrizeTable(memberCountUpdated, memberFeeUpdated, count);
     } catch (e) {
       console.log(e)
-      sts = false;  //setRegisterStatus(3001);
+      sts = false;  
+      //setRegisterStatus(3001);
     }
     return sts;
   }
 
   async function handlePrizeCountChange(event) {
     let newPrizeCount = parseInt(event.target.value);
-    // console.log(`New selected prize count is ${newPrizeCount}`)
-    let sts = await writePrizeCout(newPrizeCount);
+    let sts = await writePrizeCount(newPrizeCount);
     if (sts) {
       setRegisterStatus(3000);
     } else {
@@ -331,8 +249,6 @@ export default function GroupDetails() {
     let inumber = parseInt(props.number);
     //console.log(`${inumber}  and ${prizeCount}`);
     let disableRadio = true;
-    //console.log(`Updated member count ${memberCountUpdated}`);
-    // console.log(`${disableEdit} ${inumber}   ${prizeCount} ${memberCountUpdated} `)
     if (!disableEdit) {
       if ((inumber <= memberCountUpdated) && (inumber <= 5))
       // if (prizeCount <= inumber)
@@ -373,12 +289,12 @@ export default function GroupDetails() {
     } else {
       // console.log("in update mode")
       try {
-        let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updatewithoutfee/${localStorage.getItem("gdGid")}/${localStorage.getItem("uid")}/${memberCount}`;
+        // use need to be owner of the group.
+        let myURL = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/updatewithoutfee/${currGroup}/${localStorage.getItem("uid")}/${memberCount}`;
         let resp = await axios.get(myURL);
         setMemberCountUpdated(memberCount);
         if (prizeCount > memberCount) {
-          writePrizeCout(memberCount);
-          //setPrizeCount(memberCount);
+          writePrizeCount(memberCount);
         }
         setRegisterStatus(2000);
         setEditNotStarted(true);
@@ -529,7 +445,7 @@ export default function GroupDetails() {
   )}
 
   function DisplayAccordian() {
-  if (groupName.length > 0) {
+  if (currGroup !== 0) {
   return (
     <div>
     <Accordion expanded={expandedPanel === "frachisee"} onChange={handleAccordionChange("frachisee")}>
@@ -622,8 +538,10 @@ export default function GroupDetails() {
     let tmp = groupList.find(x => x.groupName === gname);
     if (tmp) {
       handleGroupbyRec(tmp);
+      setCurrGroup(tmp.gid);
     } else {
       setGroupName("");
+      setCurrGroup(0);
     }
   }
 

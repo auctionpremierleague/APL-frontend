@@ -20,9 +20,9 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { makeStyles } from '@material-ui/core/styles';
 import {BlankArea} from "CustomComponents/CustomComponents.js"
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import socketIOClient from "socket.io-client";
-import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
-// import {socketPoint} from "views/functions.js";
+//import socketIOClient from "socket.io-client";
+import { DisplayPageHeader, DisplayVersion } from 'CustomComponents/CustomComponents.js';
+import {currentAPLVersion, latestAPLVersion} from "views/functions.js";
 import { blue, red } from '@material-ui/core/colors';
 
 
@@ -33,6 +33,15 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     backgroundColor: '#B3E5FC',
+  },
+  t20Card: {
+    backgroundColor: '#D3D3D3',
+  },
+  odiCard: {
+    backgroundColor: '#B3E5FC',
+  },
+  testCard: {
+    backgroundColor: '#FFC0CB',
   },
   note: {
     fontWeight: theme.typography.fontWeightBold,
@@ -71,14 +80,22 @@ export default function About() {
   const classes = useStyles();
   // const [expanded, setExpanded] = React.useState(false);
    const [matchType, setMatchType] = useState("T20");
+   const [currentVersion, setCurrentVersion] = useState(9.9);
+   const [latestVersion, setLatestVersion] = useState(8.8);
+
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
 
   useEffect(() => {  
-    return () => {
+    const getVersion = async () => { 
+      let v1 = await currentAPLVersion();
+      let v2 = await latestAPLVersion();
+      setCurrentVersion(v1);
+      setLatestVersion(v2);   
     }
+    getVersion()
   }, []);
 
 
@@ -165,7 +182,7 @@ export default function About() {
 
   function T20_PointSystem() {
   return (
-    <Card className={classes.card}>
+    <Card className={classes.t20Card}>
     <CardContent>
     <PS_Header header="T20 Point system" />
     <DisplayBold message="Batting Points:" />
@@ -222,7 +239,7 @@ export default function About() {
 
   function ODI_PointSystem() {
   return(
-    <Card className={classes.card}>
+    <Card className={classes.odiCard}>
     <CardContent>
     <PS_Header header="ODI Point system" />
     <DisplayBold message="Batting Points:" />
@@ -279,7 +296,7 @@ export default function About() {
 
   function TEST_PointSystem() {
     return(
-      <Card className={classes.card}>
+      <Card className={classes.testCard}>
       <CardContent>
       <PS_Header header="TEST Point system" />
       <DisplayBold message="Batting Points:" />
@@ -467,6 +484,10 @@ export default function About() {
     <div className={classes.root}>
       {/* <ShowGif /> */}
       <DisplayPageHeader headerName="Help Desk" groupName="" tournament=""/>
+      <BlankArea/>
+      <DisplayVersion text="Current APL Version" version={currentVersion}/>
+      <DisplayVersion text="Latest APL  Version" version={latestVersion}/>
+      <BlankArea/>
       <Accordion expanded={expandedPanel === "about"} onChange={handleAccordionChange("about")}>
         <DisplayHeader header="Auction Permier League"/>
         <AccordionDetails>
