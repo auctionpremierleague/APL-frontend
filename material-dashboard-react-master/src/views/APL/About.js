@@ -284,8 +284,8 @@ export default function About() {
     <DisplayPoint akey="● Tournament Max Wickets" value="100 point" />
     <BlankArea/>
     <DisplayBold message="Captain and ViceCaptain:"/>
-    <DisplayPoint akey="● Caption" value="2x point" />
-    <DisplayPoint akey="● ViceCaption" value="1.5x point" />
+    <DisplayPoint akey="● Captain" value="2x point" />
+    <DisplayPoint akey="● ViceCaptain" value="1.5x point" />
     <Note/>
     <Typography paragraph>
     Only points of runs and wickets will considered for 2x for Captain and 1.5x for ViceCaptain.
@@ -333,8 +333,8 @@ export default function About() {
       <DisplayPoint akey="● Tournament Max Wickets" value="100 point" />
       <BlankArea/>
       <DisplayBold message="Captain and ViceCaptain:"/>
-      <DisplayPoint akey="● Caption" value="2x point" />
-      <DisplayPoint akey="● ViceCaption" value="1.5x point" />
+      <DisplayPoint akey="● Captain" value="2x point" />
+      <DisplayPoint akey="● ViceCaptain" value="1.5x point" />
       <Note/>
       <Typography paragraph>
       Only points of runs and wickets will considered for 2x for Captain and 1.5x for ViceCaptain.
