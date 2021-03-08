@@ -31,6 +31,23 @@ export function validateSpecialCharacters(sss) {
     return sts;
 }
 
+export function validateMobile(sss) {
+  var sts = false;
+  const TerroristCharacters = [];
+
+  if (sss.length === 10)
+  if (!sss.includes("\."))
+  if (!sss.includes("\-"))
+  if (!sss.includes("\+"))
+  if (!sss.includes("\*"))
+  if (!sss.includes("\/"))
+  if (!sss.includes("e"))
+  if (!sss.includes("E"))
+  if (!isNaN(sss))
+    sts = true;
+  return sts;
+}
+
 export function validateEmail(sss) {
     let sts = false;
     if (validateSpecialCharacters(sss)) {

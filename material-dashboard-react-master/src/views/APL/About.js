@@ -485,9 +485,9 @@ export default function About() {
       {/* <ShowGif /> */}
       <DisplayPageHeader headerName="Help Desk" groupName="" tournament=""/>
       <BlankArea/>
-      <DisplayVersion text="Current APL Version" version={currentVersion}/>
+      {/* <DisplayVersion text="Current APL Version" version={currentVersion}/>
       <DisplayVersion text="Latest APL  Version" version={latestVersion}/>
-      <BlankArea/>
+      <BlankArea/> */}
       <Accordion expanded={expandedPanel === "about"} onChange={handleAccordionChange("about")}>
         <DisplayHeader header="Auction Permier League"/>
         <AccordionDetails>

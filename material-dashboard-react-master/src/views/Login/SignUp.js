@@ -100,7 +100,7 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [registerStatus, setRegisterStatus] = useState(199);
-
+  const [mobile, setMobile] = useState("");
   // const { setUser } = useContext(UserContext);
 
   // const handleChange = (event) => {
@@ -113,7 +113,7 @@ export default function SignUp() {
     console.log("Submit command provided");
     let tmp1 = encrypt(password);
     let tmp2 = encrypt(email);
-    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricsignup/${userName}/${tmp1}/${tmp2}`);
+    let response = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricsignup/${userName}/${tmp1}/${tmp2}/${mobile}`);
     if (response.status === 200) {
       let setemailresp = await fetch(`${process.env.REACT_APP_AXIOS_BASEPATH}/user/cricemailwelcome/${tmp2}`);
       // history.push("/signin");
@@ -203,6 +203,19 @@ export default function SignUp() {
           validators={['isEmailOK', 'required']}
           errorMessages={['Invalid Email', 'Email to be provided']}
           value={email}
+      />
+      <BlankArea/>
+      <TextValidator
+          variant="outlined"
+          required
+          fullWidth      
+          label="Mobile"
+          onChange={(event) => setMobile(event.target.value)}
+          name="mobile"
+          //type="email"
+          validators={['required', 'mobile']}
+          errorMessages={[, 'Mobile to be provided', '10 digit mobile number required']}
+          value={mobile}
       />
       <BlankArea/>
       <TextValidator

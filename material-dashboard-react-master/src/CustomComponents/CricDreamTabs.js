@@ -95,7 +95,7 @@ export function CricDreamTabs() {
   const grpOpen = Boolean(grpAnchorEl);
   const [value, setValue] = React.useState(parseInt(localStorage.getItem("menuValue")));
 
-  console.log(localStorage.getItem("menuValue"));
+  console.log(`in Tab function  ${localStorage.getItem("menuValue")}`);
 
   const handleChange = (event) => {
     setAuth(event.target.checked);
@@ -145,7 +145,7 @@ export function CricDreamTabs() {
   const handleLogout = () => {
     handleClose();
     localStorage.setItem("uid", "");
-    localStorage.setItem("menuValue", process.env.REACT_APP_DASHBOARD);
+    //localStorage.setItem("menuValue", process.env.REACT_APP_DASHBOARD);
     cdRefresh();  
   };
 

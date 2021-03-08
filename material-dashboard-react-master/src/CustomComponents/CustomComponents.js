@@ -14,7 +14,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import {red, blue, green, yellow} from '@material-ui/core/colors';
-import {validateSpecialCharacters, validateEmail, 
+import {validateSpecialCharacters, validateEmail, validateMobile,
   encrypt, decrypt, currentAPLVersion, latestAPLVersion} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
@@ -140,6 +140,10 @@ export class ValidComp extends React.Component {
       return validateEmail(value);
     });
 
+    ValidatorForm.addValidationRule('mobile', (value) => {
+      return validateMobile(value);
+    });
+
     ValidatorForm.addValidationRule('checkbalance', (value) => {
       return validateSpecialCharacters(value > this.props.balance);
     });
@@ -150,6 +154,7 @@ export class ValidComp extends React.Component {
     // remove rule when it is not needed
     ValidatorForm.removeValidationRule('isPasswordMatch');
     ValidatorForm.removeValidationRule('isEmailOK');
+    ValidatorForm.removeValidationRule('mobile');
     ValidatorForm.removeValidationRule('minLength');
     ValidatorForm.removeValidationRule('noSpecialCharacters');   
     ValidatorForm.removeValidationRule('checkbalance');   

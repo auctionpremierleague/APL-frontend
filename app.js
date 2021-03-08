@@ -143,7 +143,8 @@ UserSchema = mongoose.Schema({
   status: Boolean,
   defaultGroup: Number,
   email: String,
-  userPlan: Number
+  userPlan: Number,
+  mobile: String
 });
 
 IPLGroupSchema = mongoose.Schema({
