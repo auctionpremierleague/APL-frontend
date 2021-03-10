@@ -7,6 +7,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import Collapse from '@material-ui/core/Collapse';
 import Avatar from '@material-ui/core/Avatar';
+import { Player } from 'video-react';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
@@ -115,10 +116,24 @@ export default function About() {
     )
   }
 
-  function ShowGif() {
-    let logo=`${process.env.PUBLIC_URL}/animation/sample.gif`;
+    function DisplayVideo(props) {
+      let imageName = `${process.env.PUBLIC_URL}/about/${props.video}`
+      console.log(imageName);
+      return (
+      <Player
+        playsInline
+        // poster="/assets/poster.png"
+        src={imageName}
+      />
+      )
+    }
+  
+  function DIsplayGif(props) {
+    let logo=`${process.env.PUBLIC_URL}/about/${props.gif}`;
     return(
-    <img src={logo} alt="loading..." />
+    <div align="center">
+    <img align="center" src={logo} alt="loading..." />
+    </div>
     )
   };
 
@@ -360,6 +375,8 @@ export default function About() {
     <Card className={classes.card}>
     <CardContent>
     <DisplayImage image="APLLOGO1.JPG" title="About Auction Premier League" />
+    {/* <DisplayVideo video="JOINGROUP.MP4" /> */}
+
     <Typography paragraph>
       Auction Premier League is one of its kind application which lets you create group, auction players to create your own franchise.
       </Typography>
@@ -412,7 +429,8 @@ export default function About() {
       APL provides unique Group Code which can be copied. This can be shared with your friends so that they can join the group.
       </Typography>
       <DisplayBold message="Join Group" />
-      <DisplayImage image="JOINGROUP.JPG"/>
+      {/* <DisplayImage image="JOINGROUP.JPG"/> */}
+      <DIsplayGif gif="JOINGROUP1.GIF" />
       <Typography paragraph>
       One can join the group using Group Code (shared by your friend). The only requirement to join the group is Group Code and wallet balance.
       </Typography>
@@ -482,7 +500,7 @@ export default function About() {
   
   return (
     <div className={classes.root}>
-      {/* <ShowGif /> */}
+      <DIsplayGif gif="SAMPLE.GIF"/>
       <DisplayPageHeader headerName="Help Desk" groupName="" tournament=""/>
       <BlankArea/>
       {/* <DisplayVersion text="Current APL Version" version={currentVersion}/>
