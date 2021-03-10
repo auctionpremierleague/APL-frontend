@@ -59,7 +59,8 @@ const useStyles = makeStyles((theme) => ({
   },
   media: {
     height: 0,
-    paddingTop: '56.25%', // 16:9
+    //paddingTop: '56.25%', // 16:9
+    paddingTop: '100%', // 16:9
   },
   expand: {
     transform: 'rotate(0deg)',
@@ -401,11 +402,11 @@ export default function About() {
       You need a Group to play along with friends and/or family.  One among you will create the Group and provide the GroupCode to others so that they can join the group using GroupCode.
       </Typography>
       <DisplayBold message="Create New Group" />
-      <DisplayImage image="CREATENEWGROUP.JPG"/>
+      {/* <DisplayImage image="FIRSTIMAGE1.JPG"/> */}
       <Typography paragraph>
-      Click on Menu button, Select Group and then click on “New Group”.
+      Click on Group Icon and select “New Group”.
       </Typography>
-      <DisplayImage image="NEWGROUPDETAILS.JPG"/>
+      <DisplayImage image="CREATEGROUP.JPG"/>
       <Typography paragraph>
       Provide your Group Name.
       </Typography>
@@ -421,7 +422,7 @@ export default function About() {
       <Typography paragraph>
       Finally click on “Create” to create the group. User who creates the group automatically becomes Administrator (or Owner) of that group.
       </Typography>
-      <DisplayImage image="AFTERGROUPCREATE1.JPG"/>
+      <DisplayImage image="NEWGROUP2.JPG"/>
       <Typography paragraph>
       Once group is successfully created, user can select the number of prizes (between 1 and 5).
       </Typography>
@@ -430,28 +431,28 @@ export default function About() {
       </Typography>
       <DisplayBold message="Join Group" />
       {/* <DisplayImage image="JOINGROUP.JPG"/> */}
-      <DIsplayGif gif="JOINGROUP1.GIF" />
+      {/* <DIsplayGif gif="JOINGROUP1.GIF" /> */}
       <Typography paragraph>
       One can join the group using Group Code (shared by your friend). The only requirement to join the group is Group Code and wallet balance.
       </Typography>
       <Typography paragraph>
-      Click on Menu button, Select Group and then click on “Join Group”.
+      Click on Group icon and select “Join Group”.
       </Typography>
       <Typography paragraph>
       Enter Group Code and Click “Join Group”
       </Typography>
       <DisplayBold message="Multiple Groups" />
-      <DisplayImage image="MULTIPLEGROUP.JPG"/>
+      <DisplayImage image="MYGROUP4.JPG"/>
       <Typography paragraph>
-      You can be member of many groups. Pages like Dashboard,  Auction,  Myteam,  Stats shows information of only 1 group which you set it as current group  (By selecting  “Current”).
+      You can be member of many groups. Pages like Dashboard,  Auction,  Myteam,  Stats shows information of only 1 group which you set it as current group.
       </Typography>
       {/* <Typography paragraph>
       You can also configure the group to be selected as current group on Login. This is be done by setting the group as default group (By selecting “Def”).
       </Typography> */}
       <DisplayBold message="Group Details" />
-      <DisplayImage image="GROUPDETAILS.JPG"/>
+      <DisplayImage image="GROUPDETAILS2.JPG"/>
       <Typography paragraph>
-      If you want details of any group just click on the group name. In the “Group Details” user can update their Franchisee name.
+      If you want details of any group just click on Group icon and select “Group Details”. User can update their Franchise name.
       </Typography>
       <Typography paragraph>
       Group Admin has the permission to update group details. This can be done clicking “Edit” Button.
@@ -464,7 +465,7 @@ export default function About() {
       </Typography>
       <DisplayBold message="Auction" />
       <Typography paragraph>
-      Once all the members have joined the group, the next step is to purchase tournament players by Auction. All the members are provided 1000 points to purchase players. Note Auction will not start till all member has join as admin decided.
+      Once all the members have joined the group, the next step is to purchase tournament players by Auction. All the members are provided 1000 points to purchase players. Note that Auction will not start till all the members have joined the group.
       </Typography>
       <Typography paragraph>
       Click on “Auction”.
@@ -473,7 +474,7 @@ export default function About() {
       In this Group Admin will be able to view button “Start Auction”. Other  members will get message “Auction yet to start”.
       </Typography>
       <Typography paragraph>
-      Once auction is started, player’s details will be shown for auction. Members can bid using button for 5, 10, 15, 20, 25, 50, 70, 75, 100, and 200.
+      Once auction has started, player’s details will be shown for auction. Members can bid using button for 5, 10, 15, 20, 25, 50, 70, 75, 100, and 200.
       </Typography>
       <Typography paragraph>
       Once bid amount is not increasing, Admin can sell the player to highest bidder using “Sold” button. The highest bidder will own this player and the bid amount will be deducted from the points.
@@ -485,14 +486,14 @@ export default function About() {
       Once auction is complete, Admin will click on “Stop Auction” button. After this, all group members will get message indicating end of Auction.
       </Typography>
       <Typography paragraph>
-      All the members will can view the players purchased during auction by clicking on “My Team” tab.
+      All the members can view the players purchased during auction by clicking on “My Team” tab.
       </Typography>
       <DisplayBold message="Select Captain and Vice Captain" />
       <Typography paragraph>
-      Click on “Captain” tab.
+      Click on Menu icon and select “Captain”.
       </Typography>
       <Typography paragraph>
-      Once all the members have created the team by purchasing players during Auction, User can select any player as Captain and Vice Captain.
+      Once all the members have created the team by purchasing players during Auction, user can select any player as Captain and Vice Captain.
       </Typography>
       </CardContent>
       </Card>
@@ -500,7 +501,7 @@ export default function About() {
   
   return (
     <div className={classes.root}>
-      <DIsplayGif gif="SAMPLE.GIF"/>
+      {/* <DIsplayGif gif="SAMPLE.GIF"/> */}
       <DisplayPageHeader headerName="Help Desk" groupName="" tournament=""/>
       <BlankArea/>
       {/* <DisplayVersion text="Current APL Version" version={currentVersion}/>
