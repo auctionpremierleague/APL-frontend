@@ -1,0 +1,7 @@
+{
+    "name": "APL",
+    "integrations": {
+      "capacitor": {}
+    },
+    "type": "react"
+  }
