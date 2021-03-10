@@ -98,7 +98,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'material-dashboard-react-master/build/')));
+app.use(express.static(path.join(__dirname, 'APL/build/')));
 app.use(express.json());
 
 
