@@ -169,8 +169,15 @@ export default function CreateGroup() {
     // groupName  bidAmount selectedTournament
     try {
       const response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/create/${groupName}/${localStorage.getItem("uid")}/${bidAmount}/${selectedTournament}/${memberCount}/${memberFee}`);
-      console.log(response);
+      console.log(response.data);
       setNewGid(response.data.gid)      
+
+      // set this as default
+      localStorage.setItem("gid", response.data.gid.toString());
+      localStorage.setItem("groupName", response.data.name);
+      localStorage.setItem("tournament", response.data.tournament);
+      localStorage.setItem("admin", true);
+
       let myBalance = await getUserBalance();
       setBalance(myBalance);
       // SET PRIZE is not required here since create by default will set it to 1
@@ -274,7 +281,7 @@ export default function CreateGroup() {
     let myText = copyState.value;  //process.env.REACT_APP_HOMEPAGE + "/joingroup/" + copyState.value
     if (groupCode.length > 0) {
       return (
-      <div>
+      <div align="center">
         <DisplayPageHeader headerName="Group Code" groupName="" tournament=""/>
         <BlankArea/>
         <Typography className={classes.groupCode}>{groupCode}</Typography>
@@ -284,6 +291,7 @@ export default function CreateGroup() {
             <button>Copy to clipboard</button>
         </CopyToClipboard>
         {copyState.copied ? <span style={{color: 'blue'}}>Copied.</span> : null}
+        <BlankArea />
       </div>       
       )
     } else {

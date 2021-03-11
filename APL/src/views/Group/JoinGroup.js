@@ -71,11 +71,17 @@ export default function JoinGroup() {
     //console.log("Submit command provided");
     try {
       let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/group/join/${groupCode}/${localStorage.getItem("uid")}`);
+      console.log(response.data);
+      // set this as default
+      localStorage.setItem("gid", response.data.gid.toString());
+      localStorage.setItem("groupName", response.data.name);
+      localStorage.setItem("tournament", response.data.tournament);
+      localStorage.setItem("admin", false);     // joiner is not admin
+      
       //console.log("Group Join Success");
       //let myBalance = await getUserBalance();
       //setBalance(myBalance);
       setTab(process.env.REACT_APP_GROUP);
-      //setTab(0);
     } catch (err) {
         setRegisterStatus(err.response.status);
     }

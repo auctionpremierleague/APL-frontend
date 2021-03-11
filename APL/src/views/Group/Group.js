@@ -74,45 +74,27 @@ export default function Group() {
       
     useEffect(() => {
         const a = async () => {
-            let myBalance = await getUserBalance();
-            setBalance(myBalance);
-            // console.log(myBalance); 
-
-            window.localStorage.setItem("groupMember", "");
+            // let myBalance = await getUserBalance();
+            // setBalance(myBalance);
+            localStorage.setItem("groupMember", "");
             var myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/group/memberof/${localStorage.getItem("uid")}`;
             const response = await axios.get(myUrl);
             // console.log(response.data[0].groups);
-            let setnew = true;
-            if (hasGroup()) {
-                // just check if current group is part of group list 
-                let tmp = response.data[0].groups.find(x => x.gid == localStorage.getItem("gid"));
-                if (tmp) setnew = false;
-                let gRec = response.data[0].groups.find(x => x.defaultGroup === true);
-                if (gRec) {
-                    setNewDefaultGroup(gRec.groupName);
-                }
-            }
-            // console.log(`Set new is ${setnew}`);
-            if (setnew) {
-                if (response.data[0].groups.length > 0) {
-                    var myGroup = response.data[0].groups[0];
-                    // console.log(myGroup);
-                    localStorage.setItem("gid", myGroup.gid.toString());
-                    localStorage.setItem("groupName", myGroup.groupName);
-                    localStorage.setItem("tournament", myGroup.tournament);
-                    localStorage.setItem("admin", false)
-                    setNewCurrentGroup(myGroup.name);
+            let allGroups = response.data[0].groups;
+            setMyGroupTableData(allGroups);
+            if (allGroups.length > 0) {
+                let tmp = allGroups.find(x => x.defaultGroup == true);
+                if (tmp) {
+                    setNewDefaultGroup(tmp.groupName);
                 } else {
-                    localStorage.setItem("gid", "");
-                    localStorage.setItem("groupName", "");
-                    localStorage.setItem("tournament", "");
-                    localStorage.setItem("admin", false)
-                    setNewCurrentGroup("");
+                    localStorage.setItem("gid", allGroups[0].gid.toString());
+                    localStorage.setItem("groupName", allGroups[0].groupName);
+                    localStorage.setItem("tournament", allGroups[0].tournament);
+                    localStorage.setItem("admin", allGroups[0].admin);
+                    setNewDefaultGroup(allGroups[0].groupName);
                 }
             }
-            setMyGroupTableData(response.data[0].groups);
-            // console.log(response.data[0].groups);
-            }
+        }
         a();
     }, [])
 
@@ -259,10 +241,10 @@ export default function Group() {
             {/* <Typography className={classes.messageText}>{clickmsg}</Typography> */}
         </div>
     )}
-
+    console.log(`currrent group ${localStorage.getItem("groupName")}`)
     return (
         <div className={classes.root} align="center" key="groupinfo">
-            <DisplayBalance balance={balance} />
+            {/* <DisplayBalance balance={balance} /> */}
             <ShowPageHeader />
             <ShowAllGroups />
             {/* <Button key={"create"} variant="contained" color="primary" size="small"

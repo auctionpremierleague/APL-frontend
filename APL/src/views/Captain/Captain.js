@@ -18,6 +18,7 @@ import { NoGroup, DisplayPageHeader, MessageToUser } from 'CustomComponents/Cust
 import { hasGroup } from 'views/functions';
 import { red, blue } from '@material-ui/core/colors';
 import { updateLanguageServiceSourceFile } from 'typescript';
+import { BlankArea } from 'CustomComponents/CustomComponents';
 const vcPrefix = "vicecaptain-"
 const cPrefix = "captain-"
 
@@ -42,7 +43,6 @@ const useStyles = makeStyles((theme) => ({
         // right: 0,
         fontSize: '12px',
         color: red[700],
-        // position: 'absolute',
         alignItems: 'center',
         marginTop: '0px',
     },
@@ -77,11 +77,11 @@ export default function Captain() {
     const [selectedCaptain, SetSelectedCaptain] = useState("");
     const [myTeamTableData, setMyTeamTableData] = useState([]);
     const [tournamentStated, setTournamentStarted] = useState(false);
-    const [ errorMessage, setErrorMessage ] = React.useState("");
-    const [backDropOpen, setBackDropOpen] = React.useState(false);
-    const [userMessage, setUserMessage] = React.useState("");
+    //const [ errorMessage, setErrorMessage ] = React.useState("");
+    //const [backDropOpen, setBackDropOpen] = React.useState(false);
+    //const [userMessage, setUserMessage] = React.useState("");
+    const [registerStatus, setRegisterStatus] = useState(0);
 
-      
     useEffect(() => {
         const a = async () => {
             if  (!hasGroup()) {
@@ -116,14 +116,42 @@ export default function Captain() {
         a();
     }, [])
 
+    function ShowResisterStatus() {
+        // console.log(`Status is ${registerStatus}`);
+        let myMsg;
+        let errmsg = true;
+        switch (registerStatus) { 
+          case 200:
+            myMsg = "Successfully updated Captain / ViceCaptain details";
+            errmsg = false;
+            break;
+          case 0:
+            myMsg = "";
+            errmsg = false;
+            break;
+          default:
+            myMsg = "Error updating Captain / ViceCaptain details";
+            break;
+        }
+        let myClass = (errmsg) ? classes.error : classes.root;
+        return(
+          <div>
+            <Typography align="center" className={myClass}>{myMsg}</Typography>
+          </div>
+        );
+      }
+    
+    
    
     function handleSelectedCaptain(newCap) {
+        setRegisterStatus(0);
         if (!tournamentStated)
         if (newCap !== selectedViceCaptain)
             SetSelectedCaptain(newCap);
     };
 
     function handleSelectedViceCaptain(newViceCap) {
+        setRegisterStatus(0);
         if (!tournamentStated)
         if (newViceCap !== selectedCaptain)
             SetSelectedViceCaptain(newViceCap);
@@ -138,15 +166,16 @@ export default function Captain() {
         // console.log(myUrl);
         const resp = await  axios.get(myUrl);
         // console.log(resp.status)
-        if (resp.status === 200) {
-            // setErrorMessage("Successfully updated Captain / ViceCaptain details");
-            setUserMessage("Successfully updated Captain / ViceCaptain details");
-        } else {
-        //    setErrorMessage("Error updating Captain / ViceCaptain details");
-           setUserMessage("Error updating Captain / ViceCaptain details");
-        }
-        setBackDropOpen(true);
-        setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
+        setRegisterStatus(resp.status);
+        // if (resp.status === 200) {
+        //     // setErrorMessage("Successfully updated Captain / ViceCaptain details");
+        //     setUserMessage("Successfully updated Captain / ViceCaptain details");
+        // } else {
+        // //    setErrorMessage("Error updating Captain / ViceCaptain details");
+        //    setUserMessage("Error updating Captain / ViceCaptain details");
+        // }
+        // setBackDropOpen(true);
+        // setTimeout(() => setBackDropOpen(false), process.env.REACT_APP_MESSAGE_TIME);
     }
 
 
@@ -220,12 +249,11 @@ export default function Captain() {
             <DisplayPageHeader headerName="Captain/ViceCaptain" groupName={localStorage.getItem("groupName")} tournament={localStorage.getItem("tournament")}/>
             <DisplayTournamentStarted/>
             <ShowCaptainViceCaptain/>
-            {/* <div>
-                <Typography className={classes.updatemsg} align="left">{errorMessage}</Typography>
-            </div> */}
-            <br/>
+            <BlankArea/>
+            <ShowResisterStatus/>
+            <BlankArea/>
             <DisplayCaptainSelectButton/>
-            <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={userMessage} />
+            {/* <MessageToUser mtuOpen={backDropOpen} mtuClose={setBackDropOpen} mtuMessage={userMessage} /> */}
         </div>
         );
     else
