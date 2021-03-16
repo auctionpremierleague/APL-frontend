@@ -8,9 +8,17 @@ import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { makeStyles } from '@material-ui/core/styles';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardMedia from '@material-ui/core/CardMedia';
+import CardContent from '@material-ui/core/CardContent';
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
+import {red, blue, green, yellow} from '@material-ui/core/colors';
+
 import socketIOClient from "socket.io-client";
-import { NoGroup, DisplayPageHeader } from 'CustomComponents/CustomComponents.js';
+import { NoGroup, DisplayPageHeader, 
+  ShowCreateGroup, ShowJoinGroup, ShowAuctionGroup, ShowCaptainGroup, ShowMultipleGroup
+} from 'CustomComponents/CustomComponents.js';
 // import {socketPoint} from "views/functions.js";
 
 const useStyles = makeStyles((theme) => ({
@@ -71,6 +79,81 @@ export default function Stats() {
     setExpandedPanel(isExpanded ? panel : false);
   };
 
+  const [noGroupPanel, setNGExpandedPanel] = useState(false);
+  const handleNoGroupChange = (panel) => (event, isExpanded) => {
+    // console.log({ event, isExpanded });
+    setNGExpandedPanel(isExpanded ? panel : false);
+  };
+
+  const NGStyles = makeStyles((theme) => ({
+    ngHeader: {
+      fontSize: theme.typography.pxToRem(18),
+      fontWeight: theme.typography.fontWeightBold,
+    },
+    ngCard: {
+      backgroundColor: '#B3E5FC',
+    },
+  }));
+  
+  
+  function ShowNoGroup() {
+    const classes = NGStyles();
+    return (
+      <Card className={classes.ngCard}>
+      <CardContent>
+      <Typography paragraph>
+      Welcome to Aution Premier League (APL).
+      </Typography>
+      <Typography paragraph>
+      You need to be a member of the group. You can Create New Group by clicking on "Group Icon" (on right hand side) and select "New Group".
+      </Typography>
+      <Typography paragraph>
+      If your friend has created the group and shared the groupcode, just click on "Group Icon" (on right hand side) and select "Join Group".
+      </Typography>
+      <Typography paragraph>
+      Once you join the group, enjoy the game. Auction Players, select Captain and Vice Captain.
+      </Typography>
+      <Typography paragraph>
+      Once the tournament starts, APL will automatically assign the points based on performance of players.
+      </Typography>
+      <Typography paragraph>
+      Dashbord will show the details of your group and Stats will show the point allocation.
+      </Typography>
+      <Accordion expanded={noGroupPanel === "CREATE"} onChange={handleNoGroupChange("CREATE")}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+      <Typography className={classes.ngHeader}>Create Group</Typography>
+      </AccordionSummary>
+      <AccordionDetails><ShowCreateGroup/></AccordionDetails>
+      </Accordion>
+      <Accordion expanded={noGroupPanel === "JOIN"} onChange={handleNoGroupChange("JOIN")}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+      <Typography className={classes.ngHeader}>Join Group</Typography>
+      </AccordionSummary>
+      <AccordionDetails><ShowJoinGroup/></AccordionDetails>
+      </Accordion>
+      <Accordion expanded={noGroupPanel === "AUCTION"} onChange={handleNoGroupChange("AUCTION")}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+      <Typography className={classes.ngHeader}>Auction</Typography>
+      </AccordionSummary>
+      <AccordionDetails><ShowAuctionGroup/></AccordionDetails>
+      </Accordion>
+      <Accordion expanded={noGroupPanel === "CAPTAIN"} onChange={handleNoGroupChange("CAPTAIN")}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+      <Typography className={classes.ngHeader}>Captain and ViceCaptain</Typography>
+      </AccordionSummary>
+      <AccordionDetails><ShowCaptainGroup/></AccordionDetails>
+      </Accordion>
+      <Accordion expanded={noGroupPanel === "MULTIPLE"} onChange={handleNoGroupChange("MULTIPLE")}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+      <Typography className={classes.ngHeader}>Multiple Group</Typography>
+      </AccordionSummary>
+      <AccordionDetails><ShowMultipleGroup/></AccordionDetails>
+      </Accordion>
+      </CardContent>
+      </Card>
+    )
+  };
+  
   function ShowStats() {  
       // console.log(teamArray);
       return (teamArray.map(team =>
@@ -103,7 +186,7 @@ export default function Stats() {
     </div>
   );
   else
-    return <NoGroup/>;
+    return <ShowNoGroup/>;
 };
 
 

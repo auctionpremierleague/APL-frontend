@@ -118,6 +118,7 @@ export default function SignIn() {
       window.localStorage.setItem("tournament", response.data.tournament);
       window.localStorage.setItem("admin", response.data.admin)
       window.localStorage.setItem("userPlan", userPlan);
+      window.localStorage.setItem("SNG", "");
       // setUser({ uid: myUID, admin: response.data.admin });
       // cdRefresh(true);
       //let newPos = specialSetPos();
