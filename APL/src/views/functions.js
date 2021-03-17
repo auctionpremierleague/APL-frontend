@@ -190,7 +190,7 @@ export function getImageName(teamName) {
   return imageName;
 }
 
-export async function currentAPLVersion() {
+export function currentAPLVersion() {
   return(parseFloat(process.env.REACT_APP_VERSION));
 }
 
@@ -198,10 +198,23 @@ export async function latestAPLVersion()  {
   let version = 0.1;
   try {
     let response = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/apl/latestversion`);
-    let tmp = response.data;
-    version = parseFloat(tmp);
+    // console.log(response);
+    // let tmp = response.data;
+    version = parseFloat(response.data);
   } catch(err) {
     version = 0.1;
   }
   return version;
+}
+
+export async function upGradeRequired() {
+  let upGrade = false;
+  if (process.env.REACT_APP_DEVICE === "MOBILE") {
+    let mycurrent = currentAPLVersion();
+    let mylatest = await latestAPLVersion();
+    // console.log(`Current ${mycurrent} and Latest: ${mylatest}`);
+    if (mylatest > mycurrent) upGrade = true;
+  }
+  // console.log(`Latest upgrade: ${upGrade}`);
+  return (upGrade);
 }

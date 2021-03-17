@@ -173,7 +173,7 @@ export default function MatchInfo() {
                 tableHeaderColor="warning"
                 tableHead={["Teams", "Time"]}
                 tableData={props.myTable.map(mmm => {
-                    const arr = [ mmm.team1 + "Vs." + mmm.team2, mmm.matchTime]
+                    const arr = [ mmm.team1 + " Vs. " + mmm.team2, mmm.matchTime]
                     return { data: arr, collapse: [] }
                 })}
                 />

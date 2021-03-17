@@ -186,7 +186,7 @@ export default function Stats() {
     </div>
   );
   else
-    return <ShowNoGroup/>;
+    return <NoGroup/>;
 };
 
 

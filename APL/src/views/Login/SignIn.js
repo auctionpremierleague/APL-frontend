@@ -79,14 +79,14 @@ export default function SignIn() {
   });
 
   function handleForgot() {
-    console.log("Call forgot password here")
+    //console.log("Call forgot password here")
     // history.push('/admin/emailpassword');
     localStorage.setItem("currentLogin", "RESET");
     cdRefresh();
   }
 
   function handleRegister() {
-    console.log("Call for register here");
+    //console.log("Call for register here");
     // history.push("/admin/register")
     localStorage.setItem("currentLogin", "SIGNUP");
     cdRefresh();
@@ -101,7 +101,7 @@ export default function SignIn() {
     } catch (err) {
       setErrorMessage("Invalid Username / Password");
     }
-    console.log(`Signin status ${response.status}`);
+    //console.log(`Signin status ${response.status}`);
     if (response.status === 200) {
       let myUID = response.data.uid;
       let userPlan = response.data.userPlan; 
@@ -119,12 +119,13 @@ export default function SignIn() {
       window.localStorage.setItem("admin", response.data.admin)
       window.localStorage.setItem("userPlan", userPlan);
       window.localStorage.setItem("SNG", "");
+      window.localStorage.setItem("cGroup", "");
       // setUser({ uid: myUID, admin: response.data.admin });
       // cdRefresh(true);
       //let newPos = specialSetPos();
       //if (newPos < 0) newPos = 0;
       let newPos = (response.data.gid > 0) ? process.env.REACT_APP_DASHBOARD : process.env.REACT_APP_GROUP;
-      setTab(newPos);
+      setTab(4);
     }
 
   }

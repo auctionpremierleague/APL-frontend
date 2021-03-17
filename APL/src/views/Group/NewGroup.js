@@ -133,7 +133,7 @@ export default function CreateGroup() {
   const [prizeTable, setPrizeTable] = useState([]);
   const [masterPrizeTable, setMasterPrizeTable] = useState([]);
   const [newGid, setNewGid] = useState(0);
-
+  const [isDisabled, setIsDisabled] = useState(false);
   // state = {
   //   value: 'arunsalgia',
   //   copied: false,
@@ -152,7 +152,15 @@ export default function CreateGroup() {
         // console.log("Getting tournament list");
         // console.log(response.data);
         setTournamentData(response.data);
-        SetSelectedTournament(response.data[0].name);
+        let selTournament = (response.data.length > 0) ? response.data[0].name : "";
+        let myDisable = false;
+        if (localStorage.getItem("cGroup").length > 0) {
+          selTournament = localStorage.getItem("cGroup");
+          localStorage.setItem("cGroup", "");
+          myDisable = true;
+        }
+        SetSelectedTournament(selTournament);
+        setIsDisabled(myDisable);
     };    
     a();
   }, []);
@@ -422,6 +430,7 @@ export default function CreateGroup() {
       <BlankArea/>
       <Select labelId='tournament' id='tournament'
         variant="outlined"
+        disabled={isDisabled}
         required
         fullWidth
         label="Tournament Name"

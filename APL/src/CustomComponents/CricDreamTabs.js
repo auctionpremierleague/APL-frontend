@@ -5,6 +5,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';
+import HomeIcon from '@material-ui/icons/Home';
 import MenuIcon from '@material-ui/icons/Menu';
 import GroupIcon from '@material-ui/icons/Group';
 import Button from '@material-ui/core/Button';
@@ -16,7 +17,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu'; 
 import {red, blue, green} from '@material-ui/core/colors';
 import Divider from '@material-ui/core/Divider';
-import {cdRefresh, specialSetPos} from "views/functions.js"
+import {cdRefresh, specialSetPos, upGradeRequired} from "views/functions.js"
 /// cd items import
 import Dash from "views/Dashboard/Dashboard"
 import Stats from "views/Statistics/Statistics"
@@ -29,12 +30,28 @@ import Wallet from "views/Wallet/Wallet.js"
 import Profile from "views/Profile/Profile.js"
 import ChangePassword from "views/Login/ChangePassword.js"
 import About from "views/APL/About.js"
+import Home from "views/APL/Home.js"
 import ContactUs from "views/APL/ContactUs.js"
 import SU_Tournament from "views/SuperUser/Tournament.js" 
 import SU_Player from "views/SuperUser/Player.js" 
 import NewGroup from "views/Group/NewGroup.js"
 import JoinGroup from "views/Group/JoinGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
+import { BlankArea } from './CustomComponents';
+import Modal from 'react-modal';
+//import {upGradeRequired} from "views/functions";
+
+
+const customStyles = {
+  content : {
+    top                   : '50%',
+    left                  : '50%',
+    right                 : 'auto',
+    bottom                : 'auto',
+    marginRight           : '-50%',
+    transform             : 'translate(-50%, -50%)'
+  }
+};
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,6 +60,9 @@ const useStyles = makeStyles((theme) => ({
   menuButton: {
     // marginRight: theme.spacing(2),
     marginLeft: theme.spacing(1),
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
   },
   icon : {
     color: '#FFFFFF',
@@ -61,8 +81,10 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(0),
     marginLeft: theme.spacing(0),
   },
-
-
+  new: {
+    fontSize: theme.typography.pxToRem(20),
+    fontWeight: theme.typography.fontWeightBold,
+  },
   title: {
     flexGrow: 1,
   },
@@ -78,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
 
 export function setTab(num) {
   //myTabPosition = num;
-  console.log(`Menu pos ${num}`);
+  //console.log(`Menu pos ${num}`);
   localStorage.setItem("menuValue", num);
   cdRefresh();
 }
@@ -94,8 +116,24 @@ export function CricDreamTabs() {
   const [grpAnchorEl, setGrpAnchorEl] = React.useState(null);
   const grpOpen = Boolean(grpAnchorEl);
   const [value, setValue] = React.useState(parseInt(localStorage.getItem("menuValue")));
+  const [upgrade, setUpgrade] = React.useState(false);
+  const [modalIsOpen,setIsOpen] = React.useState(true);
 
-  console.log(`in Tab function  ${localStorage.getItem("menuValue")}`);
+
+  useEffect(() => {       
+    const testUpgrade = async () => {
+      //console.log("about to call upgrade");
+      let upg = await upGradeRequired();
+      //console.log("After chkupgrade");
+      setUpgrade(upg);
+      //console.log(upg);
+      setIsOpen(true);
+    }
+    testUpgrade();
+}, []);
+
+
+  //console.log(`in Tab function  ${localStorage.getItem("menuValue")}`);
 
   const handleChange = (event) => {
     setAuth(event.target.checked);
@@ -126,6 +164,7 @@ export function CricDreamTabs() {
   const handleDash = () => { setMenuValue(1);  }
   const handleStat = () => { setMenuValue(2);  }
   const handleTeam = () => { setMenuValue(3);  }
+  const handleHome = () => { setMenuValue(4);  }
   const handleMatch = () => { handleClose(); setMenuValue(101);}
   const handleAuction = () => { handleClose(); setMenuValue(102);}
   const handleCaptain = () => { handleClose(); setMenuValue(103);}
@@ -166,6 +205,7 @@ export function CricDreamTabs() {
       case 1: return <Dash/>; 
       case 2: return <Stats/>;
       case 3: return <MyTeam />;
+      case 4: return <Home />;
       case 101: return <Match />;
       case 102: return <Auction />;
       case 103: return <Captain />;
@@ -184,6 +224,46 @@ export function CricDreamTabs() {
     }
   }
 
+  function handleUpgrade() {
+    //console.log("upgrade requested");
+    closeModal();
+  }
+
+  function openModal() { setIsOpen(true); }
+ 
+  function afterOpenModal() {
+    // references are now sync'd and can be accessed.
+    //subtitle.style.color = '#f00';
+  }
+ 
+  function closeModal(){ setIsOpen(false); }
+
+  function DisplayUpgrade() {
+    //console.log(`Upgrate: ${upgrade} Menu Item:   ${value}`)
+    if (upgrade && (value === 1))
+      return(
+        <Modal
+        isOpen={modalIsOpen}
+        onAfterOpen={afterOpenModal}
+        onRequestClose={closeModal}
+        style={customStyles}
+        contentLabel="Example Modal"
+      >
+        <Typography className={classes.new} align="center">
+          Whats's New
+        </Typography>
+        <BlankArea/>
+        <Typography>Ver 2.0</Typography>
+        <Button key="upgrade" variant="contained" color="primary" size="small"
+        className={classes.dashButton} onClick={handleUpgrade}>Update Now
+        </Button>
+      </Modal>
+      )
+    else
+      return(<BlankArea/>)
+  }
+
+
   let mylogo = `${process.env.PUBLIC_URL}/APLLOGO1.ICO`;
   return (
     <div className={classes.root}>
@@ -195,7 +275,7 @@ export function CricDreamTabs() {
       </FormGroup> */}
       <AppBar position="static">
         <Toolbar>
-          <Avatar variant="square" className={classes.avatar}  src={mylogo}/>
+          {/* <Avatar variant="square" className={classes.avatar}  src={mylogo}/> */}
           {auth && (
             <div>
               <IconButton
@@ -243,6 +323,15 @@ export function CricDreamTabs() {
           {/* <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
             <MenuIcon />
           </IconButton> */}
+          <IconButton
+            aria-label="account of current user"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
+            onClick={handleHome}
+            color="inherit"
+          >
+            <HomeIcon className={classes.icon}/>
+          </IconButton>
           <Button color="inherit" className={classes.dashButton} onClick={handleDash}>DashBoard</Button>
           <Button color="inherit" className={classes.statButton} onClick={handleStat}>Stats</Button>
           <Button color="inherit" className={classes.teamButton} onClick={handleTeam}>Team</Button>
@@ -285,6 +374,7 @@ export function CricDreamTabs() {
         </Toolbar>
       </AppBar>
       <DisplayCdItems/>
+      <DisplayUpgrade/>
     </div>
   );
 }
