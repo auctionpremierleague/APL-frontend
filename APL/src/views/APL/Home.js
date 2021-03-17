@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
+import { spacing } from '@material-ui/system';
 import axios from "axios";
 import { makeStyles } from '@material-ui/core/styles';
 // import { Switch, Route, Link } from 'react-router-dom';
@@ -126,8 +127,8 @@ export default function Home() {
     return (tournamentList.map(x =>
         <div>
         {/* <Box borderColor="primary" borderRadius={16} border={2}> */}
-        <Box borderColor="primary" border={1}>
-        <Card gutterBottom>
+        <Box paddingLeft={2} paddingRight={2} borderColor="primary" border={0}>
+        <Card m={2} raised variant="outlined" gutterBottom>
         <CardContent>
         <Typography className={classes.ngCard} align="center">{x.name}</Typography>
         </CardContent>
