@@ -55,6 +55,11 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: theme.typography.fontWeightBold,
     color: blue[700]
   },
+  groupMessage: {
+    fontSize: theme.typography.pxToRem(10),
+    fontWeight: theme.typography.fontWeightBold,
+    // color: yellow[900]
+  },
   groupCode: {
     fontSize: theme.typography.pxToRem(20),
     fontWeight: theme.typography.fontWeightBold,
@@ -359,6 +364,9 @@ export default function GroupDetails() {
     // console.log("in group code");
     return (
         <div>
+          {/* <BlankArea/> */}
+          <Typography className={classes.groupMessage}>Share this code with your friends to join your group</Typography>
+          <BlankArea/>
           <Typography className={classes.groupCode}>{groupCode}</Typography>
           <BlankArea/>
           <CopyToClipboard text={myText}

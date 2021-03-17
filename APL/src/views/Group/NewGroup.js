@@ -57,6 +57,11 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: theme.typography.fontWeightBold,
     color: yellow[900]
   },
+  groupMessage: {
+    fontSize: theme.typography.pxToRem(10),
+    fontWeight: theme.typography.fontWeightBold,
+    // color: yellow[900]
+  },
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
@@ -291,6 +296,8 @@ export default function CreateGroup() {
       return (
       <div align="center">
         <DisplayPageHeader headerName="Group Code" groupName="" tournament=""/>
+        <BlankArea/>
+        <Typography className={classes.groupMessage}>Share this code with your friends to join your group</Typography>
         <BlankArea/>
         <Typography className={classes.groupCode}>{groupCode}</Typography>
         <BlankArea/>
