@@ -97,7 +97,7 @@ export default function SU_Player() {
   const [updatePlayer, setUpdatePlayer] = useState("");
   useEffect(() => {
       const a = async () => {
-        var tourres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/tournament/list/enabled/`);
+        var tourres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/tournament/list/notstarted/`);
         setTournamentList(tourres.data);
         var teamres = await axios.get(`${process.env.REACT_APP_AXIOS_BASEPATH}/team/list/`);
         //console.log(teamres.data);  
@@ -550,7 +550,8 @@ export default function SU_Player() {
     let myPid = parseInt(tPid);
     // check if duplicate entry
     let tTmp = clone.filter(x => x.pid === myPid);
-    if (tTmp) {
+    console.log(tTmp);
+    if (tTmp.length > 0) {
       setRegisterStatus(9003);
       return;
     }

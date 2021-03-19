@@ -34,6 +34,7 @@ import Home from "views/APL/Home.js"
 import ContactUs from "views/APL/ContactUs.js"
 import SU_Tournament from "views/SuperUser/Tournament.js" 
 import SU_Player from "views/SuperUser/Player.js" 
+import SU_Image from "views/SuperUser/Image.js" 
 import NewGroup from "views/Group/NewGroup.js"
 import JoinGroup from "views/Group/JoinGroup.js"
 import GroupDetails from "views/Group/GroupDetails.js"
@@ -176,6 +177,7 @@ export function CricDreamTabs() {
   const handleContactUs = () => { handleClose(); setMenuValue(202);}
   const handleSuTournament = () => { handleClose(); setMenuValue(301);}
   const handleSuPlayer = () => { handleClose(); setMenuValue(302);}
+  const handleSuImage = () => { handleClose(); setMenuValue(303);}
 
   const handleGroupNew = () => { handleGrpClose(); setMenuValue(1001);}
   const handleGroupJoin = () => { handleGrpClose(); setMenuValue(1002);}
@@ -194,6 +196,7 @@ export function CricDreamTabs() {
         <div>
         <MenuItem onClick={handleSuTournament}>SU Tournament</MenuItem>
         <MenuItem onClick={handleSuPlayer}>SU Player</MenuItem>
+        {/* <MenuItem onClick={handleSuImage}>SU Load Image</MenuItem> */}
         </div>)
     } else {
       return (<div></div>)
@@ -217,6 +220,7 @@ export function CricDreamTabs() {
       case 202: return <ContactUs />;
       case 301: return <SU_Tournament />;
       case 302: return <SU_Player />;
+      case 303: return <SU_Image />;
       case 1001: return <NewGroup />;
       case 1002: return <JoinGroup />;
       case 1003: return <GroupDetails />;
