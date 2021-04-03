@@ -318,6 +318,9 @@ export default function Auction() {
     }
 
     function ShowPlayerAvatar(props) {
+        let myTeam = `${process.env.PUBLIC_URL}/${props.pTeamLogo}.JPG`
+        myTeam = myTeam.replaceAll(" ", "");
+        // console.log(`Team:${myTeam}`);
         return (
             <div key="playerInfo">
                 <Card profile>                    
@@ -328,7 +331,8 @@ export default function Auction() {
                         {/* <h6 className={classes.cardTitle}>{props.pName}</h6> */}
                         <h6 className={classes.hdrText}>{props.pName}</h6>
                         <Grid container justify="center" alignItems="center">
-                            <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.pTeamLogo}.JPG`} className={classes.medium} />
+                            {/* <Avatar variant="square" src={`${process.env.PUBLIC_URL}/${props.pTeamLogo}.JPG`} className={classes.medium} /> */}
+                            <Avatar variant="square" src={myTeam} className={classes.medium} />
                         </Grid>
                         <div align="center"><h6 className={classes.hdrText} align="center">
                             {role}<br/>
