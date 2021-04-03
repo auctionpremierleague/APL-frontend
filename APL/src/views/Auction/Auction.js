@@ -58,6 +58,9 @@ const useStyles = makeStyles((theme) => ({
     image: {
         height: "200px"
     },
+    bidButton: {
+        padding: "4px"
+    },
     container: {
         backgroundImage: `url(${process.env.PUBLIC_URL}/0.JPG)`,
         backgroundSize: 'cover'
@@ -412,18 +415,35 @@ export default function Auction() {
                 <div align="center">
                     <BidButton value="NAME"/>
                 </div>
-                <div align="center">
+                <Grid className={classes.bidButton} m={1} p={1} container justify="center" alignItems="center" />
+                <Grid className={classes.bidButton} m={1} p={1} container justify="center" alignItems="center" >
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="5" />
+                </GridItem>
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="10" />
+                </GridItem>
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="15" />
+                </GridItem>
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="20" />
-                </div>
-                <div align="center">
+                </GridItem>
+                </Grid>
+                <Grid className={classes.bidButton} m={1} p={1} container justify="center" alignItems="center" >
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="25" />
+                </GridItem>
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="50" />
+                </GridItem>
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="75" />
+                </GridItem>
+                <GridItem xs={3} sm={3} md={3} lg={3} >
                     <BidButton value="100" />
-                </div>
+                </GridItem>
+                </Grid>
             </div>);
         else
             return(<div></div>);
@@ -454,26 +474,35 @@ export default function Auction() {
         if (localStorage.getItem("admin").toLowerCase() === "true")
             return(
             <div align="center" key="playerAuctionButton">
-                <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    className={classes.button}
-                    // startIcon={<CheckSharpIcon />}
-                    disabled={((bidAmount === 0) || (bidPaused === "true"))}
-                    onClick={sellPlayer}>
-                    SOLD
-                </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    className={classes.button}
-                    // startIcon={<ClearSharpIcon />}
-                    disabled={((bidAmount !== 0) || (bidPaused === "true"))}
-                    onClick={() => skipPlayer()}>
-                    UNSOLD
-                </Button>
+            <Grid className={classes.bidButton} m={1} p={1} container justify="center" alignItems="center" />
+            <Grid className={classes.bidButton} m={1} p={1} container justify="center" alignItems="center" >
+            <GridItem xs={2} sm={2} md={2} lg={2} />
+            <GridItem xs={4} sm={4} md={4} lg={4} >
+            <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                className={classes.button}
+                // startIcon={<CheckSharpIcon />}
+                disabled={((bidAmount === 0) || (bidPaused === "true"))}
+                onClick={sellPlayer}>
+                SOLD
+            </Button>
+            </GridItem>
+            <GridItem xs={4} sm={4} md={4} lg={4} >
+            <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                className={classes.button}
+                // startIcon={<ClearSharpIcon />}
+                disabled={((bidAmount !== 0) || (bidPaused === "true"))}
+                onClick={() => skipPlayer()}>
+                UNSOLD
+            </Button>
+            </GridItem>
+            <GridItem xs={2} sm={2} md={2} lg={2} />
+            </Grid>
             </div>
             );
         else 
